@@ -14,10 +14,17 @@ public:
 	//描画
 	void Drow();
 
+	//デリート
+	~GameScene();
+
 private:
 	//スプライト描画
 	uint32_t textureHandle_ = 0;
+
 	//3Dモデル
 	KamataEngine::Model* model_ = nullptr;
+
+	//カメラ
+	KamataEngine::Camera camera_;
 
 };
