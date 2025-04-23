@@ -12,7 +12,7 @@ void GameScene::Initialize() {
 	//3Dモデル生成
 	model_ = Model::Create();
 
-	Camera::Initialize;
+	Camera::Initialize();
 
 
 }
