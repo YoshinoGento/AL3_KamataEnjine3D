@@ -14,4 +14,8 @@ public:
 	//描画
 	void Drow();
 
+private:
+	uint32_t textureHandle_ = 0;
+
+
 };

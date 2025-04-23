@@ -7,3 +7,5 @@ void GameScene::Initialize() {}
 void GameScene::Update() {}
 
 void GameScene::Drow() {}
+#include "GameScene.h"
+
