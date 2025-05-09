@@ -1,6 +1,7 @@
 #include "GameScene.h"
 #include "KamataEngine.h"
 #include <Windows.h>
+#include "Math.h"
 
 // これを書くことでKamataEmgine::と書かずに済む
 using namespace KamataEngine;

@@ -1,5 +1,6 @@
 #pragma once
 #include "KamataEngine.h"
+#include <vector>
 
 // ゲームシーン
 class GameScene {
@@ -16,6 +17,7 @@ public:
 
 	~GameScene();
 
+
 private:
 	// テクスチャーハンドル
 	uint32_t textureHandle_ = 0;
@@ -23,14 +25,19 @@ private:
 	//サウンドデータハンドル
 	uint32_t soundDataHandle_ = 0;
 
-	//音声再生ハンドル
-	uint32_t voiceHandle_ = 0;
+	////音声再生ハンドル
+	//uint32_t voiceHandle_ = 0;
 
 	//スプライト
 	KamataEngine::Sprite* sprite_ = nullptr;
 
-	//3Dモデル
+	//3Dブロックモデル
+	KamataEngine::Model* block_model_ = nullptr;
+	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
+
+	// 3Dモデル
 	KamataEngine::Model* model_ = nullptr;
+	
 
 	//ワールドトランスフォーム
 	KamataEngine::WorldTransform worldTransform_;
@@ -43,6 +50,9 @@ private:
 	//デバックカメラ
 	KamataEngine::DebugCamera* debugCamera_ = nullptr;
 
-};
+	//デバックカメラ有効
+	bool isDebugCameraActive_ = false;
+	
 
+};
 
