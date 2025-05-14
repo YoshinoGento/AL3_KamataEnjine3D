@@ -61,6 +61,11 @@ void GameScene::Initialize() {
 
 	// 縦方向表示が参照するビュープロジェクションを指定する（アドレス渡し）
 	AxisIndicator::GetInstance()->SetTargetCamera(&debugCamera_->GetCamera());
+
+
+	//3Dモデルの生成
+	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
+	
 }
 
 void GameScene::Update() {
@@ -89,6 +94,11 @@ void GameScene::Update() {
 //	ImGui::End();
 //
 //	ImGui::ShowDemoWindow();
+
+	
+
+
+
 
 	// デバックカメラ更新
 	debugCamera_->Update();
@@ -122,6 +132,9 @@ void GameScene::Update() {
 			worldTransformBlock->TransferMatrix();
 		}
 	}
+
+
+
 }
 
 void GameScene::Drow() {
@@ -163,6 +176,7 @@ GameScene::~GameScene() {
 	delete model_;
 	delete sprite_;
 	delete debugCamera_;
+	delete modelSkydome_;
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
 			if (!worldTransformBlock)

@@ -37,6 +37,7 @@ private:
 
 	// 3Dモデル
 	KamataEngine::Model* model_ = nullptr;
+	KamataEngine::Model* modelSkydome_ = nullptr;
 	
 
 	//ワールドトランスフォーム
