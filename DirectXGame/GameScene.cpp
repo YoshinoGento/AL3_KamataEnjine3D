@@ -1,5 +1,6 @@
 #include "GameScene.h"
 #include "ImageHlp.h"
+#include "MapChipField.h"
 #include "KamataEngine.h"
 #include "Math.h"
 using namespace KamataEngine;
@@ -61,6 +62,10 @@ void GameScene::Initialize() {
 
 	// 縦方向表示が参照するビュープロジェクションを指定する（アドレス渡し）
 	AxisIndicator::GetInstance()->SetTargetCamera(&debugCamera_->GetCamera());
+
+	MapChipField*mapChipField_ = new MapChipField;
+	mapChipField_->LoadMapChipCsv("./Resources/blocks.csv");
+	
 }
 
 void GameScene::Update() {
@@ -163,6 +168,7 @@ GameScene::~GameScene() {
 	delete model_;
 	delete sprite_;
 	delete debugCamera_;
+	delete mapChipField_;
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
 			if (!worldTransformBlock)
@@ -171,4 +177,5 @@ GameScene::~GameScene() {
 		}
 	}
 	worldTransformBlocks_.clear();
+
 }
