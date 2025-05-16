@@ -38,10 +38,10 @@ public:
   const float PI = 3.141592654f;  
 
   // 代入演算子オーバーロード  
-  KamataEngine::Vector3& operator+=(KamataEngine::Vector3& lhs, const KamataEngine::Vector3& rhv);  
+ /* KamataEngine::Vector3& operator+=(KamataEngine::Vector3& lhs, const KamataEngine::Vector3& rhv);  
   KamataEngine::Vector3& operator-=(KamataEngine::Vector3& lhs, const KamataEngine::Vector3& rhv);  
   KamataEngine::Vector3& operator*=(KamataEngine::Vector3& v, float s);  
-  KamataEngine::Vector3& operator/=(KamataEngine::Vector3& v, float s);  
+  KamataEngine::Vector3& operator/=(KamataEngine::Vector3& v, float s);  */
 
   // 単位行列の作成  
   KamataEngine::Matrix4x4 MakeIdentityMatrix();  
@@ -56,9 +56,9 @@ public:
   // アフィン変換行列の作成  
   KamataEngine::Matrix4x4 MakeAffineMatrix(const KamataEngine::Vector3& scale, const KamataEngine::Vector3& rot, const KamataEngine::Vector3& translate);  
 
-  // 代入演算子オーバーロード  
-  KamataEngine::Matrix4x4& operator*=(KamataEngine::Matrix4x4& lhm, const KamataEngine::Matrix4x4& rhm);  
+  //// 代入演算子オーバーロード  
+  //KamataEngine::Matrix4x4& operator*=(KamataEngine::Matrix4x4& lhm, const KamataEngine::Matrix4x4& rhm);  
 
-  // 2項演算子オーバーロード  
-  KamataEngine::Matrix4x4 operator*(const KamataEngine::Matrix4x4& m1, const KamataEngine::Matrix4x4& m2);  
+  //// 2項演算子オーバーロード  
+  //KamataEngine::Matrix4x4 operator*(const KamataEngine::Matrix4x4& m1, const KamataEngine::Matrix4x4& m2);  
 };
