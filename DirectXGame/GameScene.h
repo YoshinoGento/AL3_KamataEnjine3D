@@ -1,58 +1,55 @@
-#pragma once
-#include "KamataEngine.h"
-#include <vector>
+#pragma once  
+#include "KamataEngine.h"  
+#include "MapChipField.h" 
+#include <vector>  
 
-// ゲームシーン
-class GameScene {
-public:
-	// 初期化
-	void Initialize();
+// ゲームシーン  
+class GameScene {  
+public:  
+   // 初期化  
+   void Initialize();  
 
-	// 更新
-	void Update();
+   // 更新  
+   void Update();  
 
-	// 描画
-	void Drow();
+   // 描画  
+   void Drow();  
 
+   ~GameScene();  
 
-	~GameScene();
+   void GenerateBlocks();  
 
+private:  
+   // テクスチャーハンドル  
+   uint32_t textureHandle_ = 0;  
 
-private:
-	// テクスチャーハンドル
-	uint32_t textureHandle_ = 0;
+   // サウンドデータハンドル  
+   uint32_t soundDataHandle_ = 0;  
 
-	//サウンドデータハンドル
-	uint32_t soundDataHandle_ = 0;
+   // スプライト  
+   KamataEngine::Sprite* sprite_ = nullptr;  
 
-	////音声再生ハンドル
-	//uint32_t voiceHandle_ = 0;
+   // 3Dブロックモデル  
+   KamataEngine::Model* block_model_ = nullptr;  
+   std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;  
 
-	//スプライト
-	KamataEngine::Sprite* sprite_ = nullptr;
+   // 3Dモデル  
+   KamataEngine::Model* model_ = nullptr;  
 
-	//3Dブロックモデル
-	KamataEngine::Model* block_model_ = nullptr;
-	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
+   // ワールドトランスフォーム  
+   KamataEngine::WorldTransform worldTransform_;  
+   // カメラ  
+   KamataEngine::Camera camera_;  
 
-	// 3Dモデル
-	KamataEngine::Model* model_ = nullptr;
-	
+   // ImGuiで値を入力する変数  
+   float inputFloat3[3] = {0, 0, 0};  
 
-	//ワールドトランスフォーム
-	KamataEngine::WorldTransform worldTransform_;
-	//カメラ
-	KamataEngine::Camera camera_;
+   // デバックカメラ  
+   KamataEngine::DebugCamera* debugCamera_ = nullptr;  
 
-	//ImGuiで値を入力する変数
-	float inputFloat3[3] = {0, 0, 0};
+   // デバックカメラ有効  
+   bool isDebugCameraActive_ = false;  
 
-	//デバックカメラ
-	KamataEngine::DebugCamera* debugCamera_ = nullptr;
-
-	//デバックカメラ有効
-	bool isDebugCameraActive_ = false;
-	
-
+   // マップチップフィールド  
+   MapChipField* mapChipField_; // 修正済み: MapChipField クラスが正しく解決されるようにヘッダーをインクルード  
 };
-

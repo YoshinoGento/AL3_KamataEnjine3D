@@ -67,12 +67,10 @@ MapChipType MapChipField::GetMapChipTypeByIndex(uint32_t xIndex, uint32_t yIndex
 		return MapChipType::kBlank;
 	}
 	if (yIndex < 0 || kNumBlockVertical - 1 < yIndex) {
-		return mapChipData_.data[yIndex][xIndex];
+		return MapChipType::kBlank;
 	}
 	
-	
-	
-	return MapChipType(); 
+	return mapChipData_.data[yIndex][xIndex]; 
 }
 
 Vector3 MapChipField::GetMapChipPositionByIndex(uint32_t xIndex, uint32_t yIndex) { 
