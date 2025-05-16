@@ -114,3 +114,7 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rot, const Vecto
 
 	return matTransform;
 }
+
+KamataEngine::Vector3& Math::operator+=(KamataEngine::Vector3& lhs, const KamataEngine::Vector3& rhv) {
+	// TODO: return ステートメントをここに挿入します
+}

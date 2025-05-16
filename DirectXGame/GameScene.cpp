@@ -160,6 +160,8 @@ void GameScene::Drow() {
 	// 3Dモデル描画前処理
 	// Model::PostDraw();
 
+
+
 	// ブロックの描画
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {

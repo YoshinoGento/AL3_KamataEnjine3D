@@ -1,5 +1,6 @@
 #pragma once
 #include "KamataEngine.h"
+#include"Math.h"
 
 /// <summary>
 /// 天球
@@ -10,7 +11,7 @@ public:
 	/// <summary>
 	/// 初期化
 	/// </summary>
-	void Initialize();
+	void Initialize(KamataEngine::Model* model,KamataEngine::Camera* camera);
 
 	/// <summary>
 	/// 更新
@@ -28,5 +29,10 @@ private:
 	KamataEngine::WorldTransform worldTransform_;
 	//モデル
 	KamataEngine::Model* model_ = nullptr;
-		
+
+	//カメラ
+	KamataEngine::Camera* camera_ = nullptr;
+
+	//数学関数
+	 math_;
 };
