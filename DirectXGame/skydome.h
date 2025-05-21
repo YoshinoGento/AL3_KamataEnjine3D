@@ -34,5 +34,5 @@ private:
 	KamataEngine::Camera* camera_ = nullptr;
 
 	//数学関数
-	Math* math_;
+	Math math_;
 };

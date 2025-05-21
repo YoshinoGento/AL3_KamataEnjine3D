@@ -65,6 +65,8 @@ void GameScene::Initialize() {
 
 	//3Dモデルの生成
 	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
+
+	
 	
 }
 
@@ -127,7 +129,7 @@ void GameScene::Update() {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
 			if (!worldTransformBlock)
 				continue;
-			worldTransformBlock->matWorld_ = MakeAffineMatrix(worldTransformBlock->scale_, worldTransformBlock->rotation_, worldTransformBlock->translation_);
+			worldTransformBlock->matWorld_ = math_.MakeAffineMatrix(worldTransformBlock->scale_, worldTransformBlock->rotation_, worldTransformBlock->translation_);
 			// 定数バッファに転送する
 			worldTransformBlock->TransferMatrix();
 		}
@@ -160,7 +162,15 @@ void GameScene::Drow() {
 	// 3Dモデル描画前処理
 	// Model::PostDraw();
 
+	//3Dモデルの生成
+	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
 
+	//天球の生成
+	skydome_ = new skydome();
+	skydome_->Initialize(modelSkydome_,&camera_);
+
+	//SKydome描画
+	skydome_->Draw();
 
 	// ブロックの描画
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
@@ -187,4 +197,5 @@ GameScene::~GameScene() {
 		}
 	}
 	worldTransformBlocks_.clear();
+	skydome_->Update();
 }

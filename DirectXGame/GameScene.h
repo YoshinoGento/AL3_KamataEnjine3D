@@ -1,6 +1,8 @@
 #pragma once
 #include "KamataEngine.h"
 #include <vector>
+#include"Math.h"
+#include"skydome.h"
 
 // ゲームシーン
 class GameScene {
@@ -37,6 +39,7 @@ private:
 
 	// 3Dモデル
 	KamataEngine::Model* model_ = nullptr;
+	skydome* skydome_ = nullptr;
 	KamataEngine::Model* modelSkydome_ = nullptr;
 	
 
@@ -53,6 +56,11 @@ private:
 
 	//デバックカメラ有効
 	bool isDebugCameraActive_ = false;
+
+	// 数学関数
+	Math math_;
+	
+	
 	
 
 };

@@ -51,7 +51,7 @@ KamataEngine::Matrix4x4 operator*(const KamataEngine::Matrix4x4& m1, const Kamat
 
 
 // 拡大縮小行列の作成
-KamataEngine::Matrix4x4 MakeScaleMatrix(const KamataEngine::Vector3& scale) {
+KamataEngine::Matrix4x4 Math::MakeScaleMatrix(const KamataEngine::Vector3& scale) {
 
 	KamataEngine::Matrix4x4 result{scale.x, 0.0f, 0.0f, 0.0f, 0.0f, scale.y, 0.0f, 0.0f, 0.0f, 0.0f, scale.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -59,7 +59,7 @@ KamataEngine::Matrix4x4 MakeScaleMatrix(const KamataEngine::Vector3& scale) {
 }
 
 // X軸回転行列の作成
-KamataEngine::Matrix4x4 MakeRotateXMatrix(float theta) {
+KamataEngine::Matrix4x4 Math::MakeRotateXMatrix(float theta) {
 	float sin = std::sin(theta);
 	float cos = std::cos(theta);
 
@@ -69,7 +69,7 @@ KamataEngine::Matrix4x4 MakeRotateXMatrix(float theta) {
 }
 
 // Y軸回転行列の作成
-KamataEngine::Matrix4x4 MakeRotateYMatrix(float theta) {
+KamataEngine::Matrix4x4 Math::MakeRotateYMatrix(float theta) {
 	float sin = std::sin(theta);
 	float cos = std::cos(theta);
 
@@ -79,7 +79,7 @@ KamataEngine::Matrix4x4 MakeRotateYMatrix(float theta) {
 }
 
 // Z軸回転行列の作成
-KamataEngine::Matrix4x4 MakeRotateZMatrix(float theta) {
+KamataEngine::Matrix4x4 Math::MakeRotateZMatrix(float theta) {
 	float sin = std::sin(theta);
 	float cos = std::cos(theta);
 
@@ -89,14 +89,14 @@ KamataEngine::Matrix4x4 MakeRotateZMatrix(float theta) {
 }
 
 // 平行移動行列の作成
-KamataEngine::Matrix4x4 MakeTranslateMatrix(const KamataEngine::Vector3& translate) {
+KamataEngine::Matrix4x4 Math::MakeTranslateMatrix(const KamataEngine::Vector3& translate) {
 	KamataEngine::Matrix4x4 result{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, translate.x, translate.y, translate.z, 1.0f};
 
 	return result;
 }
 
 // 拡大縮小・回転・平行移動行列を使ってアフィン変換行列を作る関数
-KamataEngine::Matrix4x4 MakeAffineMatrix(const KamataEngine::Vector3& scale, const KamataEngine::Vector3& rot, const KamataEngine::Vector3& translate) {
+KamataEngine::Matrix4x4 Math::MakeAffineMatrix(const KamataEngine::Vector3& scale, const KamataEngine::Vector3& rot, const KamataEngine::Vector3& translate) {
 
 	// スケーリング行列の作成
 	KamataEngine::Matrix4x4 matScale = MakeScaleMatrix(scale);
