@@ -67,6 +67,11 @@ void GameScene::Initialize() {
 	mapChipField_ = new MapChipField;
 	mapChipField_->LoadMapChipCsv("./Resources/blocks.csv");
 	GenerateBlocks();
+
+	//座標をマップチップ番号で指定
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(1, 1);
+
+	player_.Initialize(modelPlayer_, &camera_, playerPosition);
 	
 }
 
