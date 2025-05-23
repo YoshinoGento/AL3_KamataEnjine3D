@@ -14,4 +14,10 @@ private:
 	KamataEngine::WorldTransform worldTransform_;
 
 	Vector3 velocity_ = {};
+
+	// 3Dブロックモデル
+	KamataEngine::Model* player_model_ = nullptr;
+	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformPlayer_;
+
+	static inline const float kAcceleration = 5.0f;
 };

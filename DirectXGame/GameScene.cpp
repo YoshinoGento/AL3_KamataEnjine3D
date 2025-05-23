@@ -167,6 +167,8 @@ void GameScene::Drow() {
 			block_model_->Draw(*worldTransformBlock, camera_, nullptr);
 		}
 	}
+
+	
 }
 
 GameScene::~GameScene() {

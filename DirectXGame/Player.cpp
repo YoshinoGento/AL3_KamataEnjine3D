@@ -20,7 +20,15 @@ void Player::Update() {
 	worldTransform_.translation_ += velocity_;
 
 	//行列更新
-
+	for (std::vector<WorldTransform*>& worldTransformPlayerLine : worldTransformPlayer_) {
+		for (WorldTransform* worldTransformPlayer : worldTransformPlayerLine) {
+			if (!worldTransformPlayer)
+				continue;
+			worldTransformPlayer->matWorld_ = MakeAffineMatrix(worldTransformPlayer->scale_, worldTransformPlayer->rotation_, worldTransformPlayer->translation_);
+			// 定数バッファに転送する
+			worldTransformPlayer->TransferMatrix();
+		}
+	}
 
 
 }
