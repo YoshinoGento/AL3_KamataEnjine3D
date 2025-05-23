@@ -147,8 +147,8 @@ void GameScene::Drow() {
 	// スプライト描画前処理
 	Sprite::PreDraw(dxCommon->GetCommandList());
 
-	// スプライト描画
-	sprite_->Draw();
+	// スプライト描画みやざき
+	//sprite_->Draw();
 
 	// スプライト描画後処理
 	Sprite::PostDraw();
