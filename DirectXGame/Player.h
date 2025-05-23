@@ -2,7 +2,7 @@
 #include "GameScene.h"
 #include "KamataEngine.h"
 #include "MapChipField.h" 
-
+using namespace KamataEngine;
 
 class Player {
 public:
@@ -17,7 +17,14 @@ private:
 
 	// 3Dブロックモデル
 	KamataEngine::Model* player_model_ = nullptr;
+
+	KamataEngine::Camera* camera_;
+
 	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformPlayer_;
 
+	// モデル
+	KamataEngine::Model* model = nullptr;
+
 	static inline const float kAcceleration = 5.0f;
+
 };

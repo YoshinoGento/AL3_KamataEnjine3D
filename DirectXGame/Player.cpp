@@ -6,15 +6,37 @@
 #include "Math.h"
 #include <vector>  
 #include <numbers>
+#include "assert.h"
 using namespace KamataEngine;
 
-void Player::Initialize(Model* model, Camera* camera, const Vector3& position) { worldTransform_.translation_ = position;
+void Player::Initialize(Model* model_,Camera* camera, const Vector3& position) { 
+	
+	assert(model_);
+	camera_ = camera;
+	worldTransform_.Initialize();
+	worldTransform_.translation_ = position;
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 }
 
 void Player::Update() {
 	//移動入力
-
+	//左右移動操作
+	if (Input::GetInstance()->PushKey(DIK_RIGHT) ||
+		Input::GetInstance()->PushKey(DIK_LEFT)) 
+	{
+		
+		//左右加速
+		Vector3 acceleration = {};
+		if (Input::GetInstance()->PushKey(DIK_RIGHT)) {
+		
+			acceleration.x += kAcceleration;
+		} else {
+			
+			acceleration.x -= kAcceleration;
+		}
+		//加速/減速
+		velocity_ += acceleration;
+	}
 
 	//移動
 	worldTransform_.translation_ += velocity_;
