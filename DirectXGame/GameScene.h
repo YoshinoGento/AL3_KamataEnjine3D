@@ -2,6 +2,7 @@
 #include "KamataEngine.h"  
 #include "MapChipField.h"  
 #include "Player.h" // Ensure this include is present and correct  
+#include "skydome.h"
 #include <vector>  
 using namespace KamataEngine;  
 
@@ -38,6 +39,8 @@ private:
    // 3Dモデル  
    KamataEngine::Model* model_ = nullptr;  
 
+   
+
    // ワールドトランスフォーム  
    KamataEngine::WorldTransform worldTransform_;  
    // カメラ  
@@ -59,4 +62,10 @@ private:
    Player* player_ = nullptr;  
 
    KamataEngine::Model* modelPlayer_ = nullptr;  
+
+
+   //スカイドーム
+   skydome* Skydome_ = nullptr;
+
+   KamataEngine::Model* modelSkydome_ = nullptr;
 };

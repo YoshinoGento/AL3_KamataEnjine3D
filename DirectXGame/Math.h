@@ -1,6 +1,7 @@
 #pragma once
 #include "KamataEngine.h"
 
+
 /// AL3サンプルプログラム用の数学ライブラリ。
 /// MT3準拠で、KamataEngine内部の数学ライブラリと重複する。
 /*

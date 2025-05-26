@@ -74,6 +74,17 @@ void GameScene::Initialize() {
 	
     player_->Initialize(modelPlayer_, &camera_, playerPosition);
 	
+	//skydome
+	//3Dモデルの生成
+	Skydome_ = new skydome();
+
+	modelSkydome_ = Model::CreateFromOBJ("skydome", true);
+
+	Skydome_->Initialize(modelSkydome_,&camera_);
+
+	camera_.farZ = 1000.0f;
+
+
 }
 
 void GameScene::Update() {
@@ -154,6 +165,9 @@ void GameScene::Drow() {
 	// 3Dモデル描画前処理
 	Model::PreDraw(dxCommon->GetCommandList());
 
+	//スカイドーム
+	model_->Draw(worldTransform_, camera_);
+
 	//// 3Dモデル描画
 	// block_model_->Draw(worldTransform_, debugCamera_->GetCamera(), textureHandle_);
 
@@ -179,6 +193,8 @@ GameScene::~GameScene() {
 	delete sprite_;
 	delete debugCamera_;
 	delete mapChipField_;
+	delete skydome;
+	delete modelSkydome_;
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
 			if (!worldTransformBlock)
