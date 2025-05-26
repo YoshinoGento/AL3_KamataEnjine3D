@@ -24,13 +24,13 @@ public:
 
 private:
 	// ワールド変数データ
-	KamataEngine::WorldTransform worldTransform;
+	KamataEngine::WorldTransform worldTransform_;
 	// モデル
-	KamataEngine::Model* model = nullptr;
+	KamataEngine::Model* model_ = nullptr;
 
 	// カメラ
-	KamataEngine::Camera* camera = nullptr;
+	KamataEngine::Camera* camera_ = nullptr;
 
 	// 数学関数
-	
+	Math math_;
 };
