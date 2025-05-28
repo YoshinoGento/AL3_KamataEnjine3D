@@ -1,6 +1,6 @@
 #pragma once
 #include "KamataEngine.h"
-#include "Math.h"
+
 
 /// <summary>
 /// 天球
@@ -31,6 +31,5 @@ private:
 	// カメラ
 	KamataEngine::Camera* camera_ = nullptr;
 
-	// 数学関数
-	Math math_;
+	
 };

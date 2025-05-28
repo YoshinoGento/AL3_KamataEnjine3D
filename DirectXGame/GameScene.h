@@ -1,7 +1,7 @@
 #pragma once  
 #include "KamataEngine.h"  
 #include "MapChipField.h"  
-#include "Player.h" // Ensure this include is present and correct  
+#include "Player.h"  
 #include "skydome.h"
 #include <vector>  
 using namespace KamataEngine;  

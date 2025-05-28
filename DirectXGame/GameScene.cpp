@@ -193,7 +193,7 @@ GameScene::~GameScene() {
 	delete sprite_;
 	delete debugCamera_;
 	delete mapChipField_;
-	delete skydome;
+	delete Skydome_;
 	delete modelSkydome_;
 	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
 		for (WorldTransform* worldTransformBlock : worldTransformBlockLine) {
@@ -237,3 +237,5 @@ void GameScene::GenerateBlocks() {
 	}
 	
 }
+
+

@@ -8,22 +8,19 @@ void skydome::Initialize(KamataEngine::Model* model, KamataEngine::Camera* camer
 	// Mode引数の内容をメンバー関数に記録
 	model = model;
 
-	worldTransform.Initialize();
+	worldTransform_.Initialize();
 
 	camera = camera;
 }
 
 void skydome::Update() {
 
-	// アフィン変換行列
-	worldTransform.matWorld = math.MakeAffineMatrix(worldTransform.scale, worldTransform.rotation, worldTransform.translation);
-
 	// 行列を定数バッファに転送
-	worldTransform.TransferMatrix();
+	worldTransform_.TransferMatrix();
 }
 
 void skydome::Draw() {
 
 	// ３Ｄモデルを描画
-	model->Draw(worldTransform, *camera);
+	model_->Draw(worldTransform_, *camera_);
 }
