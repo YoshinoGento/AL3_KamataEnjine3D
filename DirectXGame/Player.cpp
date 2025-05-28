@@ -13,8 +13,11 @@ void Player::Initialize(Model* model_,Camera* camera, const Vector3& position) {
 	
 	assert(model_);
 	camera_ = camera;
+
+	//ワールド変換の初期化
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
+
 	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 }
 
@@ -42,7 +45,7 @@ void Player::Update() {
 	worldTransform_.translation_ += velocity_;
 
 	//行列更新
-	for (std::vector<WorldTransform*>& worldTransformPlayerLine : worldTransformPlayer_) {
+	for (std::vector<WorldTransform*>& worldTransformPlayerLine:worldTransformPlayer_) {
 		for (WorldTransform* worldTransformPlayer : worldTransformPlayerLine) {
 			if (!worldTransformPlayer)
 				continue;

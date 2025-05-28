@@ -1,5 +1,4 @@
 #pragma once
-#include "GameScene.h"
 #include "KamataEngine.h"
 #include "MapChipField.h" 
 using namespace KamataEngine;
@@ -19,6 +18,8 @@ private:
 
 
 	KamataEngine::Camera* camera_;
+
+   std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformPlayer_;  
 
 
 	// モデル

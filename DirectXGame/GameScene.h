@@ -22,7 +22,7 @@ public:
 
    void GenerateBlocks();  
 
-private:  
+private: 
    // テクスチャーハンドル  
    uint32_t textureHandle_ = 0;  
 
@@ -59,7 +59,7 @@ private:
    MapChipField* mapChipField_;  
 
    // プレイヤー  
-   Player* player_ = nullptr;  
+   Player* player_ = nullptr;
 
    KamataEngine::Model* modelPlayer_ = nullptr;  
 
