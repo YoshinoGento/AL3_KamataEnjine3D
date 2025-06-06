@@ -1,26 +1,31 @@
 #include "skydome.h"
-#include "GameScene.h"
 
-void skydome::Initialize(KamataEngine::Model* model, KamataEngine::Camera* camera) {
-	// NULLポインタチェック
+/// <summary>
+/// 初期化
+/// </summary>
+void Skydome::Initialize(Model* model, Camera* camera) {
+
 	assert(model);
 
-	// Mode引数の内容をメンバー関数に記録
-	model = model;
-
+	model_ = model;
+	camera_ = camera;
 	worldTransform_.Initialize();
-
-	camera = camera;
 }
 
-void skydome::Update() {
+/// <summary>
+/// 更新
+/// </summary>
+void Skydome::Update() {
 
 	// 行列を定数バッファに転送
 	worldTransform_.TransferMatrix();
 }
 
-void skydome::Draw() {
+/// <summary>
+/// 描画
+/// </summary>
+void Skydome::Draw() {
 
-	// ３Ｄモデルを描画
+	// モデル描画
 	model_->Draw(worldTransform_, *camera_);
 }
