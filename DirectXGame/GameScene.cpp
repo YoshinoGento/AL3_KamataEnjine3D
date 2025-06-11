@@ -25,10 +25,13 @@ void GameScene::Initialize() {
 
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandle_ = TextureManager::Load("sample.png");
+
 	// スプライト生成
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});
+
 	// 3Dモデル生成
 	model_ = Model::Create();
+
 	// ワールドトランスフォーム初期化
 	worldTransform_.Initialize();
 
@@ -42,7 +45,6 @@ void GameScene::Initialize() {
 	player_model_ = Model::CreateFromOBJ("player");
 	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(2, 18);
 
-	player_->Initialize(player_model_, &camera_, playerPosition);
 
 	// ブロックモデル
 	block_model_ = Model::CreateFromOBJ("block");
@@ -61,6 +63,21 @@ void GameScene::Initialize() {
 	mapChipField_ = new MapChipField;
 	mapChipField_->LoadMapChipCsv("Resources/blocks.csv");
 	GenerateBlocks();
+
+	//02_07スライド5枚目
+	player_->SetMapChipField(mapChipField_);
+
+	player_->Initialize(player_model_, &camera_, playerPosition);
+
+	// 02_06カメラコントローラ スライド13枚目
+	CController_ = new CameraController(); // 生成
+	CController_->Initialize(&camera_);    // 初期化
+	CController_->SetTarget(player_);      // 追従対象セット
+	CController_->Reset();                 // リセット
+
+	// 02_06カメラコントローラ スライド18枚目
+	CameraController::Rect cameraArea = {12.0f, 100 - 12.0f, 6.0f, 6.0f};
+	CController_->SetMovableArea(cameraArea);
 }
 
 void GameScene::GenerateBlocks() {
@@ -86,6 +103,8 @@ void GameScene::GenerateBlocks() {
 			}
 		}
 	}
+
+	
 }
 
 // ゲームシーン更新
@@ -93,6 +112,7 @@ void GameScene::Update() {
 
 	player_->Update();
 	skydome_->Update();
+	CController_->Update();
 
 #ifdef _DEBUG
 	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {

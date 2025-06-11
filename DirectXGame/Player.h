@@ -3,6 +3,8 @@
 
 using namespace KamataEngine;
 
+class MapChipField;
+
 class Player {
 public:
 	// 左右
@@ -19,6 +21,15 @@ public:
 
 	/// 描画
 	void Draw();
+
+	//02_07スライド4枚目
+	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
+
+	// getter(02_06スライド11枚目で追加)
+	const WorldTransform& GetWorldTransform() const { return worldTransform_; }
+
+	// 02_06スライド28枚目で追加
+	const Vector3& GetVelocity() const { return velocity_; }
 
 private:
 	// ワールド変換データ
@@ -50,4 +61,8 @@ private:
 	static inline const float kJumpAcceleration = 20.0f;
 	static inline const float kGravityAcceleration = 0.98f;
 	static inline const float kLimitFallSpeed = 0.5f;
+
+	//マップチップによるフィールド
+	MapChipField* mapChipField_ = nullptr;
+
 };
