@@ -22,14 +22,14 @@ public:
 	/// 描画
 	void Draw();
 
-	//02_07スライド4枚目
-	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
-
 	// getter(02_06スライド11枚目で追加)
 	const WorldTransform& GetWorldTransform() const { return worldTransform_; }
 
 	// 02_06スライド28枚目で追加
 	const Vector3& GetVelocity() const { return velocity_; }
+
+	// 02_07スライド4枚目
+	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
 
 private:
 	// ワールド変換データ
@@ -62,7 +62,30 @@ private:
 	static inline const float kGravityAcceleration = 0.98f;
 	static inline const float kLimitFallSpeed = 0.5f;
 
-	//マップチップによるフィールド
+	// マップチップによるフィールド
 	MapChipField* mapChipField_ = nullptr;
 
+	// 02_07 キャラクターの当たり判定サイズ
+	static inline const float kWidth = 0.8f;
+	static inline const float kHeight = 0.8f;
+
+	// 02_07スライド10枚目 移動入力
+	void InputMove();
+
+	// 02_07スライド12枚目
+	struct CollisionMapInfo {
+		bool ceiling = false;
+		bool landing = false;
+		bool hitWall = false;
+		Vector3 move;
+	};
+
+	// 02_07スライド13枚目
+	void CheckMapCollision(CollisionMapInfo& info);
+
+	// 02_07 スライド14枚目
+	void CheckMapCollisionUp(CollisionMapInfo& info);
+	void CheckMapCollisionDown(CollisionMapInfo& info);
+	void CheckMapCollisionRight(CollisionMapInfo& info);
+	void CheckMapCollisionLeft(CollisionMapInfo& info);
 };
