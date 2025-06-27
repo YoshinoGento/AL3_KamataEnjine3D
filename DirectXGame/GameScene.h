@@ -1,10 +1,11 @@
 #pragma once
+#include "CameraController.h"
+#include "Enemy.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "Player.h"
 #include "skydome.h"
 #include <vector>
-#include "CameraController.h"
 
 // ゲームシーンクラス
 class GameScene {
@@ -59,6 +60,14 @@ private:
 	// 02_04 マップチップフィールド
 	MapChipField* mapChipField_;
 
-	////02_06カメラ移動
-	CameraController *CController_ = nullptr;
+	// 02_06カメラ移動
+	CameraController* CController_ = nullptr;
+
+	// 02_09 10枚目 エネミークラス
+	Enemy* enemy_ = nullptr;
+
+	// 02_09 10枚目 エネミーモデル
+	KamataEngine::Model* enemy_model_ = nullptr;
+
+	
 };
