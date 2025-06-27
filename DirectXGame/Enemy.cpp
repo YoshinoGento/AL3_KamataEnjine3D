@@ -41,4 +41,5 @@ void Enemy::Draw() {
 	//02_09 スライド9枚目 モデル描画
 	model_->Draw(worldTransform_, *camera_);
 
+
 }
