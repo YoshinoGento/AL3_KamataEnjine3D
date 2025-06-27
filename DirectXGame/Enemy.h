@@ -29,4 +29,16 @@ private:
 	// 02_09 15枚目 速度
 	Vector3 velocity_ = {};
 
+	// 02_09 19枚目
+	static inline const float kWalkMotionAngleStart = 0.0f;
+
+	// 02_09 19枚目
+	static inline const float kWalkMotionAngleEnd = 30.0f;
+
+	// 02_09 19枚目
+	static inline const float kWalkMotionTime = 1.0f;
+
+	// 02_09 20枚目
+	float walkTimer = 0.0f;
+
 };
