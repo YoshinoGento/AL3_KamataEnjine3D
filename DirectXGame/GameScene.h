@@ -1,11 +1,11 @@
 #pragma once
-#include "CameraController.h"
-#include "Enemy.h"
+#include <vector>
 #include "KamataEngine.h"
-#include "MapChipField.h"
 #include "Player.h"
 #include "skydome.h"
-#include <vector>
+#include "MapChipField.h"
+#include "CameraController.h"
+#include "Enemy.h"
 
 // ゲームシーンクラス
 class GameScene {
@@ -21,6 +21,9 @@ public:
 	void Draw();
 
 	void GenerateBlocks();
+
+	// 02_10 16枚目 衝突判定と応答
+	void CheckAllCollisions(); 
 
 private:
 	// テクスチャハンドル
@@ -69,5 +72,6 @@ private:
 	// 02_09 10枚目 エネミーモデル
 	KamataEngine::Model* enemy_model_ = nullptr;
 
-	
+	// 02_10 4枚目 敵の複数化
+	std::list<Enemy*> enemies_;
 };
