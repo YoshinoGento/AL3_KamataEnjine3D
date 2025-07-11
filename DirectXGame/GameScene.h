@@ -6,6 +6,9 @@
 #include "MapChipField.h"
 #include "CameraController.h"
 #include "Enemy.h"
+#include "DeathParticles.h"
+
+
 
 // ゲームシーンクラス
 class GameScene {
@@ -74,4 +77,11 @@ private:
 
 	// 02_10 4枚目 敵の複数化
 	std::list<Enemy*> enemies_;
+
+	//02_11 15枚目
+	DeathParticles* deathParticles_ = nullptr;
+
+	// 02_11 16枚目
+	Model* deathParticle_model_ = nullptr;
+	
 };
