@@ -5,6 +5,8 @@
 TitleScene::~TitleScene() {
 	delete modelPlayer_;
 	delete modelTitle_;
+	// 02_13 12枚目
+	delete fade_;
 }
 
 void TitleScene::Initialize() {
@@ -32,6 +34,10 @@ void TitleScene::Initialize() {
 	worldTransformPlayer_.translation_.x = -2.0f;
 
 	worldTransformPlayer_.translation_.y = -10.0f;
+
+	// 02_13 12枚目
+	fade_ = new Fade();
+	fade_->Initialize();
 }
 
 void TitleScene::Update() {
