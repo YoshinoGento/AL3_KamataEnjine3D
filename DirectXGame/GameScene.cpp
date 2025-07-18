@@ -21,9 +21,9 @@ GameScene::~GameScene() {
 	delete mapChipField_;
 
 	// 02_09 10枚目 敵クラス削除→02_10 6枚目で削除
-	//delete enemies_;
+	//	delete enemies_;
 
-	//02_10 6枚目 敵クラス削除
+	// 02_10 6枚目 敵クラス削除
 	for (Enemy* enemy : enemies_) {
 		delete enemy;
 	}
@@ -31,35 +31,21 @@ GameScene::~GameScene() {
 	// 02_11_17枚目
 	delete deathParticles_;
 	delete deathParticle_model_;
-
-
-
 }
 
 void GameScene::Initialize() {
 
 	// ファイル名を指定してテクスチャを読み込む
 	textureHandle_ = TextureManager::Load("sample.png");
-
 	// スプライト生成
 	sprite_ = Sprite::Create(textureHandle_, {100, 50});
-
 	// 3Dモデル生成
 	model_ = Model::Create();
-
 	// ワールドトランスフォーム初期化
 	worldTransform_.Initialize();
 
 	// カメラ初期化
 	camera_.Initialize();
-
-	// 02_01から追加 プレイヤー生成
-	player_ = new Player();
-
-	// プレイヤーモデル
-	player_model_ = Model::CreateFromOBJ("player");
-	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(2, 18);
-
 
 	// ブロックモデル
 	block_model_ = Model::CreateFromOBJ("block");
@@ -67,8 +53,7 @@ void GameScene::Initialize() {
 	// デバッグカメラの生成
 	debugCamera_ = new DebugCamera(WinApp::kWindowWidth, WinApp::kWindowHeight);
 
-	// 02_03天球
-	//  skydome生成
+	// 02_03 skydome生成
 	skydome_ = new Skydome();
 	// 初期化
 	modelSkydome_ = Model::CreateFromOBJ("SkyDome", true);
@@ -79,7 +64,16 @@ void GameScene::Initialize() {
 	mapChipField_->LoadMapChipCsv("Resources/blocks.csv");
 	GenerateBlocks();
 
-	//02_07スライド5枚目
+	// 02_07 マップチップクラスを作ってからプレイヤークラスを作る
+	// という順番に入れ替える
+	// 02_01から追加 プレイヤー生成
+	player_ = new Player();
+
+	// プレイヤーモデル
+	player_model_ = Model::CreateFromOBJ("player");
+	Vector3 playerPosition = mapChipField_->GetMapChipPositionByIndex(2, 18);
+
+	// 02_07 スライド5枚目
 	player_->SetMapChipField(mapChipField_);
 
 	player_->Initialize(player_model_, &camera_, playerPosition);
@@ -103,7 +97,7 @@ void GameScene::Initialize() {
 	// enemy_->Initialize(enemy_model_, &camera_, enemyPosition);
 
 	// 02_10 5枚目（for文の中身全部）
-	for (int32_t i = 0; i < 3; ++i) {
+	for (int32_t i = 0; i < 2; ++i) {
 		Enemy* newEnemy = new Enemy();
 
 		Vector3 enemyPosition = mapChipField_->GetMapChipPositionByIndex(14 + i * 2, 18);
@@ -113,14 +107,40 @@ void GameScene::Initialize() {
 		enemies_.push_back(newEnemy);
 	}
 
-
 	// 02_11_16枚目 モデル読み込み
 	deathParticle_model_ = Model::CreateFromOBJ("deathParticle");
 
 	// 02_11_16枚目 仮の生成処理 後で消す
-	deathParticles_ = new DeathParticles;
-	deathParticles_->Initialize(deathParticle_model_, &camera_, playerPosition);
+	// 02_12 13枚目で消す
+	//	deathParticles_ = new DeathParticles;
+	//	deathParticles_->Initialize
+	//	    (deathParticle_model_, &camera_, playerPosition);
 
+	// 02_12_4枚目 ゲームプレイフェーズから開始
+	phase_ = Phase::kPlay;
+}
+
+// 02_12 10枚目 GameScene::Update関数で呼び出しておく
+// player->draw();をif(!player_->IsDead()){}で囲む
+void GameScene::ChangePhase() {
+
+	switch (phase_) {
+	case Phase::kPlay:
+		// 02_12 13枚目 if文から中身まで全部実装
+		// Initialize関数のいきなりパーティクル発生処理は消す
+		if (player_->IsDead()) {
+			// 死亡演出
+			phase_ = Phase::kDeath;
+
+			const Vector3& deathParticlesPosition = player_->GetWorldPosition();
+
+			deathParticles_ = new DeathParticles;
+			deathParticles_->Initialize(deathParticle_model_, &camera_, deathParticlesPosition);
+		}
+		break;
+	case Phase::kDeath:
+		break;
+	}
 }
 
 void GameScene::GenerateBlocks() {
@@ -146,13 +166,27 @@ void GameScene::GenerateBlocks() {
 			}
 		}
 	}
-
-	
 }
-
 
 // ゲームシーン更新
 void GameScene::Update() {
+
+	ChangePhase();
+
+	// 02_12 5枚目 まず追加
+	switch (phase_) {
+	case Phase::kPlay:
+		// ゲームプレイフェーズの処理
+		break;
+	case Phase::kDeath:
+		// 02_12 34枚目 デス演出フェーズの処理
+		// deathParticles_->IsFinished関数をDeathParticles.hに実装
+		if (deathParticles_ && deathParticles_->IsFinished()) {
+			finished_ = true;
+		}
+
+		break;
+	}
 
 	player_->Update();
 	skydome_->Update();
@@ -201,7 +235,7 @@ void GameScene::Update() {
 	// 02_10 22枚目 衝突判定
 	CheckAllCollisions();
 
-	// 02_11 18枚目 デスパーティクルがあれば更新
+	// 02_11 18枚目 デスパーティクルあれば更新
 	if (deathParticles_) {
 		deathParticles_->Update();
 	}
@@ -216,7 +250,8 @@ void GameScene::Draw() {
 	Model::PreDraw(dxCommon->GetCommandList());
 
 	// 自キャラの描画
-	player_->Draw();
+	if (!player_->IsDead())
+		player_->Draw();
 
 	// 天球描画
 	skydome_->Draw();
@@ -237,12 +272,10 @@ void GameScene::Draw() {
 		enemy->Draw();
 	}
 
-
-	// 02_11 18枚目 デスパーティクルがあれば描画
+	// 02_11 18枚目 デスパーティクルあれば描画
 	if (deathParticles_) {
 		deathParticles_->Draw();
 	}
-
 
 	Model::PostDraw();
 
@@ -252,7 +285,6 @@ void GameScene::Draw() {
 	// スプライト描画後処理
 	Sprite::PostDraw();
 }
-
 
 // 02_10 16枚目
 void GameScene::CheckAllCollisions() {
