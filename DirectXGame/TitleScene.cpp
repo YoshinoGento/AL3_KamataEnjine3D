@@ -5,6 +5,7 @@
 TitleScene::~TitleScene() {
 	delete modelPlayer_;
 	delete modelTitle_;
+
 	// 02_13 12枚目
 	delete fade_;
 }
@@ -38,14 +39,44 @@ void TitleScene::Initialize() {
 	// 02_13 12枚目
 	fade_ = new Fade();
 	fade_->Initialize();
+
+	// 02_13 22枚目
+	fade_->Start(Fade::Status::FadeIn, 1.0f);
 }
 
 void TitleScene::Update() {
 
 	// 02_12 27枚目
-	if (Input::GetInstance()->PushKey(DIK_SPACE)) {
-		finished_ = true;
+	// 02_13 13枚目 27枚目で削除
+	//	fade_->Update();
+
+	// 02_13 27枚目
+	switch (phase_) {
+	case Phase::kFadeIn:
+		fade_->Update();
+
+		if (fade_->IsFinished()) {
+			phase_ = Phase::kMain;
+		}
+		break;
+	case Phase::kMain:
+		if (Input::GetInstance()->PushKey(DIK_SPACE)) {
+			fade_->Start(Fade::Status::FadeOut, 1.0f);
+			phase_ = Phase::kFadeOut;
+		}
+		break;
+	case Phase::kFadeOut:
+		fade_->Update();
+		if (fade_->IsFinished()) {
+			finished_ = true;
+		}
+		break;
 	}
+
+	// 02_13 27枚目で↑のPhase::kMainブロックへ
+	//	if (Input::GetInstance()->PushKey(DIK_SPACE)) {
+	//	finished_ = true;
+	//	}
 
 	counter_ += 1.0f / 60.0f;
 	counter_ = std::fmod(counter_, kTimeTitleMove);
@@ -75,4 +106,7 @@ void TitleScene::Draw() {
 	modelPlayer_->Draw(worldTransformPlayer_, camera_);
 
 	Model::PostDraw();
+
+	// 02_13 13枚目
+	fade_->Draw();
 }
