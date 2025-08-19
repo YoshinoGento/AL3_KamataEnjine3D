@@ -14,14 +14,19 @@ class Enemy {
 public:
 	// 02_09 スライド5枚目
 	void Initialize(Model *model, Camera *camera, const Vector3 &position);
+
 	// 02_09 スライド5枚目
 	void Update();
+
 	// 02_09 スライド5枚目
 	void Draw();
+
 	// 02_10 スライド14枚目
 	AABB GetAABB();
+
 	// 02_10 スライド14枚目 ワールド座標を取得
 	Vector3 GetWorldPosition();
+
 	// 02_10 スライド20枚目 衝突応答
 	void OnCollision(const Player *player);
 

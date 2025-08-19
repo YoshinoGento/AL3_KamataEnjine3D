@@ -1,6 +1,7 @@
 #include "GameScene.h"
 #include "KamataEngine.h"
 #include "TitleScene.h" // 02_12 21枚目
+#include "GameOverSeen.h" 
 #include <Windows.h>
 
 using namespace KamataEngine;
@@ -8,12 +9,14 @@ using namespace KamataEngine;
 // 02_12 24枚目
 TitleScene* titleScene = nullptr;
 GameScene* gameScene = nullptr;
+GameOverSeen* gameOverScene = nullptr;
 
 // 02_12 25枚目(Scene sceneまで)
 enum class Scene {
 	kUnknown = 0,
 	kTitle,
 	kGame,
+	kEnd,
 };
 // 現在シーン（型）
 Scene scene = Scene::kUnknown;
@@ -36,14 +39,26 @@ void ChangeScene() {
 		// 02_12 30枚目
 		if (gameScene->IsFinished()) {
 			// シーン変更
-			scene = Scene::kTitle;
+			scene = Scene::kEnd;
 			delete gameScene;
 			gameScene = nullptr;
+			gameOverScene = new GameOverSeen;
+			gameOverScene->Initialize();
+		}
+		break;
+	case Scene::kEnd:
+		// 02_12 30枚目
+		if (gameOverScene->IsFinished()) {
+			// シーン変更
+			scene = Scene::kTitle;
+			delete gameOverScene;
+			gameOverScene = nullptr;
 			titleScene = new TitleScene;
 			titleScene->Initialize();
 		}
-		break;
+		
 	}
+
 }
 
 // 02_12 31枚目
@@ -56,6 +71,10 @@ void UpdateScene() {
 	case Scene::kGame:
 		gameScene->Update();
 		break;
+
+	case Scene::kEnd:
+		gameOverScene->Update();
+		break;
 	}
 }
 
@@ -67,6 +86,9 @@ void DrawScene() {
 		break;
 	case Scene::kGame:
 		gameScene->Draw();
+		break;
+	case Scene::kEnd:
+		gameOverScene->Draw();
 		break;
 	}
 }
@@ -136,6 +158,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// 02_12 35枚目 各種解放
 	delete titleScene;
 	delete gameScene;
+	delete gameOverScene;
 
 	// エンジンの終了処理
 	KamataEngine::Finalize();
