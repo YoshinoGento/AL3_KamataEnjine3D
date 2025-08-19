@@ -97,7 +97,7 @@ void Player::BehaviorRootUpdate() {
 	}
 
 	// 02_14 18枚目 攻撃キーを押したら
-	if (Input::GetInstance()->TriggerKey(DIK_E)) {
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 		// 攻撃ビヘイビアをリクエスト
 		behaviorRequest_ = Behavior::kAttack;
 	}
@@ -219,6 +219,7 @@ void Player::Initialize(Model* model, Model* modelAttack, Camera* camera, const 
 	assert(model);
 	// モデル
 	model_ = model;
+	modelAttack_ = modelAttack;
 
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
@@ -585,7 +586,7 @@ void Player::Draw() {
 			break;
 		case AttackPhase::kAction:
 		case AttackPhase::kRecovery:
-			//			modelAttack_->Draw(worldTransformAttack_, *camera_);
+			modelAttack_->Draw(worldTransformAttack_, *camera_);
 			break;
 		}
 	}
@@ -618,9 +619,17 @@ AABB Player::GetAABB() {
 // 02_10 21枚目
 void Player::OnCollision(const Enemy* enemy) {
 
+	// 02_15 20枚目
+	if (IsAttack()) {
+		return; // 攻撃中はダメージ無効
+	}
+
 	// 不使用
 	(void)enemy;
 
 	// 02_12 12枚目 書き換え
 	isDead_ = true;
+
+	// 02_15 20枚目
+	isCollisionDisabled_ = true; // 衝突無効化
 }
