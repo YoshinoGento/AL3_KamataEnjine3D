@@ -3,6 +3,14 @@
 
 using namespace KamataEngine;
 
+// エフェクトを生成
+void GameScene::CreateEffect(const Vector3& position) {
+
+	HitEffect* newHitEffect = HitEffect::Create(position);
+
+	hitEffects_.push_back(newHitEffect);
+}
+
 GameScene::~GameScene() {
 
 	delete sprite_;
@@ -31,6 +39,11 @@ GameScene::~GameScene() {
 	// 02_11_17枚目
 	delete deathParticles_;
 	delete deathParticle_model_;
+
+	// 02_16 17枚目
+	for (HitEffect* hitEffect : hitEffects_) {
+		delete hitEffect;
+	}
 }
 
 void GameScene::Initialize() {
@@ -107,11 +120,15 @@ void GameScene::Initialize() {
 
 		newEnemy->Initialize(enemy_model_, &camera_, enemyPosition);
 
+		newEnemy->SetGameScene(this);
 		enemies_.push_back(newEnemy);
 	}
 
 	// 02_11_16枚目 モデル読み込み
 	deathParticle_model_ = Model::CreateFromOBJ("deathParticle");
+
+	// 02_16
+	particle_model_ = Model::CreateFromOBJ("particle");
 
 	// 02_11_16枚目 仮の生成処理 後で消す
 	// 02_12 13枚目で消す
@@ -128,6 +145,9 @@ void GameScene::Initialize() {
 	fade_ = new Fade();
 	fade_->Initialize();
 	fade_->Start(Fade::Status::FadeIn, 1.0f);
+
+	HitEffect::SetModel(particle_model_);
+	HitEffect::SetCamera(&camera_);
 }
 
 // 02_12 10枚目 GameScene::Update関数で呼び出しておく
@@ -181,6 +201,16 @@ void GameScene::GenerateBlocks() {
 // ゲームシーン更新
 void GameScene::Update() {
 
+	// デスフラグの立ったエフェクトを削除
+	hitEffects_.remove_if([](HitEffect* hitEffect) {
+		if (hitEffect->IsDead()) {
+			delete hitEffect;
+
+			return true;
+		}
+		return false;
+	});
+
 	// 02_15 7枚目 デスフラグの立った敵を削除
 	enemies_.remove_if([](Enemy* enemy) {
 		if (enemy->IsDead()) {
@@ -212,14 +242,19 @@ void GameScene::Update() {
 			enemy->Update();
 		}
 
-		// UpdateCamera();
-#ifdef _DEBUG
-		if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
-			// フラグをトグル
-			isDebugCameraActive_ = !isDebugCameraActive_;
+		for (HitEffect* hitEffect : hitEffects_) {
+			hitEffect->Update();
 		}
-#endif
 
+		// UpdateCamera();
+		/*
+		#ifdef _DEBUG
+		        if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
+		            // フラグをトグル
+		            isDebugCameraActive_ = !isDebugCameraActive_;
+		        }
+		#endif
+		*/
 		// カメラの処理
 		if (isDebugCameraActive_) {
 			debugCamera_->Update();
@@ -243,6 +278,10 @@ void GameScene::Update() {
 				// アフィン変換～DirectXに転送
 				WorldTransformUpdate(*worldTransformBlock);
 			}
+		}
+
+		for (HitEffect* hitEffect : hitEffects_) {
+			hitEffect->Update();
 		}
 		break;
 	case Phase::kPlay:
@@ -293,6 +332,10 @@ void GameScene::Update() {
 		}
 
 		CheckAllCollisions();
+
+		for (HitEffect* hitEffect : hitEffects_) {
+			hitEffect->Update();
+		}
 		break;
 	case Phase::kDeath:
 		if (deathParticles_ && deathParticles_->IsFinished()) {
@@ -312,6 +355,9 @@ void GameScene::Update() {
 			deathParticles_->Update();
 		}
 
+		for (HitEffect* hitEffect : hitEffects_) {
+			hitEffect->Update();
+		}
 		break;
 	case Phase::kFadeOut:
 		fade_->Update();
@@ -326,6 +372,10 @@ void GameScene::Update() {
 
 		for (Enemy* enemy : enemies_) {
 			enemy->Update();
+		}
+
+		for (HitEffect* hitEffect : hitEffects_) {
+			hitEffect->Update();
 		}
 
 		break;
@@ -437,6 +487,10 @@ void GameScene::Draw() {
 	// 02_11 18枚目 デスパーティクルあれば描画
 	if (deathParticles_) {
 		deathParticles_->Draw();
+	}
+
+	for (HitEffect* hitEffect : hitEffects_) {
+		hitEffect->Draw();
 	}
 
 	Model::PostDraw();

@@ -2,11 +2,13 @@
 
 #include "KamataEngine.h"
 #include "Math.h"
+#include "Player.h"
 
 using namespace KamataEngine;
 
 // 02_10 20枚目
-class Player;
+// class Player;
+class GameScene;
 
 // 02_09 スライド4枚目
 class Enemy {
@@ -35,6 +37,8 @@ public:
 	bool IsDead() const { return isDead_; }
 	// 02_15 20枚目
 	bool IsCollisionDisabled() const { return isCollisionDisabled_; }
+	// 02_16 19
+	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
 
 private:
 	// 02_09 6枚目 ザ・ワールド
@@ -77,4 +81,6 @@ private:
 
 	// 02_15 20枚目
 	bool isCollisionDisabled_ = false;
+	// 02_16 19
+	GameScene* gameScene_ = nullptr;
 };

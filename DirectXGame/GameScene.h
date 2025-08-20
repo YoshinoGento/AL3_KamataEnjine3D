@@ -3,6 +3,7 @@
 #include "DeathParticles.h"
 #include "Enemy.h"
 #include "Fade.h"
+#include "HitEffect.h"
 #include "KamataEngine.h"
 #include "MapChipField.h"
 #include "Player.h"
@@ -29,6 +30,9 @@ public:
 
 	// 	// 02_12 26枚目	デスフラグのgetter
 	bool IsFinished() const { return finished_; }
+
+	// エフェクトを生成
+	void CreateEffect(const Vector3& position);
 
 private:
 	// 02_12 4枚目 ゲームのフェーズ（型）
@@ -108,4 +112,10 @@ private:
 
 	// 02_14 34枚目
 	Model* modelAttack_ = nullptr;
+
+	// 02_16 17枚目
+	std::list<HitEffect*> hitEffects_;
+
+	// 02_16
+	Model* particle_model_ = nullptr;
 };

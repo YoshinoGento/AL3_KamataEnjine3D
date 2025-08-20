@@ -55,7 +55,7 @@ public:
 	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
 
 	// 02_10 10枚目 ワールド座標を取得
-	Vector3 GetWorldPosition();
+	Vector3 GetWorldPosition() const;
 
 	// 02_10 13枚目
 	AABB GetAABB();

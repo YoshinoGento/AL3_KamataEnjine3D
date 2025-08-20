@@ -593,7 +593,7 @@ void Player::Draw() {
 }
 
 // 02_10 10枚目
-Vector3 Player::GetWorldPosition() {
+Vector3 Player::GetWorldPosition() const {
 
 	Vector3 worldPos;
 	// ワールド行列の平行移動成分を取得（ワールド座標）
