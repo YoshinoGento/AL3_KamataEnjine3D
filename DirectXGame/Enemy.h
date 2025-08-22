@@ -41,24 +41,31 @@ public:
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
 
 private:
+
 	// 02_09 6枚目 ザ・ワールド
 	WorldTransform worldTransform_;
+
 	// 02_09 6枚目 モデル
 	Model* model_ = nullptr;
+
 	// 02_09 6枚目 カメラ
 	Camera* camera_ = nullptr;
 
 	// 02_09 15枚目
 	static inline const float kWalkSpeed = 0.02f;
+
 	// 02_09 15枚目
 	Vector3 velocity_ = {};
 
 	// 02_09 19枚目
 	static inline const float kWalkMotionAngleStart = 0.0f;
+
 	// 02_09 19枚目
 	static inline const float kWalkMotionAngleEnd = 30.0f;
+
 	// 02_09 19枚目
 	static inline const float kWalkMotionTime = 1.0f;
+
 	// 02_09 20枚目
 	float walkTimer = 0.0f;
 
@@ -68,6 +75,8 @@ private:
 
 	// 02_15 6枚目
 	bool isDead_ = false;
+
+
 
 	// 02_15 13枚目
 	Behavior behavior_ = Behavior::kWalk;

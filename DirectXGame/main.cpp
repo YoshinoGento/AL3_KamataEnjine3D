@@ -1,7 +1,8 @@
+#include "GameClearScene.h"
+#include "GameOverSeen.h"
 #include "GameScene.h"
 #include "KamataEngine.h"
 #include "TitleScene.h" // 02_12 21枚目
-#include "GameOverSeen.h" 
 #include <Windows.h>
 
 using namespace KamataEngine;
@@ -10,14 +11,10 @@ using namespace KamataEngine;
 TitleScene* titleScene = nullptr;
 GameScene* gameScene = nullptr;
 GameOverSeen* gameOverScene = nullptr;
+GameClearScene* gameClearScene = nullptr;
 
 // 02_12 25枚目(Scene sceneまで)
-enum class Scene {
-	kUnknown = 0,
-	kTitle,
-	kGame,
-	kEnd,
-};
+enum class Scene { kUnknown = 0, kTitle, kGame, kEnd, kClear };
 // 現在シーン（型）
 Scene scene = Scene::kUnknown;
 
@@ -44,6 +41,8 @@ void ChangeScene() {
 			gameScene = nullptr;
 			gameOverScene = new GameOverSeen;
 			gameOverScene->Initialize();
+			gameClearScene = new GameClearScene;
+			gameClearScene->Initialize();
 		}
 		break;
 	case Scene::kEnd:
@@ -51,14 +50,32 @@ void ChangeScene() {
 		if (gameOverScene->IsFinished()) {
 			// シーン変更
 			scene = Scene::kTitle;
+
 			delete gameOverScene;
 			gameOverScene = nullptr;
+			delete gameClearScene;
+			gameClearScene = nullptr;
+
 			titleScene = new TitleScene;
 			titleScene->Initialize();
 		}
-		
-	}
+		break;
+	case Scene::kClear:
+		// 02_12 30枚目
+		if (gameOverScene->IsFinished()) {
+			// シーン変更
+			scene = Scene::kTitle;
 
+			delete gameOverScene;
+			gameOverScene = nullptr;
+			delete gameClearScene;
+			gameClearScene = nullptr;
+
+			titleScene = new TitleScene;
+			titleScene->Initialize();
+		}
+		break;
+	}
 }
 
 // 02_12 31枚目
