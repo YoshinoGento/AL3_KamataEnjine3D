@@ -39,11 +39,14 @@ public:
 	// ゲームクリア判定
 	bool IsCleared() const;
 
+
+
 private:
 	// 02_12 4枚目 ゲームのフェーズ（型）
 	enum class Phase {
 		kFadeIn,  // フェードイン 02_13 28枚目で追加
 		kPlay,    // ゲームプレイ
+		kPause,     // ポーズ 
 		kDeath, // デス演出
 		kGameClear, // ゲームクリア
 		kFadeOut, // フェードアウト 02_13 28枚目で追加

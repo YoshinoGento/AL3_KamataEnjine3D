@@ -234,6 +234,15 @@ void GameScene::GenerateBlocks() {
 // ゲームシーン更新
 void GameScene::Update() {
 
+	 // ポーズトグル（例: Pキーで切り替え）
+	if (Input::GetInstance()->TriggerKey(DIK_P)) {
+		if (phase_ == Phase::kPlay) {
+			phase_ = Phase::kPause;
+		} else if (phase_ == Phase::kPause) {
+			phase_ = Phase::kPlay;
+		}
+	}
+
 	// デスフラグの立ったエフェクトを削除
 	hitEffects_.remove_if([](HitEffect* hitEffect) {
 		if (hitEffect->IsDead()) {
