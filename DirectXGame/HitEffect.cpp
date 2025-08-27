@@ -4,6 +4,7 @@
 #include <numbers>
 #include <random>
 
+
 using namespace KamataEngine;
 
 // 02_16 9枚目
@@ -19,6 +20,7 @@ HitEffect* HitEffect::Create(const KamataEngine::Vector3& position) {
 
 	return instance;
 }
+
 
 void HitEffect::Initialize(const KamataEngine::Vector3& position) {
 
