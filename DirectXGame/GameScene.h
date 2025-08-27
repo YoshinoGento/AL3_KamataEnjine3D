@@ -8,6 +8,7 @@
 #include "MapChipField.h"
 #include "Player.h"
 #include "skydome.h"
+#include "GameClearScene.h"
 #include <vector>
 
 // ゲームシーンクラス
@@ -34,17 +35,22 @@ public:
 	// エフェクトを生成
 	void CreateEffect(const Vector3& position);
 
+
+	// ゲームクリア判定
+	bool IsCleared() const;
+
 private:
 	// 02_12 4枚目 ゲームのフェーズ（型）
 	enum class Phase {
 		kFadeIn,  // フェードイン 02_13 28枚目で追加
 		kPlay,    // ゲームプレイ
-		kDeath,   // デス演出
+		kDeath, // デス演出
+		kGameClear, // ゲームクリア
 		kFadeOut, // フェードアウト 02_13 28枚目で追加
 	};
 
 	// 02_12 4枚目 ゲームの現在フェーズ（変数）
-	Phase phase_;
+	Phase phase_ = Phase::kFadeIn;
 
 	// 02_12 9枚目
 	void ChangePhase();
@@ -118,4 +124,13 @@ private:
 
 	// 02_16
 	Model* particle_model_ = nullptr;
+
+
+	  // クリアシーン用
+	GameClearScene* gameClearScene_ = nullptr;
+	void CheckGameClear(); // 追加
+	
+
+	bool AreAllEnemiesDead() const;  
+
 };

@@ -166,12 +166,45 @@ void GameScene::ChangePhase() {
 
 			deathParticles_ = new DeathParticles;
 			deathParticles_->Initialize(deathParticle_model_, &camera_, deathParticlesPosition);
+		} else if (AreAllEnemiesDead() && hitEffects_.empty()) {
+			// 敵が全滅してHitEffectも消えたらゲームクリア
+			phase_ = Phase::kGameClear;
+			fade_->Start(Fade::Status::FadeOut, 1.0f);
 		}
 		break;
 	case Phase::kDeath:
+
+		fade_->Update();
+		if (fade_->IsFinished()) {
+			finished_ = true;
+		}
+
+		break;
+	case Phase::kGameClear:
+		fade_->Update();
+		if (fade_->IsFinished()) {
+			finished_ = true;
+		}
+		break;
+
+	case Phase::kFadeIn:
+
+	case Phase::kFadeOut:
+	default:
+		fade_->Update();
 		break;
 	}
 }
+
+// 敵が全員倒されているかチェック
+bool GameScene::AreAllEnemiesDead() const {
+	for (Enemy* enemy : enemies_) {
+		if (!enemy->IsDead())
+			return false;
+	}
+	return true;
+}
+
 
 void GameScene::GenerateBlocks() {
 
@@ -337,6 +370,20 @@ void GameScene::Update() {
 			hitEffect->Update();
 		}
 		break;
+
+	case Phase::kGameClear:
+
+		if (!gameClearScene_) {
+			gameClearScene_ = new GameClearScene();
+			gameClearScene_->Initialize();
+		}
+		gameClearScene_->Update();
+
+		if (gameClearScene_->IsFinished()) {
+			finished_ = true;
+		}
+		break;
+
 	case Phase::kDeath:
 		if (deathParticles_ && deathParticles_->IsFinished()) {
 			phase_ = Phase::kFadeOut;
@@ -380,77 +427,19 @@ void GameScene::Update() {
 
 		break;
 	}
+}
 
-	/*
-	    // 02_12 5枚目 まず追加
-	    // → 02_13 28枚目で中身まるごと変更
-	    switch (phase_) {
-	    case Phase::kPlay:
-	        //ゲームプレイフェーズの処理
-	    break;
-	    case Phase::kDeath:
-	        // 02_12 34枚目 デス演出フェーズの処理
-	        // deathParticles_->IsFinished関数をDeathParticles.hに実装
-	        if (deathParticles_ && deathParticles_->IsFinished()) {
-	            finished_ = true;
-	        }
-
-	    break;
-	    }
-
-
-	    player_->Update();
-	    skydome_->Update();
-	    CController_->Update();
-
-	    //02_09 12枚目 敵更新 → 02_10 7枚目で更新
-	//	enemy_->Update();
-	    for (Enemy *enemy : enemies_) {
-	        enemy->Update();
-	    }
-
-
-	#ifdef _DEBUG
-	    if(Input::GetInstance()->TriggerKey(DIK_SPACE)) {
-	        // フラグをトグル
-	        isDebugCameraActive_ = !isDebugCameraActive_;
-	    }
-	#endif
-
-	    // カメラの処理
-	    if (isDebugCameraActive_) {
-	        debugCamera_->Update();
-	        camera_.matView = debugCamera_->GetCamera().matView;
-	        camera_.matProjection = debugCamera_->GetCamera().matProjection;
-	        // ビュープロジェクション行列の転送
-	        camera_.TransferMatrix();
-	    } else {
-	        // ビュープロジェクション行列の更新と転送
-	        camera_.UpdateMatrix();
-	    }
-
-	    // ブロックの更新
-	    for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
-	        for (WorldTransform*& worldTransformBlock : worldTransformBlockLine) {
-
-	            if (!worldTransformBlock)continue;
-
-	            //アフィン変換～DirectXに転送
-	            WorldTransformUpdate(*worldTransformBlock);
-	        }
-	    }
-
-	    // デバッグカメラの更新
-	    debugCamera_->Update();
-
-	    //02_10 22枚目 衝突判定
-	    CheckAllCollisions();
-
-	    //02_11 18枚目 デスパーティクルあれば更新
-	    if (deathParticles_) {
-	        deathParticles_->Update();
-	    }
-	*/
+// -------------------------------------------------------------
+// 全敵倒したらゲームクリアにする判定
+// -------------------------------------------------------------
+void GameScene::CheckGameClear() {
+	if (enemies_.empty()) {
+		// 敵が全滅したらフェーズをクリアに
+		phase_ = Phase::kGameClear;
+		if (fade_) {
+			fade_->Start(Fade::Status::FadeOut, 1.0f); // 任意：フェードアウト
+		}
+	}
 }
 
 void GameScene::Draw() {
@@ -536,4 +525,8 @@ void GameScene::CheckAllCollisions() {
 		}
 	}
 #pragma endregion
+}
+
+bool GameScene::IsCleared() const {
+    return phase_ == Phase::kGameClear;
 }

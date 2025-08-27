@@ -35,15 +35,25 @@ void ChangeScene() {
 	case Scene::kGame:
 		// 02_12 30枚目
 		if (gameScene->IsFinished()) {
-			// シーン変更
-			scene = Scene::kEnd;
+			if (gameScene->IsCleared()) { // GameSceneに勝利判定関数を追加
+
+				// 勝利か敗北かで分岐
+				scene = Scene::kClear;
+				gameClearScene = new GameClearScene;
+				gameClearScene->Initialize();
+
+			} else {
+
+				// シーン変更
+				scene = Scene::kEnd;
+				gameOverScene = new GameOverSeen;
+				gameOverScene->Initialize();
+			}
+
 			delete gameScene;
 			gameScene = nullptr;
-			gameOverScene = new GameOverSeen;
-			gameOverScene->Initialize();
-			gameClearScene = new GameClearScene;
-			gameClearScene->Initialize();
 		}
+
 		break;
 	case Scene::kEnd:
 		// 02_12 30枚目
@@ -62,12 +72,10 @@ void ChangeScene() {
 		break;
 	case Scene::kClear:
 		// 02_12 30枚目
-		if (gameOverScene->IsFinished()) {
+		if (gameClearScene->IsFinished()) {
 			// シーン変更
 			scene = Scene::kTitle;
 
-			delete gameOverScene;
-			gameOverScene = nullptr;
 			delete gameClearScene;
 			gameClearScene = nullptr;
 
@@ -92,8 +100,13 @@ void UpdateScene() {
 	case Scene::kEnd:
 		gameOverScene->Update();
 		break;
+
+	case Scene::kClear:
+		gameClearScene->Update();
+		break;
 	}
 }
+
 
 // 02_12 32枚目
 void DrawScene() {
@@ -106,6 +119,9 @@ void DrawScene() {
 		break;
 	case Scene::kEnd:
 		gameOverScene->Draw();
+		break;
+	case Scene::kClear:
+		gameClearScene->Draw();
 		break;
 	}
 }

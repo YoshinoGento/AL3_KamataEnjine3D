@@ -114,6 +114,7 @@
     <ClCompile Include="GameOverSeen.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="HitEffect.cpp" />
+    <ClCompile Include="Item.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MapChipField.cpp" />
     <ClCompile Include="Math.cpp" />
@@ -205,6 +206,7 @@
     <ClInclude Include="GameOverSeen.h" />
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="HitEffect.h" />
+    <ClInclude Include="Item.h" />
     <ClInclude Include="MapChipField.h" />
     <ClInclude Include="Math.h" />
     <ClInclude Include="Player.h" />
