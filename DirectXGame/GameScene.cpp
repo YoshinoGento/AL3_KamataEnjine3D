@@ -154,19 +154,14 @@ void GameScene::Initialize() {
 	HitEffect::SetModel(particle_model_);
 	HitEffect::SetCamera(&camera_);
 
-
-	pauseOverlay_ = Sprite::Create(TextureManager::Load("white.png"), {0, 0});
-
-	// 画面いっぱいに広げる
+	// ポーズ背景（半透明黒）
+	pauseOverlay_ = Sprite::Create(TextureManager::Load("white1x1.png"), {0, 0});
 	pauseOverlay_->SetSize({1280, 720});
-
-	// 半透明の黒にする
-	pauseOverlay_->SetColor({0, 0, 0, 128});
+	pauseOverlay_->SetColor({0, 0, 0, 0.5f}); // 半透明
 
 	// GameScene.cpp Initialize 内
 	retrySprite_ = Sprite::Create(TextureManager::Load("retry.png"), {500, 300});
 	titleSprite_ = Sprite::Create(TextureManager::Load("title.png"), {500, 400});
-
 }
 
 // 02_12 10枚目 GameScene::Update関数で呼び出しておく
@@ -224,7 +219,6 @@ bool GameScene::AreAllEnemiesDead() const {
 	return true;
 }
 
-
 void GameScene::GenerateBlocks() {
 
 	uint32_t numBlockVirtical = mapChipField_->GetNumBlockVirtical();
@@ -253,13 +247,33 @@ void GameScene::GenerateBlocks() {
 // ゲームシーン更新
 void GameScene::Update() {
 
-
 	// リトライキー（例: Rキー）でリトライ
 	if (Input::GetInstance()->TriggerKey(DIK_R)) {
 		Retry();
 	}
 
-	
+	// GameScene::Update() 内のポーズ処理部分を整理
+	if (Input::GetInstance()->TriggerKey(DIK_ESCAPE)) {
+		isPaused_ = !isPaused_; // ESCでポーズON/OFF
+	}
+
+	// ポーズ中の操作
+	if (isPaused_) {
+		// 上下キーで選択変更
+		if (Input::GetInstance()->TriggerKey(DIK_UP) || Input::GetInstance()->TriggerKey(DIK_DOWN)) {
+			pauseSelection_ = (pauseSelection_ == PauseMenuSelection::Retry) ? PauseMenuSelection::Title : PauseMenuSelection::Retry;
+		}
+
+		// 決定キー
+		if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
+			if (pauseSelection_ == PauseMenuSelection::Retry) {
+				Retry(); // ゲーム再開処理
+				isPaused_ = false;
+			} else {
+				finished_ = true; // タイトルに戻る処理
+			}
+		}
+	}
 
 	// デスフラグの立ったエフェクトを削除
 	hitEffects_.remove_if([](HitEffect* hitEffect) {
@@ -356,42 +370,6 @@ void GameScene::Update() {
 		for (Enemy* enemy : enemies_) {
 			enemy->Update();
 		}
-
-
-
-
-
-		 // ESCキーでポーズON/OFF
-		if (Input::GetInstance()->TriggerKey(DIK_ESCAPE)) {
-			isPaused_ = !isPaused_;
-		}
-
-		// ポーズ中の処理
-		if (isPaused_) {
-			// 上下で選択切替
-			if (Input::GetInstance()->TriggerKey(DIK_UP) || Input::GetInstance()->TriggerKey(DIK_DOWN)) {
-				pauseSelection_ = (pauseSelection_ == PauseMenuSelection::Retry) ? PauseMenuSelection::Title : PauseMenuSelection::Retry;
-			}
-
-			// Enterキーで決定
-			if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
-				if (pauseSelection_ == PauseMenuSelection::Retry) {
-					Retry();           // リトライ
-					isPaused_ = false; // ポーズ解除
-				} else if (pauseSelection_ == PauseMenuSelection::Title) {
-					finished_ = true; // タイトルに戻る
-				}
-			}
-
-			return; // ポーズ中はゲーム進行を止める
-		}
-
-
-
-
-
-
-
 
 		//		UpdateCamera();
 		/*
@@ -507,14 +485,49 @@ void GameScene::CheckGameClear() {
 
 void GameScene::Draw() {
 
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
+	// -------------------------------
+	// 3D描画
+	Model::PreDraw(dxCommon->GetCommandList());
+
+	if (!player_->IsDead())
+		player_->Draw();
+	skydome_->Draw();
+
+	for (auto& line : worldTransformBlocks_) {
+		for (WorldTransform* block : line) {
+			if (!block)
+				continue;
+			block_model_->Draw(*block, camera_);
+		}
+	}
+
+	for (Enemy* enemy : enemies_)
+		enemy->Draw();
+	if (deathParticles_)
+		deathParticles_->Draw();
+
+	for (HitEffect* hitEffect : hitEffects_)
+		hitEffect->Draw();
+
+	Model::PostDraw(); // 3D描画終了
+
+	// フェードも3D描画後に描く
+	fade_->Draw();
+
+	// -------------------------------
+	// スプライト描画（メニューやUI）
+	Sprite::PreDraw(dxCommon->GetCommandList());
 
 	if (isPaused_) {
+		// 半透明背景
 		pauseOverlay_->Draw();
 
+		// メニュー選択ハイライト
 		if (pauseSelection_ == PauseMenuSelection::Retry) {
-			retrySprite_->SetColor({1, 1, 0, 1}); // 黄色でハイライト
-			titleSprite_->SetColor({1, 1, 1, 1});
+			retrySprite_->SetColor({1, 1, 0, 1}); // 黄色
+			titleSprite_->SetColor({1, 1, 1, 1}); // 白
 		} else {
 			retrySprite_->SetColor({1, 1, 1, 1});
 			titleSprite_->SetColor({1, 1, 0, 1});
@@ -525,54 +538,7 @@ void GameScene::Draw() {
 	}
 
 
-	// DirectXCommonインスタンスの取得
-	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-
-	// 3Dオブジェクト描画前処理
-	Model::PreDraw(dxCommon->GetCommandList());
-
-	// 自キャラの描画
-	if (!player_->IsDead())
-		player_->Draw();
-
-	// 天球描画
-	skydome_->Draw();
-
-	// ブロックの描画
-	for (std::vector<WorldTransform*>& worldTransformBlockLine : worldTransformBlocks_) {
-		for (WorldTransform*& worldTransformBlock : worldTransformBlockLine) {
-			if (!worldTransformBlock)
-				continue;
-
-			block_model_->Draw(*worldTransformBlock, camera_);
-		}
-	}
-
-	// 02_09 12枚目 敵更新 → 02_10 7枚目で更新
-	//	enemy_->Draw();
-	for (Enemy* enemy : enemies_) {
-		enemy->Draw();
-	}
-
-	// 02_11 18枚目 デスパーティクルあれば描画
-	if (deathParticles_) {
-		deathParticles_->Draw();
-	}
-
-	for (HitEffect* hitEffect : hitEffects_) {
-		hitEffect->Draw();
-	}
-
-	Model::PostDraw();
-
-	// スプライト描画前処理
-	Sprite::PreDraw(dxCommon->GetCommandList());
-
-	// スプライト描画後処理
 	Sprite::PostDraw();
-
-	// 02_13 28枚目
-	fade_->Draw();
 }
 
 // 02_10 16枚目
@@ -608,8 +574,7 @@ void GameScene::CheckAllCollisions() {
 #pragma endregion
 }
 
-bool GameScene::IsCleared() const {
-    return phase_ == Phase::kGameClear; }
+bool GameScene::IsCleared() const { return phase_ == Phase::kGameClear; }
 
 void GameScene::Retry() {
 	// 既存の動的メモリを破棄

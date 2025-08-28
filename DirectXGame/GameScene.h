@@ -138,20 +138,18 @@ private:
 
 	bool AreAllEnemiesDead() const;  
 
+	enum class PauseMenuSelection { Retry, Title };
 
-	// ポーズ中かどうか
+	// ポーズ関連
 	bool isPaused_ = false;
-
-	// 画面を暗くするスプライト
-	KamataEngine::Sprite* pauseOverlay_ = nullptr;
-
-	// 今どのメニューを選んでいるか
 	enum class PauseMenuSelection { Retry, Title };
 	PauseMenuSelection pauseSelection_ = PauseMenuSelection::Retry;
 
-	// リトライ、タイトルのスプライト
+	// ポーズ用スプライト
+	KamataEngine::Sprite* pauseOverlay_ = nullptr;
 	KamataEngine::Sprite* retrySprite_ = nullptr;
 	KamataEngine::Sprite* titleSprite_ = nullptr;
+
 
 
 };
