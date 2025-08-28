@@ -54,6 +54,9 @@ void Enemy::Update() {
 		// 02_09 16枚目 移動
 		worldTransform_.translation_ += velocity_;
 
+		// 壁チェック
+		CheckCollisionWithMap();
+
 		// 02_09 20枚目
 		walkTimer += 1.0f / 60.0f;
 
@@ -144,5 +147,25 @@ void Enemy::OnCollision(const Player* player) {
 
 		// 02_15 20枚目 衝突を無効化
 		isCollisionDisabled_ = true;
+	}
+}
+
+void Enemy::CheckCollisionWithMap() {
+	if (!mapChipField_)
+		return;
+
+	// 敵の位置をタイル座標に変換
+	auto index = mapChipField_->GetMapChipIndexSetByPosition(worldTransform_.translation_);
+
+	// 進行方向を見る（右なら+1, 左なら-1）
+	int dir = (velocity_.x > 0) ? 1 : -1;
+	uint32_t nextX = index.xIndex + dir;
+	uint32_t y = index.yIndex;
+
+	// 次がブロックなら反転
+	if (mapChipField_->GetMapChipTypeByIndex(nextX, y) == MapChipType::kBlock) {
+		velocity_.x *= -1;
+		// 見た目の向きも反転
+		worldTransform_.rotation_.y += std::numbers::pi_v<float>;
 	}
 }

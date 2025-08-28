@@ -1,6 +1,7 @@
 #pragma once
 
 #include "KamataEngine.h"
+#include "MapChipField.h"
 #include "Math.h"
 #include "Player.h"
 
@@ -14,6 +15,9 @@ class GameScene;
 class Enemy {
 
 public:
+
+	
+
 	// 02_15 13枚目 振るまい
 	enum class Behavior {
 		kUnknown = -1, // 無効な状態
@@ -39,6 +43,8 @@ public:
 	bool IsCollisionDisabled() const { return isCollisionDisabled_; }
 	// 02_16 19
 	void SetGameScene(GameScene* gameScene) { gameScene_ = gameScene; }
+
+	void SetMapChipField(MapChipField* mapChipField) { mapChipField_ = mapChipField; }
 
 private:
 
@@ -92,4 +98,9 @@ private:
 	bool isCollisionDisabled_ = false;
 	// 02_16 19
 	GameScene* gameScene_ = nullptr;
+
+	MapChipField* mapChipField_ = nullptr;
+
+	void CheckCollisionWithMap(); // ← 壁判定
+
 };

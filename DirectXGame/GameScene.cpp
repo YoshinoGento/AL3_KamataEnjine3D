@@ -120,7 +120,12 @@ void GameScene::Initialize() {
 
 		newEnemy->Initialize(enemy_model_, &camera_, enemyPosition);
 
+		// ★ マップチップフィールドを渡す
+		newEnemy->SetMapChipField(mapChipField_);
+
+		// ★ GameScene を渡すのはそのまま残す
 		newEnemy->SetGameScene(this);
+
 		enemies_.push_back(newEnemy);
 	}
 
