@@ -138,8 +138,6 @@ private:
 
 	bool AreAllEnemiesDead() const;  
 
-	enum class PauseMenuSelection { Retry, Title };
-
 	// ポーズ関連
 	bool isPaused_ = false;
 	enum class PauseMenuSelection { Retry, Title };

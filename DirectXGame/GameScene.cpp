@@ -68,6 +68,7 @@ void GameScene::Initialize() {
 
 	// 02_03 skydome生成
 	skydome_ = new Skydome();
+
 	// 初期化
 	modelSkydome_ = Model::CreateFromOBJ("SkyDome", true);
 	skydome_->Initialize(modelSkydome_, &camera_);
@@ -247,19 +248,14 @@ void GameScene::GenerateBlocks() {
 // ゲームシーン更新
 void GameScene::Update() {
 
-	// リトライキー（例: Rキー）でリトライ
-	if (Input::GetInstance()->TriggerKey(DIK_R)) {
-		Retry();
-	}
-
-	// GameScene::Update() 内のポーズ処理部分を整理
+	 // ESCでポーズON/OFF
 	if (Input::GetInstance()->TriggerKey(DIK_ESCAPE)) {
-		isPaused_ = !isPaused_; // ESCでポーズON/OFF
+		isPaused_ = !isPaused_;
 	}
 
-	// ポーズ中の操作
+	// ポーズ中の処理
 	if (isPaused_) {
-		// 上下キーで選択変更
+		// 上下キーで選択切替
 		if (Input::GetInstance()->TriggerKey(DIK_UP) || Input::GetInstance()->TriggerKey(DIK_DOWN)) {
 			pauseSelection_ = (pauseSelection_ == PauseMenuSelection::Retry) ? PauseMenuSelection::Title : PauseMenuSelection::Retry;
 		}
@@ -267,25 +263,95 @@ void GameScene::Update() {
 		// 決定キー
 		if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
 			if (pauseSelection_ == PauseMenuSelection::Retry) {
-				Retry(); // ゲーム再開処理
+				Retry(); // ゲーム再開
 				isPaused_ = false;
 			} else {
-				finished_ = true; // タイトルに戻る処理
+				finished_ = true; // タイトルに戻る
 			}
 		}
+
+		// ポーズ中はゲーム本体の更新を止める
+		return;
 	}
 
-	// デスフラグの立ったエフェクトを削除
+	// -----------------------------
+	// ポーズでない場合は通常のゲーム更新
+	// -----------------------------
+
+	// リトライキー（R）でリトライ
+	if (Input::GetInstance()->TriggerKey(DIK_R)) {
+		Retry();
+	}
+
+	// フェーズごとの更新
+	switch (phase_) {
+	case Phase::kFadeIn:
+		skydome_->Update();
+		fade_->Update();
+		if (fade_->IsFinished()) {
+			fade_->Start(Fade::Status::FadeOut, 1.0f);
+			phase_ = Phase::kPlay;
+		}
+		[[fallthrough]];
+	case Phase::kPlay:
+		skydome_->Update();
+		CController_->Update();
+		player_->Update();
+		for (Enemy* enemy : enemies_)
+			enemy->Update();
+		for (HitEffect* hitEffect : hitEffects_)
+			hitEffect->Update();
+
+		CheckAllCollisions();
+		break;
+
+	case Phase::kDeath:
+		if (deathParticles_ && deathParticles_->IsFinished())
+			phase_ = Phase::kFadeOut;
+		skydome_->Update();
+		CController_->Update();
+		for (Enemy* enemy : enemies_)
+			enemy->Update();
+		if (deathParticles_)
+			deathParticles_->Update();
+		for (HitEffect* hitEffect : hitEffects_)
+			hitEffect->Update();
+		break;
+
+	case Phase::kGameClear:
+		skydome_->Update();
+		if (!gameClearScene_) {
+			gameClearScene_ = new GameClearScene();
+			gameClearScene_->Initialize();
+		}
+		gameClearScene_->Update();
+		if (gameClearScene_->IsFinished())
+			finished_ = true;
+		break;
+
+	case Phase::kFadeOut:
+		fade_->Update();
+		if (fade_->IsFinished())
+			finished_ = true;
+		skydome_->Update();
+		CController_->Update();
+		for (Enemy* enemy : enemies_)
+			enemy->Update();
+		for (HitEffect* hitEffect : hitEffects_)
+			hitEffect->Update();
+		break;
+	}
+
+	// デスフラグの立ったエフェクト削除
 	hitEffects_.remove_if([](HitEffect* hitEffect) {
 		if (hitEffect->IsDead()) {
 			delete hitEffect;
-
 			return true;
 		}
 		return false;
 	});
 
-	// 02_15 7枚目 デスフラグの立った敵を削除
+	// デスフラグの立った敵削除
 	enemies_.remove_if([](Enemy* enemy) {
 		if (enemy->IsDead()) {
 			delete enemy;
@@ -294,6 +360,7 @@ void GameScene::Update() {
 		return false;
 	});
 
+	// フェーズ変更判定
 	ChangePhase();
 
 	switch (phase_) {
@@ -485,15 +552,18 @@ void GameScene::CheckGameClear() {
 
 void GameScene::Draw() {
 
+
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
 	// -------------------------------
 	// 3D描画
 	Model::PreDraw(dxCommon->GetCommandList());
 
-	if (!player_->IsDead())
-		player_->Draw();
 	skydome_->Draw();
+
+	if (!player_->IsDead()) {
+		player_->Draw();
+	}
 
 	for (auto& line : worldTransformBlocks_) {
 		for (WorldTransform* block : line) {

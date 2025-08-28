@@ -8,6 +8,7 @@ TitleScene::~TitleScene() {
 
 	// 02_13 12枚目
 	delete fade_;
+	delete modelSkydome_;
 }
 
 void TitleScene::Initialize() {
@@ -42,6 +43,14 @@ void TitleScene::Initialize() {
 
 	// 02_13 22枚目
 	fade_->Start(Fade::Status::FadeIn, 1.0f);
+
+	// 02_03 skydome生成
+	skydome_ = new Skydome();
+
+	// 初期化
+	modelSkydome_ = Model::CreateFromOBJ("SkyDome", true);
+	skydome_->Initialize(modelSkydome_, &camera_);
+
 }
 
 void TitleScene::Update() {
@@ -53,6 +62,7 @@ void TitleScene::Update() {
 	// 02_13 27枚目
 	switch (phase_) {
 	case Phase::kFadeIn:
+		skydome_->Update();
 		fade_->Update();
 
 		if (fade_->IsFinished()) {
@@ -60,12 +70,14 @@ void TitleScene::Update() {
 		}
 		break;
 	case Phase::kMain:
+		skydome_->Update();
 		if (Input::GetInstance()->PushKey(DIK_SPACE)) {
 			fade_->Start(Fade::Status::FadeOut, 1.0f);
 			phase_ = Phase::kFadeOut;
 		}
 		break;
 	case Phase::kFadeOut:
+		skydome_->Update();
 		fade_->Update();
 		if (fade_->IsFinished()) {
 			finished_ = true;
@@ -101,6 +113,7 @@ void TitleScene::Draw() {
 	ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();
 
 	Model::PreDraw(commandList);
+	skydome_->Draw();
 
 	modelTitle_->Draw(worldTransformTitle_, camera_);
 	modelPlayer_->Draw(worldTransformPlayer_, camera_);

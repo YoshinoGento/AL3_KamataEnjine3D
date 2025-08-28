@@ -1,6 +1,7 @@
 #include "GameClearScene.h"
 #include "Math.h"
 #include <numbers>
+#include "skydome.h"
 
 GameClearScene::~GameClearScene() {
 
@@ -9,7 +10,7 @@ delete modelPlayer_;
 
 	// 02_13 12枚目
 	delete fade_;
-
+	delete modelSkydome_;
 }
 
 void GameClearScene::Initialize() {
@@ -44,6 +45,13 @@ void GameClearScene::Initialize() {
 
 	// 02_13 22枚目
 	fade_->Start(Fade::Status::FadeIn, 1.0f);
+
+	// 02_03 skydome生成
+	skydome_ = new Skydome();
+
+	// 初期化
+	modelSkydome_ = Model::CreateFromOBJ("SkyDome", true);
+	skydome_->Initialize(modelSkydome_, &camera_);
 }
 
 void GameClearScene::Update() {
@@ -56,18 +64,21 @@ void GameClearScene::Update() {
 	switch (phase_) {
 	case Phase::kFadeIn:
 		fade_->Update();
+		skydome_->Update();
 
 		if (fade_->IsFinished()) {
 			phase_ = Phase::kMain;
 		}
 		break;
 	case Phase::kMain:
+		skydome_->Update();
 		if (Input::GetInstance()->PushKey(DIK_SPACE)) {
 			fade_->Start(Fade::Status::FadeOut, 1.0f);
 			phase_ = Phase::kFadeOut;
 		}
 		break;
 	case Phase::kFadeOut:
+		skydome_->Update();
 		fade_->Update();
 		if (fade_->IsFinished()) {
 			finished_ = true;
@@ -103,6 +114,7 @@ void GameClearScene::Draw() {
 	ID3D12GraphicsCommandList* commandList = dxCommon_->GetCommandList();
 
 	Model::PreDraw(commandList);
+	skydome_->Draw();
 
 	modelTitle_->Draw(worldTransformTitle_, camera_);
 	modelPlayer_->Draw(worldTransformPlayer_, camera_);

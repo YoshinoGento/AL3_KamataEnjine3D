@@ -1,6 +1,8 @@
 #pragma once
 #include "Fade.h"
 #include "KamataEngine.h"
+#include "skydome.h"
+
 
 using namespace KamataEngine;
 
@@ -27,6 +29,11 @@ public:
 
 private:
 	static inline const float kTimeTitleMove = 2.0f;
+
+	// 02_03 天球
+	Skydome* skydome_ = nullptr;
+	Model* modelSkydome_ = nullptr;
+
 
 	// ビュープロジェクション
 	Camera camera_;
