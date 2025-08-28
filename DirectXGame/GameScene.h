@@ -40,6 +40,8 @@ public:
 	bool IsCleared() const;
 
 
+	void Retry(); // ゲームリトライ用
+
 
 private:
 	// 02_12 4枚目 ゲームのフェーズ（型）

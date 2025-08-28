@@ -234,6 +234,12 @@ void GameScene::GenerateBlocks() {
 // ゲームシーン更新
 void GameScene::Update() {
 
+
+	// リトライキー（例: Rキー）でリトライ
+	if (Input::GetInstance()->TriggerKey(DIK_R)) {
+		Retry();
+	}
+
 	 // ポーズトグル（例: Pキーで切り替え）
 	if (Input::GetInstance()->TriggerKey(DIK_P)) {
 		if (phase_ == Phase::kPlay) {
@@ -537,5 +543,37 @@ void GameScene::CheckAllCollisions() {
 }
 
 bool GameScene::IsCleared() const {
-    return phase_ == Phase::kGameClear;
+    return phase_ == Phase::kGameClear; }
+
+void GameScene::Retry() {
+	// 既存の動的メモリを破棄
+	delete player_;
+	player_ = nullptr;
+
+	for (Enemy* enemy : enemies_)
+		delete enemy;
+	enemies_.clear();
+
+	for (auto& line : worldTransformBlocks_) {
+		for (WorldTransform* block : line)
+			delete block;
+	}
+	worldTransformBlocks_.clear();
+
+	for (HitEffect* effect : hitEffects_)
+		delete effect;
+	hitEffects_.clear();
+
+	delete deathParticles_;
+	deathParticles_ = nullptr;
+
+	delete fade_;
+	fade_ = nullptr;
+
+	delete skydome_;
+	skydome_ = nullptr;
+
+	// 必要なら camera やモデルは残してもよい
+	// 初期化を再度呼ぶ
+	Initialize();
 }
