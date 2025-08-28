@@ -153,6 +153,20 @@ void GameScene::Initialize() {
 
 	HitEffect::SetModel(particle_model_);
 	HitEffect::SetCamera(&camera_);
+
+
+	pauseOverlay_ = Sprite::Create(TextureManager::Load("white.png"), {0, 0});
+
+	// 画面いっぱいに広げる
+	pauseOverlay_->SetSize({1280, 720});
+
+	// 半透明の黒にする
+	pauseOverlay_->SetColor({0, 0, 0, 128});
+
+	// GameScene.cpp Initialize 内
+	retrySprite_ = Sprite::Create(TextureManager::Load("retry.png"), {500, 300});
+	titleSprite_ = Sprite::Create(TextureManager::Load("title.png"), {500, 400});
+
 }
 
 // 02_12 10枚目 GameScene::Update関数で呼び出しておく
@@ -245,14 +259,7 @@ void GameScene::Update() {
 		Retry();
 	}
 
-	 // ポーズトグル（例: Pキーで切り替え）
-	if (Input::GetInstance()->TriggerKey(DIK_P)) {
-		if (phase_ == Phase::kPlay) {
-			phase_ = Phase::kPause;
-		} else if (phase_ == Phase::kPause) {
-			phase_ = Phase::kPlay;
-		}
-	}
+	
 
 	// デスフラグの立ったエフェクトを削除
 	hitEffects_.remove_if([](HitEffect* hitEffect) {
@@ -349,6 +356,42 @@ void GameScene::Update() {
 		for (Enemy* enemy : enemies_) {
 			enemy->Update();
 		}
+
+
+
+
+
+		 // ESCキーでポーズON/OFF
+		if (Input::GetInstance()->TriggerKey(DIK_ESCAPE)) {
+			isPaused_ = !isPaused_;
+		}
+
+		// ポーズ中の処理
+		if (isPaused_) {
+			// 上下で選択切替
+			if (Input::GetInstance()->TriggerKey(DIK_UP) || Input::GetInstance()->TriggerKey(DIK_DOWN)) {
+				pauseSelection_ = (pauseSelection_ == PauseMenuSelection::Retry) ? PauseMenuSelection::Title : PauseMenuSelection::Retry;
+			}
+
+			// Enterキーで決定
+			if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
+				if (pauseSelection_ == PauseMenuSelection::Retry) {
+					Retry();           // リトライ
+					isPaused_ = false; // ポーズ解除
+				} else if (pauseSelection_ == PauseMenuSelection::Title) {
+					finished_ = true; // タイトルに戻る
+				}
+			}
+
+			return; // ポーズ中はゲーム進行を止める
+		}
+
+
+
+
+
+
+
 
 		//		UpdateCamera();
 		/*
@@ -463,6 +506,24 @@ void GameScene::CheckGameClear() {
 }
 
 void GameScene::Draw() {
+
+
+
+	if (isPaused_) {
+		pauseOverlay_->Draw();
+
+		if (pauseSelection_ == PauseMenuSelection::Retry) {
+			retrySprite_->SetColor({1, 1, 0, 1}); // 黄色でハイライト
+			titleSprite_->SetColor({1, 1, 1, 1});
+		} else {
+			retrySprite_->SetColor({1, 1, 1, 1});
+			titleSprite_->SetColor({1, 1, 0, 1});
+		}
+
+		retrySprite_->Draw();
+		titleSprite_->Draw();
+	}
+
 
 	// DirectXCommonインスタンスの取得
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
