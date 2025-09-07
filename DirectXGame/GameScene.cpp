@@ -56,7 +56,7 @@ void GameScene::Initialize() {
 	// 02_03 skydome生成
 	skydome_ = new Skydome();
 	// 初期化
-	modelSkydome_ = Model::CreateFromOBJ("SkyDome", true);
+	modelSkydome_ = Model::CreateFromOBJ("universedome", true);
 	skydome_->Initialize(modelSkydome_, &camera_);
 
 	// 02_04マップチップ
