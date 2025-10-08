@@ -1,5 +1,10 @@
 #include "Player.h"
 
+#include <algorithm>
+#include <cassert>
+#include <numbers>
+
+
 using namespace KamataEngine;
 
 void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
@@ -17,6 +22,9 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 }
 
 void Player::Update() {
+
+
+
 
 }
 
