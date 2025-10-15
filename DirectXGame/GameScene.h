@@ -41,7 +41,7 @@ private:
 
 	// 3Dモデル
 	KamataEngine::Model* model_ = nullptr;
-	//skydome* skydome_ = nullptr;
+	// skydome* skydome_ = nullptr;
 	KamataEngine::Model* modelSkydome_ = nullptr;
 
 	// ワールドトランスフォーム
@@ -57,6 +57,4 @@ private:
 
 	// デバックカメラ有効
 	bool isDebugCameraActive_ = false;
-
-	// 数学関数
-	
+};
