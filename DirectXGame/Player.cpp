@@ -24,7 +24,8 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 void Player::Update() {
 
 	
-
+	    // 更新時に行列を再計算
+	worldTransform_.TransferMatrix();
 
 }
 
