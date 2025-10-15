@@ -30,6 +30,7 @@ void Player::Update() {
 
 void Player::Drow() {
 
-	
+	// モデル描画
+	model_->Draw(worldTransform_, *camera_);
 
 }
