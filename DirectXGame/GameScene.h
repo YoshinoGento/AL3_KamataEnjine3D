@@ -31,4 +31,7 @@ private:
 
 	// 弾（複数想定）
 	std::vector<Bullet*> bullets_;
+
+	// カメラ
+	Camera* camera_ = nullptr;
 };

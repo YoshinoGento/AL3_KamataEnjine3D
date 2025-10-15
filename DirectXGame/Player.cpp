@@ -23,11 +23,13 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 
 void Player::Update() {
 
-
+	
 
 
 }
 
 void Player::Drow() {
+
+	
 
 }
