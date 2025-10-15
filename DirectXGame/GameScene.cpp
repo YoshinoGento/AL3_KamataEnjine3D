@@ -1,79 +1,66 @@
 #include "GameScene.h"
+#include "KamataEngine.h"
+#include "Math.h"
 
 using namespace KamataEngine;
 
-// 初期化
 void GameScene::Initialize() {
 
-	camera_ = new Camera();
-	camera_->Initialize();
-	// ここで終わった10/8日
-	//  プレイヤーモデルを読み込み（立方体でも.objでもOK）
-	Model* playerModel = Model::CreateFromOBJ("player");
+	// モデルのロード
+	playerModel_ = Model::Create(); // プレイヤー用の3Dモデル生成
 
-	// プレイヤーの生成
+	// カメラ初期化
+	camera_.Initialize();
+
+	// デバッグカメラ作成
+	debugCamera_ = new DebugCamera(1280, 720);
+
+
+	// プレイヤー初期化（座標など）
 	player_ = new Player();
-	player_->Initialize(playerModel, camera_, {0.0f, 0.0f, 10.0f});
-
-	// 敵の生成
-	Enemy* enemy = new Enemy();
-	enemy->Initialize();
-	enemies_.push_back(enemy);
+	player_->Initialize(playerModel_, &camera_, {0.0f, 0.0f, 0.0f});
 }
 
-// 終了処理
-void GameScene::Delete() {
-
-	// プレイヤーの解放
-	delete player_;
-	player_ = nullptr;
-
-	// 敵の解放
-	for (int i = 0; i < enemies_.size(); i++) {
-		delete enemies_[i];
-	}
-	enemies_.clear();
-
-	// 弾の解放
-	for (int i = 0; i < bullets_.size(); i++) {
-		delete bullets_[i];
-	}
-	bullets_.clear();
-}
-
-// 更新処理
 void GameScene::Update() {
 
-	// プレイヤーの更新
-	if (player_) {
-		player_->Update();
+#ifdef _DEBUG
+	// スペースキーでデバッグカメラ切り替え
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
+		isDebugCameraActive_ = !isDebugCameraActive_;
+	}
+#endif
+
+	if (isDebugCameraActive_) {
+		debugCamera_->Update();
+		camera_.matView = debugCamera_->GetCamera().matView;
+		camera_.matProjection = debugCamera_->GetCamera().matProjection;
+		camera_.TransferMatrix();
+	} else {
+		camera_.UpdateMatrix();
 	}
 
-	// 敵更新
-	for (int i = 0; i < enemies_.size(); i++) {
-		enemies_[i]->Update();
-	}
-
-	// 弾更新
-	for (int i = 0; i < bullets_.size(); i++) {
-		bullets_[i]->Update();
-	}
-
+	// プレイヤー更新
+	player_->Update();
 }
 
-// 描画処理
 void GameScene::Draw() {
 
-	// プレイヤーの描画
-	player_->Drow();
+	// DirectX共通処理取得
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
-	// 敵の描画
-	for (int i = 0; i < enemies_.size(); i++) {
-		enemies_[i]->Draw();
-	}
+	// 3Dモデル描画前処理
+	Model::PreDraw(dxCommon->GetCommandList());
 
-	// 弾の描画
-	for (int i = 0; i < bullets_.size(); i++) {
-		bullets_[i]->Drow();
-	}
+	// プレイヤー描画
+	player_->Draw();
+
+	// 3Dモデル描画後処理
+	Model::PostDraw();
+}
+
+void GameScene::Delete() {
+
+	delete player_;
+	delete playerModel_;
+	delete debugCamera_;
 }

@@ -6,7 +6,7 @@ using namespace KamataEngine;
 class Player {
 public:
 	/// 初期化
-	void Initialize(Model* model, uint32_t textureHandle, Camera* camera);
+	void Initialize(Model* model, Camera* camera, const Vector3& position);
 
 	/// 更新
 	void Update();

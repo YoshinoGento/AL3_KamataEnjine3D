@@ -1,9 +1,9 @@
 #pragma once
 #include "KamataEngine.h"
-#include "MatrixMath.h"
 #include "Player.h"
-//#include "skydome.h"
-#include <vector>
+#include <memory> // スマートポインタを使うなら
+
+using namespace KamataEngine;
 
 // ゲームシーン
 class GameScene {
@@ -15,46 +15,24 @@ public:
 	void Update();
 
 	// 描画
-	void Drow();
+	void Draw();
 
-	~GameScene();
+	// デストラクタ
+	void Delete();
 
+private:
 	// プレイヤー
 	Player* player_ = nullptr;
 
-private:
-	// テクスチャーハンドル
-	uint32_t textureHandle_ = 0;
+	// プレイヤー用モデル
+	Model* playerModel_ = nullptr;
 
-	// サウンドデータハンドル
-	uint32_t soundDataHandle_ = 0;
-
-	////音声再生ハンドル
-	// uint32_t voiceHandle_ = 0;
-
-	// スプライト
-	KamataEngine::Sprite* sprite_ = nullptr;
-
-	// 3Dブロックモデル
-	KamataEngine::Model* block_model_ = nullptr;
-	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
-
-	// 3Dモデル
-	KamataEngine::Model* model_ = nullptr;
-	// skydome* skydome_ = nullptr;
-	KamataEngine::Model* modelSkydome_ = nullptr;
-
-	// ワールドトランスフォーム
-	KamataEngine::WorldTransform worldTransform_;
 	// カメラ
-	KamataEngine::Camera camera_;
+	Camera camera_;
 
-	// ImGuiで値を入力する変数
-	float inputFloat3[3] = {0, 0, 0};
+	// デバッグカメラ
+	DebugCamera* debugCamera_ = nullptr;
 
-	// デバックカメラ
-	KamataEngine::DebugCamera* debugCamera_ = nullptr;
-
-	// デバックカメラ有効
+	// デバッグカメラの有効フラグ
 	bool isDebugCameraActive_ = false;
 };
