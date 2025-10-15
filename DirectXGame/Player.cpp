@@ -10,8 +10,14 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	model_ = model;
 	camera_ = camera;
 	worldTransform_.Initialize();
+	// 初期位置
 	worldTransform_.translation_ = position;
-	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f; // Y軸回転調整
+
+	// サイズ調整
+	worldTransform_.scale_ = {2.0f, 2.0f, 2.0f};
+
+	// 初期向き
+	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f;
 }
 
 void Player ::Update() {}

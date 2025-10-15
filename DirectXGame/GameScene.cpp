@@ -7,10 +7,15 @@ using namespace KamataEngine;
 void GameScene::Initialize() {
 
 	// モデルのロード
-	playerModel_ = Model::Create(); // プレイヤー用の3Dモデル生成
+	player_model_ = Model::CreateFromOBJ("player");
 
 	// カメラ初期化
 	camera_.Initialize();
+
+	  // カメラ位置をプレイヤーに近づける
+	camera_.translation_ = {0.0f, 1.0f, -5.0f}; // Y:高さ、Z:奥行き
+	camera_.UpdateMatrix();                     // 行列更新
+
 
 	// デバッグカメラ作成
 	debugCamera_ = new DebugCamera(1280, 720);
@@ -18,7 +23,8 @@ void GameScene::Initialize() {
 
 	// プレイヤー初期化（座標など）
 	player_ = new Player();
-	player_->Initialize(playerModel_, &camera_, {0.0f, 0.0f, 0.0f});
+	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
+	
 }
 
 void GameScene::Update() {
@@ -61,6 +67,6 @@ void GameScene::Draw() {
 void GameScene::Delete() {
 
 	delete player_;
-	delete playerModel_;
+	delete player_model_;
 	delete debugCamera_;
 }

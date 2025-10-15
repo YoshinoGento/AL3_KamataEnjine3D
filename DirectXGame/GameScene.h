@@ -25,7 +25,7 @@ private:
 	Player* player_ = nullptr;
 
 	// プレイヤー用モデル
-	Model* playerModel_ = nullptr;
+	Model* player_model_ = nullptr;
 
 	// カメラ
 	Camera camera_;
