@@ -1,37 +1,24 @@
 #include "Player.h"
-
-#include <algorithm>
+#include "Math.h"
 #include <cassert>
-#include <numbers>
 
+void Player::Initialize(Model* model, uint32_t textureHandle, Camera* camera) {
 
-using namespace KamataEngine;
-
-void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	assert(model);
+	// モデル
 	model_ = model;
-	camera_ = camera;
-
-	// ワールド変換初期化
+	// テクスチャハンドル
+	textureHandle_ = textureHandle;
 	worldTransform_.Initialize();
-	worldTransform_.translation_ = position;
-	worldTransform_.rotation_.y = std::numbers::pi_v<float> / 2.0f; // Y軸回転で向きを調整
+	worldTransform_.translation_.y = 3.0f;
 
-
-
+	camera_ = camera;
 }
 
-void Player::Update() {
+void Player ::Update() {}
 
-	
-	    // 更新時に行列を再計算
-	worldTransform_.TransferMatrix();
-
-}
-
-void Player::Drow() {
+void Player ::Draw() {
 
 	// モデル描画
 	model_->Draw(worldTransform_, *camera_);
-
 }
