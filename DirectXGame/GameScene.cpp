@@ -58,6 +58,7 @@ void GameScene::Update() {
 	for (int i = 0; i < bullets_.size(); i++) {
 		bullets_[i]->Update();
 	}
+
 }
 
 // 描画処理
