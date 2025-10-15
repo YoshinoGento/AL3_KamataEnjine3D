@@ -1,37 +1,63 @@
 #pragma once
-#include "Bullet.h"
-#include "Enemy.h"
 #include "KamataEngine.h"
+#include "MatrixMath.h"
 #include "Player.h"
-#include <vector> // 複数管理に使う
+//#include "skydome.h"
+#include <vector>
 
-using namespace KamataEngine;
-
+// ゲームシーン
 class GameScene {
 public:
 	// 初期化
 	void Initialize();
 
-	// 終了処理
-	void Delete();
-
 	// 更新
 	void Update();
 
 	// 描画
-	void Draw();
+	void Drow();
 
+	~GameScene();
 
-private:
 	// プレイヤー
 	Player* player_ = nullptr;
 
-	// 雑魚敵
-	std::vector<Enemy*> enemies_;
+private:
+	// テクスチャーハンドル
+	uint32_t textureHandle_ = 0;
 
-	// 弾（複数想定）
-	std::vector<Bullet*> bullets_;
+	// サウンドデータハンドル
+	uint32_t soundDataHandle_ = 0;
 
+	////音声再生ハンドル
+	// uint32_t voiceHandle_ = 0;
+
+	// スプライト
+	KamataEngine::Sprite* sprite_ = nullptr;
+
+	// 3Dブロックモデル
+	KamataEngine::Model* block_model_ = nullptr;
+	std::vector<std::vector<KamataEngine::WorldTransform*>> worldTransformBlocks_;
+
+	// 3Dモデル
+	KamataEngine::Model* model_ = nullptr;
+	//skydome* skydome_ = nullptr;
+	KamataEngine::Model* modelSkydome_ = nullptr;
+
+	// ワールドトランスフォーム
+	KamataEngine::WorldTransform worldTransform_;
 	// カメラ
-	Camera* camera_ = nullptr;
+	KamataEngine::Camera camera_;
+
+	// ImGuiで値を入力する変数
+	float inputFloat3[3] = {0, 0, 0};
+
+	// デバックカメラ
+	KamataEngine::DebugCamera* debugCamera_ = nullptr;
+
+	// デバックカメラ有効
+	bool isDebugCameraActive_ = false;
+
+	// 数学関数
+	
 };
