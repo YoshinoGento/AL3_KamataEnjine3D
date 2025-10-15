@@ -5,19 +5,21 @@ using namespace KamataEngine;
 
 class Player {
 public:
-	// 初期化
-	void Initialize(Model * model,Camera *camera, const Vector3 &position);
+	/// 初期化
+	void Initialize(Model* model, uint32_t textureHandle, Camera* camera);
 
-	// 更新
+	/// 更新
 	void Update();
 
-	// 描画
-	void Drow();
+	/// 描画
+	void Draw();
 
 private:
-
-	Model* model_ = nullptr;        // モデルデータ
-	Camera* camera_ = nullptr;      // カメラ
-	WorldTransform worldTransform_; // 位置・回転・スケール
-	
+	// ワールド変換データ
+	WorldTransform worldTransform_;
+	// モデル
+	Model* model_ = nullptr;
+	// テクスチャハンドル
+	uint32_t textureHandle_ = 0u;
+	Camera* camera_ = nullptr;
 };
