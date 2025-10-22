@@ -22,4 +22,7 @@ private:
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
 	Camera* camera_ = nullptr;
+
+	// 移動速度
+	Vector3 velocity_ = {0, 0, 0};
 };
