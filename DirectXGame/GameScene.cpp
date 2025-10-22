@@ -13,7 +13,7 @@ void GameScene::Initialize() {
 	camera_.Initialize();
 
 	  // カメラ位置をプレイヤーに近づける
-	camera_.translation_ = {0.0f, 1.0f, -5.0f}; // Y:高さ、Z:奥行き
+	camera_.translation_ = {0.0f, 0.0f, -10.0f}; // Y:高さ、Z:奥行き
 	camera_.UpdateMatrix();                     // 行列更新
 
 
@@ -30,10 +30,10 @@ void GameScene::Initialize() {
 void GameScene::Update() {
 
 #ifdef _DEBUG
-	// スペースキーでデバッグカメラ切り替え
-	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
-		isDebugCameraActive_ = !isDebugCameraActive_;
-	}
+	//// スペースキーでデバッグカメラ切り替え
+	//if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
+	//	isDebugCameraActive_ = !isDebugCameraActive_;
+	//}
 #endif
 
 	if (isDebugCameraActive_) {

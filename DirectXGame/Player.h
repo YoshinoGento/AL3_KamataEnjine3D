@@ -1,5 +1,7 @@
 #pragma once
+#include "PlayerBullet.h"
 #include "KamataEngine.h"
+#include <list>
 
 using namespace KamataEngine;
 
@@ -14,6 +16,16 @@ public:
 	/// 描画
 	void Draw();
 
+	/// <summary>
+	/// 攻撃
+	/// </summary>
+	void Attack();
+
+	/// <summary>
+	/// デストラクタ
+	/// </summary>
+	~Player();
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
@@ -25,4 +37,8 @@ private:
 
 	// 移動速度
 	Vector3 velocity_ = {0, 0, 0};
+
+	// 弾
+	std::list<PlayerBullet*> bullets_;
+	
 };
