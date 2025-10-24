@@ -20,37 +20,56 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 
 	// 初期向き
 	// 初期向き → 前向き（Z軸方向）に修正
+
+	//シングルトンインスタンスを取得する
+	input_ = Input::GetInstance();
 	
 }
 
 void Player ::Update() {
 
-      auto* input = Input::GetInstance();
+	// デスフラグの立った弾を削除
+	bullets_.remove_if([](PlayerBullet* bullet) {
+		if (bullet->IsDead()) {
+			delete bullet;
+			return true;
+		}
+		return false;
+	});
+    //キャラクターの移動ベクトル
+	Vector3 move = {0.0f, 0.0f, 0.0f};
 
-	const float kAcceleration = 0.01f;
+	// 移動速度
+	const float kCharacterSpeed = 0.01f;
+
+
+	//const float kAcceleration = 0.01f;
 	const float kFriction = 0.9f;
 	const float kMaxSpeed = 3.0f;
 
-	Vector3 acceleration = {0.0f, 0.0f, 0.0f};
-
+	//Vector3 acceleration = {0.0f, 0.0f, 0.0f};
 	
-	if (input->PushKey(DIK_W)) {// 前へ
-		acceleration.y += kAcceleration;
+	if (input_->PushKey(DIK_W)) {// 前へ
+		move.y += kCharacterSpeed;
 	} 
-	if (input->PushKey(DIK_S)) {// 後ろへ
-		acceleration.y -= kAcceleration;
+	if (input_->PushKey(DIK_S)) {// 後ろへ
+		move.y -= kCharacterSpeed;
 	} 
-	if (input->PushKey(DIK_D)) {// 右へ
-		acceleration.x += kAcceleration;
+	if (input_->PushKey(DIK_D)) {// 右へ
+		move.x += kCharacterSpeed;
 	} 
-	if (input->PushKey(DIK_A)) {// 左へ
-		acceleration.x -= kAcceleration;
+	if (input_->PushKey(DIK_A)) {// 左へ
+		move.x -= kCharacterSpeed;
 	} 
 	
 	
 
 
-	velocity_ += acceleration;
+	velocity_ += move;
+
+	// 座標移動（ベクトルの加算）
+	worldTransform_.translation_ += move;
+
 
 	// 速度の制限
 	if (Length(velocity_) > kMaxSpeed) {
@@ -81,7 +100,9 @@ void Player ::Update() {
 
 	// 弾の更新
 	for (PlayerBullet *bullet : bullets_) {
+
 		bullet->Update();
+
 	}
 
 	// 行列更新
@@ -104,18 +125,25 @@ void Player ::Draw() {
 }
 
 void Player::Attack() {
-	auto* input = Input::GetInstance();
+	
 
-	if (input->TriggerKey(DIK_SPACE)) {
+	if (input_->TriggerKey(DIK_SPACE)) {
 
 		//弾の速度
 		const float kBulletSpped = 1.0f;
 		Vector3 velocity(0, 0, kBulletSpped);
 
+		//速度ベクトルを自機の向きに合わせて回転させる
+		velocity = TransformNormal(velocity, worldTransform_.matWorld_);
 
+	
+		
 		// 弾を生成し、初期化
 		PlayerBullet* newBullet = new PlayerBullet();
 		newBullet->Initialize(model_, worldTransform_.translation_,velocity);
+
+		
+
 
 		// 弾を登録する
 		bullets_.push_back(newBullet);

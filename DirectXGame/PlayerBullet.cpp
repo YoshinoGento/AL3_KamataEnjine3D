@@ -1,6 +1,6 @@
 #include "PlayerBullet.h"
 
-void PlayerBullet::Initialize(Model* model, const Vector3& position, const Vector3& velocity) {
+void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector3 &velocity) {
 
 	// NULLポインタチェック
 	assert(model);
@@ -18,7 +18,7 @@ void PlayerBullet::Initialize(Model* model, const Vector3& position, const Vecto
 	worldTransform_.translation_ = position;
 
 	//引数で受け取った速度をメンバー変数に代入
-	velocity_ = {0.0f, 0.0f, 0.2f};
+	velocity_ = velocity;
 
 }
 
@@ -30,6 +30,10 @@ void PlayerBullet::Update() {
 	//ワールドトランスフォームの更新
 	WorldTransformUpdate(worldTransform_);
 	worldTransform_.TransferMatrix();
+
+	if (--dethTimer_ <= 0) {
+		isDead_ = true;
+	}
 
 }
 

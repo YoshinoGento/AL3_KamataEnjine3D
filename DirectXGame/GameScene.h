@@ -20,6 +20,7 @@ public:
 	// デストラクタ
 	void Delete();
 
+	
 private:
 	// プレイヤー
 	Player* player_ = nullptr;
@@ -30,9 +31,15 @@ private:
 	// カメラ
 	Camera camera_;
 
+	//テクスチャハンドル
+	uint32_t textureHandle_ = 0u;
+
+
 	// デバッグカメラ
 	DebugCamera* debugCamera_ = nullptr;
 
 	// デバッグカメラの有効フラグ
 	bool isDebugCameraActive_ = false;
+
+	
 };

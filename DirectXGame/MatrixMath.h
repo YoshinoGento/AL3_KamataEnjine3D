@@ -98,3 +98,6 @@ float Length(const Vector3& v);
 
 // ベクトルを正規化する（方向だけにする）
 Vector3 Normalized(const Vector3& v);
+
+//ベクトル変換
+Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);

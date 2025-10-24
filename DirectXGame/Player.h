@@ -33,6 +33,7 @@ private:
 	Model* model_ = nullptr;
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
+	// カメラ
 	Camera* camera_ = nullptr;
 
 	// 移動速度
@@ -41,4 +42,6 @@ private:
 	// 弾
 	std::list<PlayerBullet*> bullets_;
 	
+	//キーボード入力
+	Input* input_ = nullptr;
 };
