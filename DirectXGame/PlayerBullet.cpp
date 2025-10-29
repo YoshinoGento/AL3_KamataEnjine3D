@@ -19,7 +19,7 @@ void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector
 
 	//引数で受け取った速度をメンバー変数に代入
 	velocity_ = velocity;
-
+	
 }
 
 void PlayerBullet::Update() {
