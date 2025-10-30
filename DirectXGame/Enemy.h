@@ -13,4 +13,10 @@ public:
 
 	// 描画
 	void Draw();
+
+private:
+	WorldTransform worldTransform_;
+	Model* model_ = nullptr;
+	uint32_t textureHandle_ = 0u;
+
 };
