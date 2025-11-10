@@ -1,30 +1,45 @@
 #pragma once
 #include "KamataEngine.h"
+#include "Player.h"
+#include <memory> // スマートポインタを使うなら
 
-//ゲームシーン
-class GameScene
-{
+using namespace KamataEngine;
+
+// ゲームシーン
+class GameScene {
 public:
-	//初期化
+	// 初期化
 	void Initialize();
 
-	//更新
+	// 更新
 	void Update();
 
-	//描画
-	void Drow();
+	// 描画
+	void Draw();
 
-	//デリート
-	~GameScene();
+	// デストラクタ
+	void Delete();
 
+	
 private:
-	//スプライト描画
-	uint32_t textureHandle_ = 0;
+	// プレイヤー
+	Player* player_ = nullptr;
 
-	//3Dモデル
-	KamataEngine::Model* model_ = nullptr;
+	// プレイヤー用モデル
+	Model* player_model_ = nullptr;
 
-	//カメラ
-	KamataEngine::Camera camera_;
+	// カメラ
+	Camera camera_;
 
+	//テクスチャハンドル
+	uint32_t textureHandle_ = 0u;
+
+
+	// デバッグカメラ
+	DebugCamera* debugCamera_ = nullptr;
+
+	// デバッグカメラの有効フラグ
+	bool isDebugCameraActive_ = false;
+
+	
 };

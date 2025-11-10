@@ -5,6 +5,7 @@
 // これを書くことでKamataEmgine::と書かずに済む
 using namespace KamataEngine;
 
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// エンジンの初期化
@@ -29,11 +30,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 		// 描画開始
 		dxCommon->PreDraw();
 
+		// ゲームシーンの更新
+		gameScene->Update();
+
+		// ゲームシーンの描画
+		gameScene->Draw();
+
 		// ここに描画処理を記述する
 
 		// 描画終了
 		dxCommon->PostDraw();
 	}
+
+	//解放処理
+	gameScene->Delete();
+	delete gameScene;
 
 	// エンジンの終了処理
 	KamataEngine::Finalize();
