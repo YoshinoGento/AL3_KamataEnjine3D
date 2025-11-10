@@ -8,6 +8,7 @@ void GameScene::Initialize() {
 
 	// モデルのロード
 	player_model_ = Model::CreateFromOBJ("player");
+	enemy_model_  = Model::CreateFromOBJ("enemy");
 
 	// カメラ初期化
 	camera_.Initialize();
