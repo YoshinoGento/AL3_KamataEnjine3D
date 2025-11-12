@@ -67,8 +67,6 @@ void Player ::Update() {
 
 	velocity_ += move;
 
-	// 座標移動（ベクトルの加算）
-	worldTransform_.translation_ += move;
 
 
 	// 速度の制限
@@ -98,12 +96,26 @@ void Player ::Update() {
 	// 攻撃
 	Attack();
 
-	// 弾の更新
+	// 通常弾の更新
 	for (PlayerBullet *bullet : bullets_) {
 
 		bullet->Update();
 
 	}
+
+	// アーク弾の更新
+	for (HomingArcBullet *arcBullet : arcBullets_) {
+		arcBullet->Update();
+	}
+
+	// 死亡した弾の削除
+	arcBullets_.remove_if([](HomingArcBullet* b) {
+		if (b->IsDead()) {
+			delete b;
+			return true;
+		}
+		return false;
+	});
 
 	// 行列更新
 	//worldTransform_.matWorld_ = MakeAffineMatrix(worldTransform_.scale_, worldTransform_.rotation_, worldTransform_.translation_);
@@ -118,8 +130,13 @@ void Player ::Draw() {
 	// プレイヤーモデル描画
 	model_->Draw(worldTransform_, *camera_);
 
-	// 弾の描画
+	// 通常弾の描画
 	for (PlayerBullet *bullet : bullets_) {
+		bullet->Draw(*camera_);
+	}
+
+	// アーク弾の描画
+	for (HomingArcBullet* bullet : arcBullets_) {
 		bullet->Draw(*camera_);
 	}
 }
@@ -150,6 +167,23 @@ void Player::Attack() {
 
 	}
 
+	// アーク弾発射（左リック）
+	if (input_->IsTriggerMouse(0)) {
+		//マウスの位置を取得
+		Vector2 mousePos = input_->GetMousePosition();
+		float mouseX = mousePos.x;
+		float mouseY = mousePos.y;
+
+		 // クリック位置をワールド座標に変換（仮：Z固定）
+		Vector3 target = {mouseX / 100.0f - 6.0f, 0.0f, mouseY / 100.0f - 6.0f};
+
+		// 弾生成
+		HomingArcBullet* arcBullet = new HomingArcBullet();
+		arcBullet->Initialize(model_, worldTransform_.translation_, target);
+		arcBullets_.push_back(arcBullet);
+
+	}
+
 }
 
 Player::~Player() {
@@ -157,5 +191,14 @@ Player::~Player() {
 	for (PlayerBullet* bullet : bullets_) {
 		delete bullet;
 	}
+
+	 for (HomingArcBullet* bullet : arcBullets_) {
+		delete bullet;
+	}
+}
+
+Vector3 Player::GetWorldPosition() const { 
+	// ワールド行列から座標を取り出す
+	return worldTransform_.translation_;
 }
 

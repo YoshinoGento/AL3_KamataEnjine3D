@@ -11,11 +11,19 @@ void GameScene::Initialize() {
 	enemy_model_  = Model::CreateFromOBJ("enemy");
 
 	// カメラ初期化
+	PlayerCamera_.Initialize();
+	EnemyCamera_.Initialize();
 	camera_.Initialize();
 
 	  // カメラ位置をプレイヤーに近づける
+	PlayerCamera_.translation_ = {0.0f, 0.0f, -10.0f}; // Y:高さ、Z:奥行き
+	PlayerCamera_.UpdateMatrix();					// 行列更新
+
+	EnemyCamera_.translation_ = {0.0f, -1.0f, -30.0f}; // Y:高さ、Z:奥行き
+	EnemyCamera_.UpdateMatrix();                      // 行列更新
+
 	camera_.translation_ = {0.0f, 0.0f, -10.0f}; // Y:高さ、Z:奥行き
-	camera_.UpdateMatrix();                     // 行列更新
+	camera_.UpdateMatrix();                      // 行列更新
 
 
 	// デバッグカメラ作成
@@ -24,7 +32,11 @@ void GameScene::Initialize() {
 
 	// プレイヤー初期化（座標など）
 	player_ = new Player();
-	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
+	player_->Initialize(player_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
+
+	// エネミー初期化（座標など）
+	enemy_ = new Enemy();
+	enemy_->Initialize(enemy_model_, &EnemyCamera_, {0.0f, 0.0f, 10.0f});
 	
 }
 
@@ -48,6 +60,8 @@ void GameScene::Update() {
 
 	// プレイヤー更新
 	player_->Update();
+	// エネミー更新
+	enemy_->Update(player_->GetWorldPosition());
 }
 
 void GameScene::Draw() {
@@ -60,6 +74,9 @@ void GameScene::Draw() {
 
 	// プレイヤー描画
 	player_->Draw();
+
+	// エネミー描画
+	enemy_->Draw();
 
 	// 3Dモデル描画後処理
 	Model::PostDraw();

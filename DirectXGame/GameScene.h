@@ -1,6 +1,7 @@
 #pragma once
 #include "KamataEngine.h"
 #include "Player.h"
+#include "Enemy.h"
 #include <memory> // スマートポインタを使うなら
 
 using namespace KamataEngine;
@@ -24,6 +25,8 @@ public:
 private:
 	// プレイヤー
 	Player* player_ = nullptr;
+	// エネミー
+	Enemy* enemy_ = nullptr;
 
 	// プレイヤー用モデル
 	Model* player_model_ = nullptr;
@@ -32,6 +35,8 @@ private:
 
 	// カメラ
 	Camera camera_;
+	Camera PlayerCamera_;
+	Camera EnemyCamera_;
 
 	//テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
