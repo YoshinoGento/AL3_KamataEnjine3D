@@ -107,6 +107,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Enemy.cpp" />
+    <ClCompile Include="EnemyBullet.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatrixMath.cpp" />
@@ -190,6 +191,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Enemy.h" />
+    <ClInclude Include="EnemyBullet.h" />
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="MatrixMath.h" />
     <ClInclude Include="Player.h" />
