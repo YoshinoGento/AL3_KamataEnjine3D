@@ -1,6 +1,8 @@
 #pragma once
-#include "PlayerBullet.h"
+#include "HomingArcBullet.h"
 #include "KamataEngine.h"
+#include "MatrixMath.h"
+#include "PlayerBullet.h"
 #include <list>
 
 using namespace KamataEngine;
@@ -26,6 +28,8 @@ public:
 	/// </summary>
 	~Player();
 
+	Vector3 GetWorldPosition() const;
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
@@ -39,9 +43,12 @@ private:
 	// 移動速度
 	Vector3 velocity_ = {0, 0, 0};
 
-	// 弾
+	// 通常弾
 	std::list<PlayerBullet*> bullets_;
-	
-	//キーボード入力
+
+	// アーク弾リスト
+	std::list<HomingArcBullet*> arcBullets_;
+
+	// キーボード入力
 	Input* input_ = nullptr;
 };
