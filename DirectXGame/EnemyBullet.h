@@ -28,6 +28,11 @@ public:
 
 	bool IsDead() const { return isDead_; }
 
+
+	// 追加
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+	void OnCollision() { isDead_ = true; }
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;

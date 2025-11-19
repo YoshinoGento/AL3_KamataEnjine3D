@@ -91,6 +91,14 @@ void Enemy::Draw() {
 	}
 }
 
+void Enemy::OnHit() {
+	hp_--;
+	if (hp_ <= 0) {
+		isDead_ = true;
+		// ここで演出とかスコア加算とかもあとで書ける
+	}
+}
+
 Enemy::~Enemy() {
 	for (EnemyBullet* bullet : bullets_) {
 		delete bullet;

@@ -18,7 +18,19 @@ public:
 	// 描画
 	void Draw();
 
+	// 敵がダメージを受けたときの処理用
+	void OnHit();
+
 	~Enemy();
+
+	// ★ 追加：敵のワールド座標
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+
+	// ★ 追加：敵弾リスト（参照で返す）
+	const std::vector<EnemyBullet*>& GetBullets() const { return bullets_; }
+
+	// ★ 追加：敵の生存フラグ
+	bool IsDead() const { return isDead_; }
 
 private:
 	WorldTransform worldTransform_;
@@ -28,4 +40,7 @@ private:
 
 	std::vector<EnemyBullet*> bullets_; // 敵弾リスト
 	int attackTimer_ = 0;
+
+	bool isDead_ = false; // 敵の生存フラグ
+	int hp_ = 3;          // HP
 };
