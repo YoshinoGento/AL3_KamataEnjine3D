@@ -1,7 +1,15 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
 
-using namespace KamataEngine;
+void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
+	assert(model);
+	model_ = model;
+	camera_ = camera;
+	worldTransform_.Initialize();
+	worldTransform_.translation_ = position;
+	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
+}
+
 
 void Enemy::Initialize(const Vector3& bossBasePosition) {
 

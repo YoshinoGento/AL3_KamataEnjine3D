@@ -1,6 +1,8 @@
 #pragma once
+#include "EnemyBullet.h"
 #include "KamataEngine.h"
 #include "MatrixMath.h"
+
 
 using namespace KamataEngine;
 
@@ -9,8 +11,7 @@ public:
 	// 初期化：bossBasePosition を中心に部位を配置する
 	void Initialize(const Vector3& bossBasePosition);
 
-	// 更新
-	void Update();
+	Vector3 GetWorldPosition() const;
 
 	// 描画
 	void Draw(const Camera& camera);

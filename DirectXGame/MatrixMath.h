@@ -17,6 +17,7 @@ struct AABB {
 // 02_14 29枚目 単項演算子オーバーロード
 Vector3 operator+(const Vector3& v);
 Vector3 operator-(const Vector3& v);
+const Vector3 operator-(const Vector3& lhv, const Vector3& rhv);
 
 // Vector3 * float
 const Vector3 operator*(const Vector3& v1, float f);
@@ -83,5 +84,16 @@ float Length(const Vector3& v);
 // ベクトルを正規化する（方向だけにする）
 Vector3 Normalized(const Vector3& v);
 
-// ベクトル変換
+
+//ベクトル変換
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);
+
+Vector3 UnProjectToWorldSpace(const Vector2& screenPos, float z, const Matrix4x4& viewMatrix, const Matrix4x4& projMatrix, int screenWidth, int screenHeight);
+
+// 4x4行列の逆行列を求める
+Matrix4x4 Inverse(const Matrix4x4& m);
+
+// 4Dベクトル × 4x4行列の変換
+Vector4 Transform(const Vector4& v, const Matrix4x4& m);
+
+Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height);

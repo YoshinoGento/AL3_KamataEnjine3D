@@ -5,24 +5,24 @@
 using namespace KamataEngine;
 
 void GameScene::Initialize() {
-
-	// モデルのロード
 	player_model_ = Model::CreateFromOBJ("player");
+	enemy_model_ = Model::CreateFromOBJ("enemy");
 
-	// カメラ初期化
+	PlayerCamera_.Initialize();
+	EnemyCamera_.Initialize();
 	camera_.Initialize();
 
-	  // カメラ位置をプレイヤーに近づける
-	camera_.translation_ = {0.0f, 0.0f, -10.0f}; // Y:高さ、Z:奥行き
-	camera_.UpdateMatrix();                     // 行列更新
+	PlayerCamera_.translation_ = {0.0f, 0.0f, -10.0f};
+	PlayerCamera_.UpdateMatrix();
+	EnemyCamera_.translation_ = {0.0f, -1.0f, -30.0f};
+	EnemyCamera_.UpdateMatrix();
+	camera_.translation_ = {0.0f, 0.0f, -10.0f};
+	camera_.UpdateMatrix();
 
-
-	// デバッグカメラ作成
 	debugCamera_ = new DebugCamera(1280, 720);
-
-
-	// プレイヤー初期化（座標など）
 	player_ = new Player();
+	player_->SetEnemy(enemy_);
+
 	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
 
 	//ボス戦の初期化
@@ -32,14 +32,11 @@ void GameScene::Initialize() {
 }
 
 void GameScene::Update() {
-
 #ifdef _DEBUG
-	//// スペースキーでデバッグカメラ切り替え
-	//if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
-	//	isDebugCameraActive_ = !isDebugCameraActive_;
-	//}
+	// if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
+	//     isDebugCameraActive_ = !isDebugCameraActive_;
+	// }
 #endif
-
 	if (isDebugCameraActive_) {
 		debugCamera_->Update();
 		camera_.matView = debugCamera_->GetCamera().matView;
@@ -49,8 +46,8 @@ void GameScene::Update() {
 		camera_.UpdateMatrix();
 	}
 
-	// プレイヤー更新
 	player_->Update();
+
 
 	// ボス更新
 	if (enemy_) {
@@ -73,15 +70,12 @@ void GameScene::Update() {
 }
 
 void GameScene::Draw() {
-
-	// DirectX共通処理取得
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-
-	// 3Dモデル描画前処理
 	Model::PreDraw(dxCommon->GetCommandList());
 
-	// プレイヤー描画
 	player_->Draw();
+	enemy_->Draw();
+
 
 	// ボス描画
 	if (enemy_) {
@@ -93,7 +87,6 @@ void GameScene::Draw() {
 }
 
 void GameScene::Delete() {
-
 	delete player_;
 	delete player_model_;
 	delete debugCamera_;

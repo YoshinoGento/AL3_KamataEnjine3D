@@ -7,8 +7,14 @@ Vector3 operator+(const Vector3& v) { return v; }
 
 Vector3 operator-(const Vector3& v) { return Vector3(-v.x, -v.y, -v.z); }
 
-// Vector3 * float
-const Vector3 operator*(const Vector3& v1, float f) {
+
+const Vector3 operator-(const Vector3& lhv, const Vector3& rhv) { 
+	 return {lhv.x - rhv.x, lhv.y - rhv.y, lhv.z - rhv.z};
+}
+
+// 02_06の29枚目(CameraControllerのUpdate)で必要
+const Vector3 operator*(const Vector3& v1, const float f) {
+
 	Vector3 temp(v1);
 	return temp *= f;
 }
@@ -194,6 +200,7 @@ Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 	result.y /= w;
 	result.z /= w;
 	return result;
+
 }
 
 float Length(const Vector3& v) { return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z); }
@@ -211,4 +218,83 @@ Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m) {
 	Vector3 result{v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0], v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1], v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2]};
 
 	return result;
+}
+
+Vector3 UnProjectToWorldSpace(const Vector2& screenPos, float z, const Matrix4x4& viewMatrix, const Matrix4x4& projMatrix, int screenWidth, int screenHeight) {
+	// 1. スクリーン座標 → 正規化デバイス座標（NDC: -1〜+1）
+	float ndcX = (screenPos.x / static_cast<float>(screenWidth)) * 2.0f - 1.0f;
+	float ndcY = 1.0f - (screenPos.y / static_cast<float>(screenHeight)) * 2.0f;
+
+	// 2. NDCを4次元ベクトルに変換（z は仮で1.0fなど）
+	Vector4 ndc = {ndcX, ndcY, z, 1.0f};
+
+	// 3. ビュー × プロジェクション の逆行列を計算
+	Matrix4x4 invViewProj = Inverse(viewMatrix * projMatrix);
+
+	// 4. 逆変換
+	Vector4 world = Transform(ndc, invViewProj);
+
+	// 5. 同次座標を通常の座標に戻す（w除算）
+	if (world.w != 0.0f) {
+		world.x /= world.w;
+		world.y /= world.w;
+		world.z /= world.w;
+	}
+
+	return {world.x, world.y, world.z};
+}
+
+#include "MatrixMath.h"
+#include <cassert>
+
+// 逆行列計算（シンプルなガウスジョルダン消去法の実装）
+Matrix4x4 Inverse(const Matrix4x4& m) {
+	Matrix4x4 result = MakeIdentityMatrix();
+	Matrix4x4 copy = m;
+
+	for (int i = 0; i < 4; ++i) {
+		float pivot = copy.m[i][i];
+		assert(pivot != 0.0f); // ゼロ除算防止
+
+		float invPivot = 1.0f / pivot;
+		for (int j = 0; j < 4; ++j) {
+			copy.m[i][j] *= invPivot;
+			result.m[i][j] *= invPivot;
+		}
+
+		for (int k = 0; k < 4; ++k) {
+			if (k != i) {
+				float factor = copy.m[k][i];
+				for (int j = 0; j < 4; ++j) {
+					copy.m[k][j] -= copy.m[i][j] * factor;
+					result.m[k][j] -= result.m[i][j] * factor;
+				}
+			}
+		}
+	}
+
+	return result;
+}
+
+// Vector4 × Matrix4x4
+Vector4 Transform(const Vector4& v, const Matrix4x4& m) {
+	Vector4 result;
+	result.x = v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0] + v.w * m.m[3][0];
+	result.y = v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1] + v.w * m.m[3][1];
+	result.z = v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2] + v.w * m.m[3][2];
+	result.w = v.x * m.m[0][3] + v.y * m.m[1][3] + v.z * m.m[2][3] + v.w * m.m[3][3];
+	return result;
+}
+
+Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height) {
+	Matrix4x4 vp = view * proj;
+	Vector3 clip = Transform(worldPos, vp);
+
+	if (clip.z == 0.0f)
+		clip.z = 0.0001f; // 除算防止
+
+	float x = (clip.x / clip.z) * 0.5f + 0.5f;
+	float y = (-clip.y / clip.z) * 0.5f + 0.5f;
+
+	return {x * width, y * height};
 }

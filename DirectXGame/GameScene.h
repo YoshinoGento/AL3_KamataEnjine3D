@@ -1,49 +1,32 @@
 #pragma once
+#include "Enemy.h"
 #include "KamataEngine.h"
 #include "Player.h"
-#include "Enemy.h"
 #include <memory> // スマートポインタを使うなら
 
 using namespace KamataEngine;
 
-// ゲームシーン
 class GameScene {
 public:
-	// 初期化
 	void Initialize();
-
-	// 更新
 	void Update();
-
-	// 描画
 	void Draw();
-
-	// デストラクタ
 	void Delete();
 
-	
 private:
-	// プレイヤー
 	Player* player_ = nullptr;
-
-	// プレイヤー用モデル
+	Enemy* enemy_ = nullptr;
 	Model* player_model_ = nullptr;
-
-	// カメラ
+	Model* enemy_model_ = nullptr;
 	Camera camera_;
-
-	//テクスチャハンドル
+	Camera PlayerCamera_;
+	Camera EnemyCamera_;
 	uint32_t textureHandle_ = 0u;
-
-
-	// デバッグカメラ
 	DebugCamera* debugCamera_ = nullptr;
-
-	// デバッグカメラの有効フラグ
 	bool isDebugCameraActive_ = false;
 
 	//ボス（敵）
 	Enemy* enemy_ = nullptr;
 
-	
+
 };
