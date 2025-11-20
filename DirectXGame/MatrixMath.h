@@ -3,29 +3,7 @@
 
 /// AL3サンプルプログラム用の数学ライブラリ。
 /// MT3準拠で、KamataEngine内部の数学ライブラリと重複する。
-/*
-struct Matrix4x4 final {
-    float m[4][4];
-};
 
-struct Vector4 final {
-    float x;
-    float y;
-    float z;
-    float w;
-};
-
-struct Vector3 final {
-    float x;
-    float y;
-    float z;
-};
-
-struct Vector2 final {
-    float x;
-    float y;
-};
-*/
 using namespace KamataEngine;
 
 // 円周率
@@ -41,14 +19,20 @@ Vector3 operator+(const Vector3& v);
 Vector3 operator-(const Vector3& v);
 const Vector3 operator-(const Vector3& lhv, const Vector3& rhv);
 
-// 02_06のCameraControllerのUpdate/Reset関数で必要
-const Vector3 operator+(const Vector3& lhv, const Vector3& rhv);
+// Vector3 * float
+const Vector3 operator*(const Vector3& v1, float f);
+
+// Vector3 + Vector3
+const Vector3 operator+(const Vector3& v1, const Vector3& v2);
+
+// Vector3 - Vector3
+const Vector3 operator-(const Vector3& v1, const Vector3& v2);
 
 // 02_06のスライド24枚目のLerp関数
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
 
-// 02_06 スライド29枚目で追加
-const Vector3 operator*(const Vector3& v1, const float f);
+// Vector3 / float
+const Vector3 operator/(const Vector3& v, float s);
 
 // 代入演算子オーバーロード
 Vector3& operator+=(Vector3& lhs, const Vector3& rhv);
@@ -99,6 +83,7 @@ float Length(const Vector3& v);
 
 // ベクトルを正規化する（方向だけにする）
 Vector3 Normalized(const Vector3& v);
+
 
 //ベクトル変換
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);

@@ -18,6 +18,12 @@ public:
 	Vector3 GetWorldPosition() const;
 	void SetEnemy(Enemy* enemy);
 
+	/// <summary>
+	/// プレイヤーが持っている弾リストへの参照を取得
+	/// （読み取り専用のつもりなので const 参照を返す）
+	/// </summary>
+	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
+
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
@@ -27,8 +33,10 @@ private:
 	std::list<PlayerBullet*> bullets_;
 	std::list<HomingArcBullet*> arcBullets_;
 	Input* input_ = nullptr;
+
 	Enemy* enemy_ = nullptr;
 	std::vector<Enemy*> lockedOnEnemies_;
 
 	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
+
 };

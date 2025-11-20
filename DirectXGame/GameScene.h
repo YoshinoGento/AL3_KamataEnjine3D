@@ -2,6 +2,7 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
 #include "Player.h"
+#include <memory> // スマートポインタを使うなら
 
 using namespace KamataEngine;
 
@@ -23,4 +24,9 @@ private:
 	uint32_t textureHandle_ = 0u;
 	DebugCamera* debugCamera_ = nullptr;
 	bool isDebugCameraActive_ = false;
+
+	//ボス（敵）
+	Enemy* enemy_ = nullptr;
+
+
 };

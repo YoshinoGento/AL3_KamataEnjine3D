@@ -1,25 +1,41 @@
 #pragma once
 #include "EnemyBullet.h"
 #include "KamataEngine.h"
-#include <list>
+#include "MatrixMath.h"
+
 
 using namespace KamataEngine;
 
 class Enemy {
 public:
-	void Initialize(Model* model, Camera* camera, const Vector3& position);
-	void Update(Vector3 playerPos);
-	void Attack(const Vector3& playerPos);
-	void Draw();
-	~Enemy();
+	// 初期化：bossBasePosition を中心に部位を配置する
+	void Initialize(const Vector3& bossBasePosition);
 
 	Vector3 GetWorldPosition() const;
 
+	// 描画
+	void Draw(const Camera& camera);
+
+	///< summary>
+	/// 弾の位置を受け取って、どれかの部位に当たったらtrueを返す
+	/// （当たった部位のHPを減らして、0以下なら部位破壊扱い）
+	///</summary>
+	bool CheckHit(const Vector3& bulletPosition);
+
 private:
-	WorldTransform worldTransform_;
+	struct BodyPart {
+		Vector3 centerPosition; // 矩形の中心座標（ワールド）
+		Vector3 boxSize;        // 矩形のサイズ（X,Y,Z 幅）
+		int32_t hitPoint;       // 耐久値
+		bool isDestroyed;       // 破壊済みフラグ
+	};
+
+	static const int kBodyPartCount = 3;
+	BodyPart bodyParts_[kBodyPartCount];
+
+	// 各部位の見た目用のワールド変換
+	WorldTransform worldTransforms_[kBodyPartCount];
+
+	// 可視化用モデル（暫定で "player" モデルを流用）
 	Model* model_ = nullptr;
-	uint32_t textureHandle_ = 0u;
-	Camera* camera_ = nullptr;
-	std::vector<EnemyBullet*> bullets_;
-	int attackTimer_ = 0;
 };
