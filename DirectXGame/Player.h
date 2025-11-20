@@ -26,6 +26,12 @@ public:
 	/// </summary>
 	~Player();
 
+	/// <summary>
+	/// プレイヤーが持っている弾リストへの参照を取得
+	/// （読み取り専用のつもりなので const 参照を返す）
+	/// </summary>
+	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;

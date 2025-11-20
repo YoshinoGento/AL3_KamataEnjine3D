@@ -1,6 +1,7 @@
 #pragma once
 #include "KamataEngine.h"
 #include "Player.h"
+#include "Enemy.h"
 #include <memory> // スマートポインタを使うなら
 
 using namespace KamataEngine;
@@ -40,6 +41,9 @@ private:
 
 	// デバッグカメラの有効フラグ
 	bool isDebugCameraActive_ = false;
+
+	//ボス（敵）
+	Enemy* enemy_ = nullptr;
 
 	
 };
