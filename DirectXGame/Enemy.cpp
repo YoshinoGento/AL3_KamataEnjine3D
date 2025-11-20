@@ -101,5 +101,6 @@ Enemy::~Enemy() {
 	}
 }
 
+Vector3 Enemy::GetWorldPosition() const { return worldTransform_.translation_; }
 
 

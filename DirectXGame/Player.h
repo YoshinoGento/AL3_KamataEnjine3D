@@ -51,4 +51,10 @@ private:
 	
 	//キーボード入力
 	Input* input_ = nullptr;
+
+	// Player.h の private 部分に
+	Model* lockonModel_ = nullptr;                 // マーカー用モデル
+	std::vector<WorldTransform> lockonTransforms_; // ロック中の敵それぞれのマーカー変換
+	std::vector<Enemy*> lockedOnEnemies_;
+	/////ここまでできてる
 };

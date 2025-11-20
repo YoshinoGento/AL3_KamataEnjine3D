@@ -33,6 +33,9 @@ private:
 	// エネミー用モデル
 	Model* enemy_model_ = nullptr;
 
+	// GameScene.h に追加（private 部分など）
+	Model* lockon_model_ = nullptr;
+
 	// カメラ
 	Camera camera_;
 	Camera PlayerCamera_;

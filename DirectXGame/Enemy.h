@@ -21,6 +21,8 @@ public:
 
 	~Enemy();
 
+	Vector3 GetWorldPosition() const;
+
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;

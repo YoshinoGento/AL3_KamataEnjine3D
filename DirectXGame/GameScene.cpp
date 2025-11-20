@@ -37,6 +37,9 @@ void GameScene::Initialize() {
 	// エネミー初期化（座標など）
 	enemy_ = new Enemy();
 	enemy_->Initialize(enemy_model_, &EnemyCamera_, {0.0f, 0.0f, 10.0f});
+
+	// GameScene::Initialize() 内
+	lockon_model_ = Model::CreateFromOBJ("lockon"); // “lockon.obj” を用意しておく
 	
 }
 

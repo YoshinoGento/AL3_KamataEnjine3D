@@ -102,3 +102,13 @@ Vector3 Normalized(const Vector3& v);
 
 //ベクトル変換
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);
+
+Vector3 UnProjectToWorldSpace(const Vector2& screenPos, float z, const Matrix4x4& viewMatrix, const Matrix4x4& projMatrix, int screenWidth, int screenHeight);
+
+// 4x4行列の逆行列を求める
+Matrix4x4 Inverse(const Matrix4x4& m);
+
+// 4Dベクトル × 4x4行列の変換
+Vector4 Transform(const Vector4& v, const Matrix4x4& m);
+
+Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height);
