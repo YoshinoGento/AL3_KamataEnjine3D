@@ -1,7 +1,7 @@
 # Blender 4.4.1
 # www.blender.org
-mtllib player.mtl
-o Player
+mtllib reticle.mtl
+o reticle
 v 0.012230 0.033684 0.006680
 v 0.201519 0.013653 0.267033
 v -0.176887 0.013653 0.267157

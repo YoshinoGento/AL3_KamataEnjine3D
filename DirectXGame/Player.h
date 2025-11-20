@@ -1,60 +1,34 @@
 #pragma once
-#include "PlayerBullet.h"
-#include "MatrixMath.h"
 #include "HomingArcBullet.h"
 #include "KamataEngine.h"
+#include "MatrixMath.h"
+#include "PlayerBullet.h"
 #include <list>
+#include "Enemy.h"
 
 using namespace KamataEngine;
 
 class Player {
 public:
-	/// 初期化
 	void Initialize(Model* model, Camera* camera, const Vector3& position);
-
-	/// 更新
 	void Update();
-
-	/// 描画
 	void Draw();
-
-	/// <summary>
-	/// 攻撃
-	/// </summary>
 	void Attack();
-
-	/// <summary>
-	/// デストラクタ
-	/// </summary>
 	~Player();
-
 	Vector3 GetWorldPosition() const;
+	void SetEnemy(Enemy* enemy);
 
 private:
-	// ワールド変換データ
 	WorldTransform worldTransform_;
-	// モデル
 	Model* model_ = nullptr;
-	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
-	// カメラ
 	Camera* camera_ = nullptr;
-
-	// 移動速度
 	Vector3 velocity_ = {0, 0, 0};
-
-	// 通常弾
 	std::list<PlayerBullet*> bullets_;
-
-	// アーク弾リスト
 	std::list<HomingArcBullet*> arcBullets_;
-	
-	//キーボード入力
 	Input* input_ = nullptr;
-
-	// Player.h の private 部分に
-	Model* lockonModel_ = nullptr;                 // マーカー用モデル
-	std::vector<WorldTransform> lockonTransforms_; // ロック中の敵それぞれのマーカー変換
+	Enemy* enemy_ = nullptr;
 	std::vector<Enemy*> lockedOnEnemies_;
-	/////ここまでできてる
+
+	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
 };
