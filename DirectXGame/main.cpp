@@ -9,7 +9,7 @@ using namespace KamataEngine;
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 	// エンジンの初期化
-	KamataEngine::Initialize(L"");
+	KamataEngine::Initialize(L"褪せロボ");
 
 	// DirectXCommonインスタンスの取得
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
@@ -27,6 +27,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 			break;
 		}
 
+
 		// 描画開始
 		dxCommon->PreDraw();
 
@@ -40,6 +41,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int) {
 
 		// 描画終了
 		dxCommon->PostDraw();
+
+		 // ★ ESCキーで終了（追加）
+		if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+			break;
+		}
 	}
 
 	//解放処理
