@@ -53,6 +53,28 @@ void GameScene::Update() {
 	// プレイヤー更新
 	player_->Update();
 
+	// プレイヤーの座標を取得
+	const Vector3& playerPosition = player_->GetWorldPosition();
+
+	// ボス更新
+	if (enemy_) {
+		enemy_->Update(playerPosition);
+	}
+
+	// プレイヤー弾 vs ボス部位の当たり判定（今まで通り）
+	if (enemy_) {
+		const std::list<PlayerBullet*>& bullets = player_->GetBullets();
+		for (PlayerBullet* bullet : bullets) {
+			if (!bullet || bullet->IsDead()) {
+				continue;
+			}
+			const Vector3& bulletPos = bullet->GetWorldPosition();
+			if (enemy_->CheckHit(bulletPos)) {
+				bullet->OnHit();
+			}
+		}
+	}
+
 	// =========================================
 	// マウス左クリックで、マウス位置方向に弾を撃つ
 	// =========================================

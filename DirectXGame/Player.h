@@ -35,6 +35,11 @@ public:
 	/// </summary>
 	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
 
+	// プレイヤーのワールド座標を取得
+	const Vector3& GetWorldPosition() const {
+		return worldTransform_.translation_;
+	}
+
 private:
 	// ワールド変換データ
 	WorldTransform worldTransform_;
