@@ -13,6 +13,14 @@ public:
 	void Initialize(Model* model, Camera* camera, const Vector3& position);
 	void Update();
 	void Draw();
+
+	// ★ 追加：狙い点へ撃つAPI（GameSceneから呼ぶ）
+	void FireToward(const Vector3& targetWorld);
+
+	/// <summary>
+	/// 攻撃
+	/// </summary>
+
 	void Attack();
 	~Player();
 	Vector3 GetWorldPosition() const;
@@ -23,6 +31,11 @@ public:
 	/// （読み取り専用のつもりなので const 参照を返す）
 	/// </summary>
 	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
+
+	// プレイヤーのワールド座標を取得
+	const Vector3& GetWorldPosition() const {
+		return worldTransform_.translation_;
+	}
 
 private:
 	WorldTransform worldTransform_;
