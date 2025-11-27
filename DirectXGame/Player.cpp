@@ -101,27 +101,48 @@ void Player::Attack() {
 		bullets_.push_back(newBullet);
 	}
 
-	// ロックオン処理（右クリックなど）
-	if (input_->IsTriggerMouse(1)) { // 右クリックでロックオン
-		lockedEnemy_ = enemy_;
+	if (input_->IsTriggerMouse(1)) {
+		Vector2 mousePos = input_->GetMousePosition();
+
+		// 仮にスクリーン→ワールド変換を自前でやる場合（Zは仮固定）
+		Vector3 mouseWorldPos = {
+		    mousePos.x / 100.0f - 6.0f, mousePos.y / 100.0f - 4.0f,
+		    10.0f // 敵のZ座標に合わせておく
+		};
+
+		const float lockOnDistance = 1.5f; // ロック可能な距離（調整可）
+
+		for (Enemy* enemy : enemies_) {
+			Vector3 enemyPos = enemy->GetWorldPosition();
+			float dist = Length(mouseWorldPos - enemyPos);
+
+			if (dist < lockOnDistance) {
+				// まだロックしてなければ追加
+				if (std::find(lockedEnemies_.begin(), lockedEnemies_.end(), enemy) == lockedEnemies_.end()) {
+					lockedEnemies_.push_back(enemy);
+				}
+			}
+		}
 	}
 
 	// 発射（左クリック）
 	if (input_->IsTriggerMouse(0)) {
-		if (lockedEnemy_) {
-			Vector3 enemyPos = lockedEnemy_->GetWorldPosition();
+		for (Enemy* enemy : lockedEnemies_) {
+			Vector3 enemyPos = enemy->GetWorldPosition();
 
 			HomingArcBullet* arcBullet = new HomingArcBullet();
 			arcBullet->Initialize(model_, worldTransform_.translation_, enemyPos);
 			arcBullets_.push_back(arcBullet);
 		}
+
+		// 発射後はロック解除（必要であれば）
+		lockedEnemies_.clear();
 	}
 
 	// キーでロック解除（例：Rキー）
 	if (input_->TriggerKey(DIK_R)) {
-		lockedEnemy_ = nullptr;
+		lockedEnemies_.clear();
 	}
-
 }
 
 Player::~Player() {
@@ -135,4 +156,6 @@ Player::~Player() {
 
 Vector3 Player::GetWorldPosition() const { return worldTransform_.translation_; }
 
-void Player::SetEnemy(Enemy* enemy) { enemy_ = enemy; }
+void Player::SetEnemies(const std::vector<Enemy*>& enemies) {
+	enemies_ = enemies; 
+}

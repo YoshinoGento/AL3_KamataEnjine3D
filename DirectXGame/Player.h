@@ -16,7 +16,7 @@ public:
 	void Attack();
 	~Player();
 	Vector3 GetWorldPosition() const;
-	void SetEnemy(Enemy* enemy);
+	void SetEnemies(const std::vector<Enemy*>& enemies);
 
 private:
 	WorldTransform worldTransform_;
@@ -27,8 +27,7 @@ private:
 	std::list<PlayerBullet*> bullets_;
 	std::list<HomingArcBullet*> arcBullets_;
 	Input* input_ = nullptr;
-	Enemy* enemy_ = nullptr;
+	std::vector<Enemy*> enemies_;
 	std::vector<Enemy*> lockedOnEnemies_;
-
-	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
+	std::vector<Enemy*> lockedEnemies_; // ロックオンした敵
 };

@@ -1,6 +1,8 @@
 #include "MatrixMath.h"
 #include <cmath>
 #include <numbers>
+#include <cassert>
+
 
 // 02_14 29枚目 単項演算子オーバーロード
 Vector3 operator+(const Vector3& v) { return v; }
@@ -237,8 +239,6 @@ Vector3 UnProjectToWorldSpace(const Vector2& screenPos, float z, const Matrix4x4
 	return {world.x, world.y, world.z};
 }
 
-#include "MatrixMath.h"
-#include <cassert>
 
 // 逆行列計算（シンプルなガウスジョルダン消去法の実装）
 Matrix4x4 Inverse(const Matrix4x4& m) {

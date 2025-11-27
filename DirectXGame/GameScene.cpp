@@ -19,13 +19,22 @@ void GameScene::Initialize() {
 	camera_.translation_ = {0.0f, 0.0f, -10.0f};
 	camera_.UpdateMatrix();
 
+
+	//モデルなどは先に読込先と仮定
+	for (int i = 0; i < 5; ++i) {
+		Enemy* enemy_ = new Enemy();
+		Vector3 position = {float(i * 3 - 6), 0.0f, 10.0f}; //横一列
+		enemy_->Initialize(enemy_model_, &EnemyCamera_, position);
+		enemies_.push_back(enemy_);
+	}
+
+
+
 	debugCamera_ = new DebugCamera(1280, 720);
 	player_ = new Player();
 	player_->Initialize(player_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
 
-	enemy_ = new Enemy();
-	enemy_->Initialize(enemy_model_, &EnemyCamera_, {0.0f, 0.0f, 10.0f});
-	player_->SetEnemy(enemy_);
+	player_->SetEnemies(enemies_);
 }
 
 void GameScene::Update() {
@@ -44,7 +53,9 @@ void GameScene::Update() {
 	}
 
 	player_->Update();
-	enemy_->Update(player_->GetWorldPosition());
+	for (Enemy* enemy : enemies_) {
+		enemy->Update(player_->GetWorldPosition());
+	}
 }
 
 void GameScene::Draw() {
@@ -52,7 +63,10 @@ void GameScene::Draw() {
 	Model::PreDraw(dxCommon->GetCommandList());
 
 	player_->Draw();
-	enemy_->Draw();
+	for (Enemy* enemy_ : enemies_) {
+		enemy_->Draw();
+	}
+
 
 	Model::PostDraw();
 }

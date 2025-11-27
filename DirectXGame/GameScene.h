@@ -14,7 +14,8 @@ public:
 
 private:
 	Player* player_ = nullptr;
-	Enemy* enemy_ = nullptr;
+	//Enemy* enemis_ = nullptr;
+	std ::vector<Enemy*> enemies_;
 	Model* player_model_ = nullptr;
 	Model* enemy_model_ = nullptr;
 	Camera camera_;
