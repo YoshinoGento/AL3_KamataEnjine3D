@@ -1,6 +1,7 @@
 #include "GameScene.h"
 #include "KamataEngine.h"
 #include "Math.h"
+#include <Windows.h>
 
 using namespace KamataEngine;
 
@@ -51,6 +52,42 @@ void GameScene::Update() {
 
 	// プレイヤー更新
 	player_->Update();
+
+	// =========================================
+	// マウス左クリックで、マウス位置方向に弾を撃つ
+	// =========================================
+	if (GetAsyncKeyState(VK_LBUTTON) & 0x8000) { // ボタンが押されている間撃ち続ける
+
+		POINT cursor;
+		if (GetCursorPos(&cursor)) {
+
+			// ここでは簡単のために「ウィンドウ左上が (0,0)、サイズ 1280x720」
+			// として扱う（必要なら WinApp からちゃんとクライアント座標を取る形に発展させてOK）
+			const float kWindowWidth = 1280.0f;
+			const float kWindowHeight = 720.0f;
+
+			// 0〜1 に正規化
+			float nx = cursor.x / kWindowWidth;
+			float ny = cursor.y / kWindowHeight;
+
+			// -1〜+1 に変換しつつ、Y は上が + になるよう反転
+			float sx = nx * 2.0f - 1.0f;
+			float sy = 1.0f - ny * 2.0f;
+
+			// プレイヤーの移動制限と対応させてワールド座標にマッピング
+			const float kMoveLimitX = 6.0f; // Player.cpp と同じ値
+			const float kMoveLimitY = 3.0f; // Player.cpp と同じ値
+
+			float worldX = sx * kMoveLimitX;
+			float worldY = sy * kMoveLimitY;
+
+			// 弾の狙い先はボスがいる Z=10 付近の平面上にする
+			Vector3 targetWorld{worldX, worldY, 10.0f};
+
+			// プレイヤーからその点に向けて弾を撃つ
+			player_->FireToward(targetWorld);
+		}
+	}
 
 	// ボス更新
 	if (enemy_) {

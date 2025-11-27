@@ -62,8 +62,6 @@ void Player ::Update() {
 		move.x -= kCharacterSpeed;
 	} 
 	
-	
-
 
 	velocity_ += move;
 
@@ -151,6 +149,33 @@ void Player::Attack() {
 	}
 
 }
+
+
+void Player::FireToward(const Vector3& targetWorld) {
+	
+	// 弾の速度
+	const float kBulletSpeed = 1.0f;
+
+	// 自機から狙い点への方向ベクトルを計算
+	const Vector3& playerPos = worldTransform_.translation_;
+
+	// 方向ベクトル(プレイヤー → 狙い点)
+	Vector3 direction = targetWorld - playerPos;
+
+	// 正規化して速度ベクトルに変換
+	direction = Normalized(direction);
+
+	//実際の速度
+	Vector3 velocity = direction * kBulletSpeed;
+
+	// 弾を生成し、初期化
+	PlayerBullet* newBullet = new PlayerBullet();
+	newBullet->Initialize(model_, playerPos, velocity);
+
+	// 弾を登録する
+	bullets_.push_back(newBullet);
+}
+
 
 Player::~Player() {
 

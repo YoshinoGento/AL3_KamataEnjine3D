@@ -16,6 +16,9 @@ public:
 	/// 描画
 	void Draw();
 
+	// ★ 追加：狙い点へ撃つAPI（GameSceneから呼ぶ）
+	void FireToward(const Vector3& targetWorld);
+
 	/// <summary>
 	/// 攻撃
 	/// </summary>
