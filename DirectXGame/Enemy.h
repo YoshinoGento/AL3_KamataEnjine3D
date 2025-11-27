@@ -1,6 +1,8 @@
 #pragma once
+#include "EnemyBullet.h"
 #include "KamataEngine.h"
 #include "MatrixMath.h"
+
 
 using namespace KamataEngine;
 
@@ -11,6 +13,7 @@ public:
 
 	// 更新：プレイヤーのワールド座標を参照（ファンネル攻撃などに利用）
 	void Update(const Vector3& playerPosition);
+
 
 	// 描画
 	void Draw(const Camera& camera);

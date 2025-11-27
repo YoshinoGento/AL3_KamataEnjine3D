@@ -20,6 +20,7 @@ void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector
 	//引数で受け取った速度をメンバー変数に代入
 	velocity_ = velocity;
 
+
 	// ★ ここが重要：生成直後に一度ワールド行列を更新しておく
 	WorldTransformUpdate(worldTransform_);
 
