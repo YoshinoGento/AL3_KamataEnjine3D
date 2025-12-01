@@ -6,10 +6,7 @@ void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector
 	assert(model);
 
 	// モデル
-	model_ = model;
-
-	// テクスチャ読み込み
-	textureHandle_ = TextureManager::Load("uvChecker.png");
+	player_bullet_model = model;
 
 	// ワールド変換の初期化
 	worldTransform_.Initialize();
@@ -39,6 +36,6 @@ void PlayerBullet::Update() {
 
 void PlayerBullet::Draw(const Camera& camera) {
 
-	model_->Draw(worldTransform_, camera, textureHandle_);
+	player_bullet_model->Draw(worldTransform_, camera);
 
 }

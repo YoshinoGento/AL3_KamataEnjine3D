@@ -1,14 +1,15 @@
 #include "Player.h"
 #include "MatrixMath.h"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <numbers>
-#include <algorithm>
 
-
-void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
-	assert(model);
-	model_ = model;
+void Player::Initialize(Model* playerModel, Model* playerBulletModel, Camera* camera, const Vector3& position) {
+	assert(playerModel);
+	assert(playerBulletModel);
+	model_ = playerModel;
+	player_bullet_model_ = playerBulletModel;
 	camera_ = camera;
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
@@ -59,7 +60,6 @@ void Player::Update() {
 
 	Attack();
 
-
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Update();
 	}
@@ -82,6 +82,7 @@ void Player::Update() {
 
 void Player::Draw() {
 	model_->Draw(worldTransform_, *camera_);
+
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Draw(*camera_);
 	}
@@ -97,7 +98,7 @@ void Player::Attack() {
 		velocity = TransformNormal(velocity, worldTransform_.matWorld_);
 
 		PlayerBullet* newBullet = new PlayerBullet();
-		newBullet->Initialize(model_, worldTransform_.translation_, velocity);
+		newBullet->Initialize(player_bullet_model_, worldTransform_.translation_, velocity);
 		bullets_.push_back(newBullet);
 	}
 
@@ -112,7 +113,7 @@ void Player::Attack() {
 			Vector3 enemyPos = lockedEnemy_->GetWorldPosition();
 
 			HomingArcBullet* arcBullet = new HomingArcBullet();
-			arcBullet->Initialize(model_, worldTransform_.translation_, enemyPos);
+			arcBullet->Initialize(player_bullet_model_, worldTransform_.translation_, enemyPos);
 			arcBullets_.push_back(arcBullet);
 		}
 	}
@@ -121,7 +122,6 @@ void Player::Attack() {
 	if (input_->TriggerKey(DIK_R)) {
 		lockedEnemy_ = nullptr;
 	}
-
 }
 
 Player::~Player() {

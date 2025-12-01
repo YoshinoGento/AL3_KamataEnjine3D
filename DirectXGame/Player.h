@@ -10,7 +10,7 @@ using namespace KamataEngine;
 
 class Player {
 public:
-	void Initialize(Model* model, Camera* camera, const Vector3& position);
+	void Initialize(Model* playerModel,Model* playerBulletModel, Camera* camera, const Vector3& position);
 	void Update();
 	void Draw();
 	void Attack();
@@ -21,6 +21,7 @@ public:
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
+	Model* player_bullet_model_ = nullptr;
 	uint32_t textureHandle_ = 0u;
 	Camera* camera_ = nullptr;
 	Vector3 velocity_ = {0, 0, 0};
