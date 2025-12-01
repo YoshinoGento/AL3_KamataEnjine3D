@@ -21,6 +21,16 @@ public:
 	///</summary>
 	bool CheckHit(const Vector3& bulletPosition);
 
+	/// <summary>
+	/// ファンネルの照射ビームにプレイヤーが当たっているか判定する
+	/// </summary>
+	/// <param name="playerPosition">プレイヤーのワールド座標</param>
+	/// <param name="playerRadius">プレイヤー当たり判定の半径</param>
+	/// <returns>true ならどれかのビームに被弾</returns>
+	/// </summary>
+	bool IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerRadius);
+
+
 private:
 	// =========================
 	// ボス本体の部位
