@@ -34,6 +34,7 @@ public:
 	bool IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerRadius);
 
 
+
 private:
 	// =========================
 	// ボス本体の部位

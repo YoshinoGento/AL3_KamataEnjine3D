@@ -17,13 +17,14 @@ public:
 	// ★ 追加：狙い点へ撃つAPI（GameSceneから呼ぶ）
 	void FireToward(const Vector3& targetWorld);
 
+	
+
 	/// <summary>
 	/// 攻撃
 	/// </summary>
 
 	void Attack();
 	~Player();
-	Vector3 GetWorldPosition() const;
 	void SetEnemy(Enemy* enemy);
 
 	/// <summary>
@@ -33,9 +34,7 @@ public:
 	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
 
 	// プレイヤーのワールド座標を取得
-	const Vector3& GetWorldPosition() const {
-		return worldTransform_.translation_;
-	}
+	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 
 private:
 	WorldTransform worldTransform_;

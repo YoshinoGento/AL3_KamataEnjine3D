@@ -25,8 +25,5 @@ private:
 	DebugCamera* debugCamera_ = nullptr;
 	bool isDebugCameraActive_ = false;
 
-	//ボス（敵）
-	Enemy* enemy_ = nullptr;
-
 
 };
