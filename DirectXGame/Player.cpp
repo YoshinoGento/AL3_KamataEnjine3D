@@ -92,38 +92,25 @@ void Player::Draw() {
 }
 
 void Player::Attack() {
-	if (input_->TriggerKey(DIK_SPACE)) {
+	// スペースキー or 左クリックで通常ショット
+	if (input_->TriggerKey(DIK_SPACE) || input_->IsTriggerMouse(0)) {
 		const float kBulletSpeed = 1.0f;
-		Vector3 velocity(0, 0, kBulletSpeed);
+
+		// ローカルZ+方向（前）に飛ぶ速度ベクトル
+		Vector3 velocity(0.0f, 0.0f, kBulletSpeed);
 		velocity = TransformNormal(velocity, worldTransform_.matWorld_);
 
+		// 弾の生成
 		PlayerBullet* newBullet = new PlayerBullet();
 		newBullet->Initialize(model_, worldTransform_.translation_, velocity);
+
+		// 弾リストに登録
 		bullets_.push_back(newBullet);
 	}
 
-	// ロックオン処理（右クリックなど）
-	if (input_->IsTriggerMouse(1)) { // 右クリックでロックオン
-		lockedEnemy_ = enemy_;
-	}
-
-	// 発射（左クリック）
-	if (input_->IsTriggerMouse(0)) {
-		if (lockedEnemy_) {
-			Vector3 enemyPos = lockedEnemy_->GetWorldPosition();
-
-			HomingArcBullet* arcBullet = new HomingArcBullet();
-			arcBullet->Initialize(model_, worldTransform_.translation_, enemyPos);
-			arcBullets_.push_back(arcBullet);
-		}
-	}
-
-	// キーでロック解除（例：Rキー）
-	if (input_->TriggerKey(DIK_R)) {
-		lockedEnemy_ = nullptr;
-	}
-
+	// ★ それ以外のロックオン / ホーミング処理は一旦すべて削除
 }
+
 
 
 void Player::FireToward(const Vector3& targetWorld) {
@@ -161,6 +148,6 @@ Player::~Player() {
 	}
 }
 
-Vector3 Player::GetWorldPosition() const { return worldTransform_.translation_; }
+
 
 void Player::SetEnemy(Enemy* enemy) { enemy_ = enemy; }

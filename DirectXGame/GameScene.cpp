@@ -21,15 +21,15 @@ void GameScene::Initialize() {
 	camera_.UpdateMatrix();
 
 	debugCamera_ = new DebugCamera(1280, 720);
-	player_ = new Player();
-	player_->SetEnemy(enemy_);
 
-	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
-
-	//ボス戦の初期化
+	// ① 先に enemy を作る（Player が参照するので）
 	enemy_ = new Enemy();
 	enemy_->Initialize(Vector3{0.0f, 0.0f, 10.0f});
-	
+
+	// ② 次に player を作り enemy を渡す
+	player_ = new Player();
+	player_->SetEnemy(enemy_);
+	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
 }
 
 void GameScene::Update() {
@@ -134,7 +134,7 @@ void GameScene::Draw() {
 	Model::PreDraw(dxCommon->GetCommandList());
 
 	player_->Draw();
-	enemy_->Draw();
+	enemy_->Draw(camera_);
 
 
 	// ボス描画

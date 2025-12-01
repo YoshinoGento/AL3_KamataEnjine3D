@@ -1,16 +1,6 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
 
-void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
-	assert(model);
-	model_ = model;
-	camera_ = camera;
-	worldTransform_.Initialize();
-	worldTransform_.translation_ = position;
-	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
-}
-
-
 // フェーズごとのフレーム数（好みに合わせて調整）
 namespace {
 const int kMoveToPlaneFrames = 30;    // フェーズ1：ボス → プレイヤーZ平面
