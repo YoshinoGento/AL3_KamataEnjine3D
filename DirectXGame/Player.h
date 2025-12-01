@@ -18,6 +18,7 @@ public:
 	Vector3 GetWorldPosition() const;
 	void SetEnemy(Enemy* enemy);
 
+
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
@@ -30,6 +31,9 @@ private:
 	Input* input_ = nullptr;
 	Enemy* enemy_ = nullptr;
 	std::vector<Enemy*> lockedOnEnemies_;
-
+	bool isFiringFanMissiles_ = false; // ファンネル弾発射中フラグ
+	int fireInterval_ = 5;             // フレーム間隔
+	int fireTimer_ = 0;                // タイマー
+	int fireCount_ = 0;                // 発射済み弾数（最大6）
 	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
 };

@@ -60,6 +60,33 @@ void Player::Update() {
 
 	Attack();
 
+	 // ✅ ←★ ここに追加！弾の段階的発射
+	if (isFiringFanMissiles_) {
+		fireTimer_++;
+
+		if (fireTimer_ >= fireInterval_) {
+			fireTimer_ = 0;
+
+			if (lockedEnemy_ && fireCount_ < 6) {
+				Vector3 enemyPos = lockedEnemy_->GetWorldPosition();
+
+				// ランダム制御点生成
+				Vector3 offset = {((rand() % 200) - 100) / 10.0f, ((rand() % 200)) / 10.0f + 5.0f, ((rand() % 200) - 100) / 10.0f};
+
+				HomingArcBullet* arcBullet = new HomingArcBullet();
+				arcBullet->Initialize(player_bullet_model_, worldTransform_.translation_, enemyPos, offset);
+				arcBullets_.push_back(arcBullet);
+
+				fireCount_++;
+			}
+
+			if (fireCount_ >= 6) {
+				isFiringFanMissiles_ = false;
+			}
+		}
+	}
+
+
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Update();
 	}
@@ -92,6 +119,7 @@ void Player::Draw() {
 }
 
 void Player::Attack() {
+	// 通常弾発射（スペースキー）
 	if (input_->TriggerKey(DIK_SPACE)) {
 		const float kBulletSpeed = 1.0f;
 		Vector3 velocity(0, 0, kBulletSpeed);
@@ -109,14 +137,14 @@ void Player::Attack() {
 
 	// 発射（左クリック）
 	if (input_->IsTriggerMouse(0)) {
-		if (lockedEnemy_) {
-			Vector3 enemyPos = lockedEnemy_->GetWorldPosition();
-
-			HomingArcBullet* arcBullet = new HomingArcBullet();
-			arcBullet->Initialize(player_bullet_model_, worldTransform_.translation_, enemyPos);
-			arcBullets_.push_back(arcBullet);
+		if (!isFiringFanMissiles_ && lockedEnemy_) {
+			isFiringFanMissiles_ = true;
+			fireTimer_ = 0;
+			fireCount_ = 0;
 		}
 	}
+
+
 
 	// キーでロック解除（例：Rキー）
 	if (input_->TriggerKey(DIK_R)) {

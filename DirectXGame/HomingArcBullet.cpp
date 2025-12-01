@@ -6,20 +6,22 @@
 using namespace KamataEngine;
 
 
-void HomingArcBullet::Initialize(Model* model, const Vector3& start, const Vector3& target) {
+void HomingArcBullet::Initialize(Model* model, const Vector3& start, const Vector3& target, const Vector3& controlOffset) {
 	assert(model);
 	model_ = model;
-
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = start;
 
 	start_ = start;
 	target_ = target;
+	controlOffset_ = controlOffset; // これで個別に！
 
 	time_ = 0.0f;
 	lifeTime_ = kLifeTime;
 	isDead_ = false;
 }
+
+
 
 void HomingArcBullet::Update() {
 	time_ += 1.0f;
@@ -32,8 +34,8 @@ void HomingArcBullet::Update() {
 
 	// 距離に応じて制御点の高さを変える
 	Vector3 mid = (start_ + target_) * 0.5f;
-	float distance = Length(target_ - start_);
-	Vector3 control = mid + Vector3(0, distance * 0.5f, 0); // 弧を大きく！
+	//float distance = Length(target_ - start_);
+	Vector3 control = mid + controlOffset_; // ←ここで offset が効いてないと意味ない！
 
 	// ベジェ補間
 	Vector3 p1 = Lerp(start_, control, t);

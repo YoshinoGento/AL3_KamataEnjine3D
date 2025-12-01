@@ -7,7 +7,7 @@ using namespace KamataEngine;
 class HomingArcBullet {
 public:
 	// モデル、開始位置、目標位置を受け取る初期化関数
-	void Initialize(Model* model, const Vector3& start, const Vector3& target);
+	void Initialize(Model* model, const Vector3& start, const Vector3& target, const Vector3& controlOffset);
 
 	// 更新処理（ベジェ曲線による放物線移動）
 	void Update();
@@ -28,4 +28,6 @@ private:
 	float time_ = 0.0f;             // 経過時間
 	float lifeTime_ = 180.0f;       // 寿命
 	bool isDead_ = false;           // 死亡フラグ
+	Vector3 control_;               // ベジェ曲線用の制御点（ランダム）
+	Vector3 controlOffset_;         // ランダムオフセット
 };
