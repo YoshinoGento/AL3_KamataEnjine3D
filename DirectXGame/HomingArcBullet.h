@@ -1,6 +1,8 @@
 #pragma once
 #include "KamataEngine.h"
 #include "MatrixMath.h"
+#include "MissilePartocle.h"
+#include <list> 
 
 using namespace KamataEngine;
 
@@ -30,4 +32,9 @@ private:
 	bool isDead_ = false;           // 死亡フラグ
 	Vector3 control_;               // ベジェ曲線用の制御点（ランダム）
 	Vector3 controlOffset_;         // ランダムオフセット
+
+	// 🔽 追加（パーティクルの管理用）
+	std::list<MissilePartocle*> missileParticles_;
+
+	Vector3 prevPosition_;
 };

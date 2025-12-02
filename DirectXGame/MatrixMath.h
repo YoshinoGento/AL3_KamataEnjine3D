@@ -1,31 +1,6 @@
 #pragma once
 #include "KamataEngine.h"
 
-/// AL3サンプルプログラム用の数学ライブラリ。
-/// MT3準拠で、KamataEngine内部の数学ライブラリと重複する。
-/*
-struct Matrix4x4 final {
-    float m[4][4];
-};
-
-struct Vector4 final {
-    float x;
-    float y;
-    float z;
-    float w;
-};
-
-struct Vector3 final {
-    float x;
-    float y;
-    float z;
-};
-
-struct Vector2 final {
-    float x;
-    float y;
-};
-*/
 using namespace KamataEngine;
 
 // 円周率
@@ -39,16 +14,21 @@ struct AABB {
 // 02_14 29枚目 単項演算子オーバーロード
 Vector3 operator+(const Vector3& v);
 Vector3 operator-(const Vector3& v);
-const Vector3 operator-(const Vector3& lhv, const Vector3& rhv);
 
-// 02_06のCameraControllerのUpdate/Reset関数で必要
-const Vector3 operator+(const Vector3& lhv, const Vector3& rhv);
+// Vector3 * float
+const Vector3 operator*(const Vector3& v1, float f);
+
+// Vector3 + Vector3
+const Vector3 operator+(const Vector3& v1, const Vector3& v2);
+
+// Vector3 - Vector3
+const Vector3 operator-(const Vector3& v1, const Vector3& v2);
 
 // 02_06のスライド24枚目のLerp関数
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
 
-// 02_06 スライド29枚目で追加
-const Vector3 operator*(const Vector3& v1, const float f);
+// Vector3 / float
+const Vector3 operator/(const Vector3& v, float s);
 
 // 代入演算子オーバーロード
 Vector3& operator+=(Vector3& lhs, const Vector3& rhv);
@@ -79,11 +59,8 @@ Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2);
 void WorldTransformUpdate(WorldTransform& worldTransform);
 
 float Lerp(float x1, float x2, float t);
-
 float EaseIn(float x1, float x2, float t);
-
 float EaseOut(float x1, float x2, float t);
-
 float EaseInOut(float x1, float x2, float t);
 
 bool IsCollision(const AABB& aabb1, const AABB& aabb2);
@@ -100,9 +77,10 @@ float Length(const Vector3& v);
 // ベクトルを正規化する（方向だけにする）
 Vector3 Normalized(const Vector3& v);
 
-//ベクトル変換
+// ベクトル変換（法線用）
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m);
 
+// 画面座標→ワールド（マウスレイなど）
 Vector3 UnProjectToWorldSpace(const Vector2& screenPos, float z, const Matrix4x4& viewMatrix, const Matrix4x4& projMatrix, int screenWidth, int screenHeight);
 
 // 4x4行列の逆行列を求める
@@ -111,4 +89,15 @@ Matrix4x4 Inverse(const Matrix4x4& m);
 // 4Dベクトル × 4x4行列の変換
 Vector4 Transform(const Vector4& v, const Matrix4x4& m);
 
+// ワールド→スクリーン
 Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height);
+
+Vector3 Cross(const Vector3& a, const Vector3& b);
+
+float Dot(const Vector3& a, const Vector3& b);
+
+Matrix4x4 MakeRotateAxisMatrix(const Vector3& axis, float angle);
+
+Vector3 GetEulerFromMatrix(const Matrix4x4& m);
+
+

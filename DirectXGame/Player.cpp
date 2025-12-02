@@ -87,6 +87,7 @@ void Player::Update() {
 	}
 
 
+
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Update();
 	}
@@ -94,6 +95,15 @@ void Player::Update() {
 	for (HomingArcBullet* arcBullet : arcBullets_) {
 		arcBullet->Update();
 	}
+
+
+	missileParticles_.remove_if([](MissilePartocle* p) {
+		if (p->IsDead()) {
+			delete p;
+			return true;
+		}
+		return false;
+	});
 
 	arcBullets_.remove_if([](HomingArcBullet* b) {
 		if (b->IsDead()) {

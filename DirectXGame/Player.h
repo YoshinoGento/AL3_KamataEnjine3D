@@ -1,23 +1,23 @@
 #pragma once
+#include "Enemy.h"
 #include "HomingArcBullet.h"
 #include "KamataEngine.h"
 #include "MatrixMath.h"
+#include "MissilePartocle.h"
 #include "PlayerBullet.h"
 #include <list>
-#include "Enemy.h"
 
 using namespace KamataEngine;
 
 class Player {
 public:
-	void Initialize(Model* playerModel,Model* playerBulletModel, Camera* camera, const Vector3& position);
+	void Initialize(Model* playerModel, Model* playerBulletModel, Camera* camera, const Vector3& position);
 	void Update();
 	void Draw();
 	void Attack();
 	~Player();
 	Vector3 GetWorldPosition() const;
 	void SetEnemy(Enemy* enemy);
-
 
 private:
 	WorldTransform worldTransform_;
@@ -35,5 +35,6 @@ private:
 	int fireInterval_ = 5;             // フレーム間隔
 	int fireTimer_ = 0;                // タイマー
 	int fireCount_ = 0;                // 発射済み弾数（最大6）
-	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
+	Enemy* lockedEnemy_ = nullptr;     // ロックオンした敵
+	std::list<MissilePartocle*> missileParticles_;
 };
