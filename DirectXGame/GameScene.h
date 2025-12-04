@@ -18,6 +18,7 @@ private:
 	Enemy* enemy_ = nullptr;
 	Model* player_model_ = nullptr;
 	Model* enemy_model_ = nullptr;
+	Model* player_bullet_model_ = nullptr;
 	Camera camera_;
 	Camera PlayerCamera_;
 	Camera EnemyCamera_;

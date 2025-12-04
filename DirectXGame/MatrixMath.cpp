@@ -32,7 +32,6 @@ const Vector3 operator+(const Vector3& v1, const Vector3& v2) {
 }
 
 // Vector3 - Vector3
-//const Vector3 operator-(const Vector3& v1, const Vector3& v2) {
 //	Vector3 temp(v1);
 //	return temp -= v2;
 //}
@@ -206,7 +205,6 @@ Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
 	result.y /= w;
 	result.z /= w;
 	return result;
-
 }
 
 float Length(const Vector3& v) { return std::sqrt(v.x * v.x + v.y * v.y + v.z * v.z); }
@@ -305,9 +303,36 @@ Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Ma
 	return {x * width, y * height};
 }
 
-// 内積
-float Dot(const Vector3& v1, const Vector3& v2) {
-	float result = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+Vector3 Cross(const Vector3& a, const Vector3& b) { return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x}; }
+
+float Dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+
+Matrix4x4 MakeRotateAxisMatrix(const Vector3& axis, float angle) {
+	float c = std::cos(angle);
+	float s = std::sin(angle);
+	float t = 1.0f - c;
+	Vector3 a = Normalized(axis);
+
+	Matrix4x4 result{};
+	result.m[0][0] = t * a.x * a.x + c;
+	result.m[0][1] = t * a.x * a.y + s * a.z;
+	result.m[0][2] = t * a.x * a.z - s * a.y;
+	result.m[0][3] = 0.0f;
+
+	result.m[1][0] = t * a.x * a.y - s * a.z;
+	result.m[1][1] = t * a.y * a.y + c;
+	result.m[1][2] = t * a.y * a.z + s * a.x;
+	result.m[1][3] = 0.0f;
+
+	result.m[2][0] = t * a.x * a.z + s * a.y;
+	result.m[2][1] = t * a.y * a.z - s * a.x;
+	result.m[2][2] = t * a.z * a.z + c;
+	result.m[2][3] = 0.0f;
+
+	result.m[3][0] = 0.0f;
+	result.m[3][1] = 0.0f;
+	result.m[3][2] = 0.0f;
+	result.m[3][3] = 1.0f;
 
 	return result;
 }
@@ -346,3 +371,44 @@ Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
 	// 長さを反映
 	return length * npVector;
 }
+
+Vector3 GetEulerFromMatrix(const Matrix4x4& m) {
+	Vector3 rot;
+	rot.y = std::atan2(m.m[0][2], m.m[2][2]);
+	rot.x = std::asin(-m.m[1][2]);
+	rot.z = std::atan2(m.m[1][0], m.m[1][1]);
+	return rot;
+}
+
+Vector3 LookRotation(const Vector3& direction) {
+	Vector3 dir = Normalized(direction);
+	float pitch = std::atan2(-dir.y, std::sqrt(dir.x * dir.x + dir.z * dir.z));
+	float yaw = std::atan2(dir.x, dir.z);
+	return {pitch, yaw, 0.0f};
+}
+
+Matrix4x4 MakeLookRotation(const Vector3& forward, const Vector3& up) {
+	Vector3 f = Normalized(forward);
+	Vector3 r = Normalized(Cross(up, f));
+	Vector3 u = Cross(f, r);
+
+	Matrix4x4 result = {r.x, u.x, f.x, 0.0f, r.y, u.y, f.y, 0.0f, r.z, u.z, f.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+	return result;
+}
+
+
+//Vector3 GetEulerFromMatrix(const Matrix4x4& m) {
+//	Vector3 rot;
+//	rot.y = std::asin(-m.m[2][0]);
+//
+//	if (std::cos(rot.y) > 0.0001f) {
+//		rot.x = std::atan2(m.m[2][1], m.m[2][2]);
+//		rot.z = std::atan2(m.m[1][0], m.m[0][0]);
+//	} else {
+//		rot.x = std::atan2(-m.m[1][2], m.m[1][1]);
+//		rot.z = 0;
+//	}
+//
+//	return rot;
+//}

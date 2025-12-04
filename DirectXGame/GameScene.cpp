@@ -6,8 +6,10 @@
 using namespace KamataEngine;
 
 void GameScene::Initialize() {
-	player_model_ = Model::CreateFromOBJ("player");
+	player_model_ = Model::CreateFromOBJ("player1");
 	enemy_model_ = Model::CreateFromOBJ("enemy");
+	player_bullet_model_ = Model::CreateFromOBJ("PlayerBullet");
+
 
 	PlayerCamera_.Initialize();
 	EnemyCamera_.Initialize();
@@ -21,6 +23,9 @@ void GameScene::Initialize() {
 	camera_.UpdateMatrix();
 
 	debugCamera_ = new DebugCamera(1280, 720);
+
+	player_ = new Player();
+	player_->Initialize(player_model_,player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
 
 	// ① 先に enemy を作る（Player が参照するので）
 	enemy_ = new Enemy();
@@ -50,15 +55,20 @@ void GameScene::Update() {
 	}
 
 	player_->Update();
-
-
-	// プレイヤーの座標を取得
-	const Vector3& playerPosition = player_->GetWorldPosition();
+	const Vector3& playerPos = player_->GetWorldPosition();
 
 	// ボス更新
 	if (enemy_) {
-		enemy_->Update(playerPosition);
+		enemy_->Update(playerPos);
+
+		const float kPlayerRadius = 0.5f; // プレイヤー当たり判定の半径（好みで調整）
+
+		if (enemy_->IsPlayerHitByFunnelBeam(playerPos, kPlayerRadius)) {
+			// ここで HP 減少とか、被弾リアクションを入れる
+			player_->OnHitByBeam();
+		}
 	}
+
 
 	// プレイヤー弾 vs ボス部位の当たり判定（今まで通り）
 	if (enemy_) {

@@ -1,5 +1,4 @@
 #pragma once
-#include "EnemyBullet.h"
 #include "KamataEngine.h"
 #include "MatrixMath.h"
 
@@ -7,22 +6,31 @@ class Player;
 
 using namespace KamataEngine;
 
+/// <summary>
+/// ボス本体＋ファンネル照射攻撃をもつ敵クラス
+/// </summary>
 class Enemy {
 public:
-	// 初期化：bossBasePosition を中心に部位を配置する
+	/// <summary>
+	/// 初期化：bossBasePosition を中心にボスの部位を配置する
+	/// </summary>
 	void Initialize(const Vector3& bossBasePosition);
 
-	// 更新：プレイヤーのワールド座標を参照（ファンネル攻撃などに利用）
+	/// <summary>
+	/// 更新：プレイヤーのワールド座標を参照してファンネル攻撃などを進行させる
+	/// </summary>
 	void Update(const Vector3& playerPosition);
 
-
-	// 描画
+	/// <summary>
+	/// 描画：ボス本体＋ファンネル＋ビームを描画する
+	/// </summary>
 	void Draw(const Camera& camera);
 
-	///< summary>
-	/// 弾の位置を受け取って、どれかの部位に当たったらtrueを返す
-	/// （当たった部位のHPを減らして、0以下なら部位破壊扱い）
-	///</summary>
+	/// <summary>
+	/// プレイヤー弾との当たり判定
+	/// 弾のワールド座標を受け取り、どれかの部位に当たったら true を返す。
+	/// 当たった部位の HP を減らし、0 以下ならその部位は破壊状態になる。
+	/// </summary>
 	bool CheckHit(const Vector3& bulletPosition);
 
 	/// <summary>
@@ -31,11 +39,9 @@ public:
 	/// <param name="playerPosition">プレイヤーのワールド座標</param>
 	/// <param name="playerRadius">プレイヤー当たり判定の半径</param>
 	/// <returns>true ならどれかのビームに被弾</returns>
-	/// </summary>
 	bool IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerRadius);
 
 	void SetPlayer(Player* player) { player_ = player; }
-
 
 private:
 	// =========================
@@ -57,14 +63,21 @@ private:
 	// 可視化用モデル（暫定で "player" モデルを流用）
 	Model* model_ = nullptr;
 
+	// ビーム専用モデル（円柱）
+	Model* beamModel_ = nullptr;
+
 	// =========================
 	// ファンネル攻撃用
 	// =========================
 	struct Funnel {
+		/// <summary>
+		/// ファンネル 1 機の状態
+		/// </summary>
 		enum State {
 			Inactive,       // 待機
 			MoveToPlane,    // ボス付近 → プレイヤーと同じZ平面まで前進
 			MoveSideToEdge, // プレイヤーと同じZ平面で、画面端まで横移動
+			Charging,       // 画面端でチャージ中
 			Firing,         // 画面端から照射中
 		};
 
@@ -93,7 +106,7 @@ private:
 	static const int kFunnelCount = 2;
 	Funnel funnels_[kFunnelCount];
 
-	//ビーム攻撃全体で使いまわす一時
+	// ビーム描画用 WorldTransform（全ビームで使い回し）
 	WorldTransform beamWorldTransform_;
 
 	// ファンネル攻撃のクールタイム（フレーム数）
@@ -113,10 +126,14 @@ private:
 	// ファンネル攻撃を開始（空きがあれば1機だけ使用）
 	void StartFunnelAttack(const Vector3& playerPosition);
 
-	// ファンネルの状態更新
+	/// <summary>
+	/// ファンネルの状態更新（L字移動＋照射時間の進行）
+	/// </summary>
 	void UpdateFunnels(const Vector3& playerPosition);
 
-	// ファンネルの描画
+	/// <summary>
+	/// ファンネルの描画（本体＋ビーム）
+	/// </summary>
 	void DrawFunnels(const Camera& camera);
 
 	// ミサイルの発射
