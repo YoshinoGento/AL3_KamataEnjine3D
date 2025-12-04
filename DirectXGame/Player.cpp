@@ -86,6 +86,19 @@ void Player::Update() {
 		}
 	}
 
+	//--------ビーム---------------
+	for (auto* beam : beams_) {
+		beam->Update();
+	}
+	beams_.remove_if([](Beam* b) {
+		if (b->IsDead()) {
+			delete b;
+			return true;
+		}
+		return false;
+	});
+
+
 
 
 	for (PlayerBullet* bullet : bullets_) {
@@ -126,10 +139,14 @@ void Player::Draw() {
 	for (HomingArcBullet* bullet : arcBullets_) {
 		bullet->Draw(*camera_);
 	}
+	for (auto* beam : beams_) {
+		beam->Draw(*camera_);
+	}
 }
 
 void Player::Attack() {
-	// 通常弾発射（スペースキー）
+
+	// ---通常弾発射（スペースキー）--------------------------
 	if (input_->TriggerKey(DIK_SPACE)) {
 		const float kBulletSpeed = 1.0f;
 		Vector3 velocity(0, 0, kBulletSpeed);
@@ -139,7 +156,9 @@ void Player::Attack() {
 		newBullet->Initialize(player_bullet_model_, worldTransform_.translation_, velocity);
 		bullets_.push_back(newBullet);
 	}
+	//=================================
 
+	//================ロックオン・ミサイル発射処理================
 	// ロックオン処理（右クリックなど）
 	if (input_->IsTriggerMouse(1)) { // 右クリックでロックオン
 		lockedEnemy_ = enemy_;
@@ -153,14 +172,23 @@ void Player::Attack() {
 			fireCount_ = 0;
 		}
 	}
-
-
-
 	// キーでロック解除（例：Rキー）
 	if (input_->TriggerKey(DIK_R)) {
 		lockedEnemy_ = nullptr;
 	}
+	//========================================================
+
+	//==========ビーム===========
+	if (input_->TriggerKey(DIK_E)) {
+		Beam* beam = new Beam();
+		Vector3 front = TransformNormal({0, 0, 1}, worldTransform_.matWorld_); // Z+方向 = 正面
+		Vector3 target = worldTransform_.translation_ + front * 100.0f;        // 遠くへまっすぐ
+		beam->Initialize(worldTransform_.translation_, target);
+		beams_.push_back(beam);
+	}
+	//===========================
 }
+
 
 Player::~Player() {
 	for (PlayerBullet* bullet : bullets_) {
@@ -174,3 +202,5 @@ Player::~Player() {
 Vector3 Player::GetWorldPosition() const { return worldTransform_.translation_; }
 
 void Player::SetEnemy(Enemy* enemy) { enemy_ = enemy; }
+
+

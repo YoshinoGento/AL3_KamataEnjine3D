@@ -336,3 +336,36 @@ Vector3 GetEulerFromMatrix(const Matrix4x4& m) {
 	rot.z = std::atan2(m.m[1][0], m.m[1][1]);
 	return rot;
 }
+
+Vector3 LookRotation(const Vector3& direction) {
+	Vector3 dir = Normalized(direction);
+	float pitch = std::atan2(-dir.y, std::sqrt(dir.x * dir.x + dir.z * dir.z));
+	float yaw = std::atan2(dir.x, dir.z);
+	return {pitch, yaw, 0.0f};
+}
+
+Matrix4x4 MakeLookRotation(const Vector3& forward, const Vector3& up) {
+	Vector3 f = Normalized(forward);
+	Vector3 r = Normalized(Cross(up, f));
+	Vector3 u = Cross(f, r);
+
+	Matrix4x4 result = {r.x, u.x, f.x, 0.0f, r.y, u.y, f.y, 0.0f, r.z, u.z, f.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+	return result;
+}
+
+
+//Vector3 GetEulerFromMatrix(const Matrix4x4& m) {
+//	Vector3 rot;
+//	rot.y = std::asin(-m.m[2][0]);
+//
+//	if (std::cos(rot.y) > 0.0001f) {
+//		rot.x = std::atan2(m.m[2][1], m.m[2][2]);
+//		rot.z = std::atan2(m.m[1][0], m.m[0][0]);
+//	} else {
+//		rot.x = std::atan2(-m.m[1][2], m.m[1][1]);
+//		rot.z = 0;
+//	}
+//
+//	return rot;
+//}

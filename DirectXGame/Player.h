@@ -5,6 +5,7 @@
 #include "MatrixMath.h"
 #include "MissilePartocle.h"
 #include "PlayerBullet.h"
+#include "Beam.h"
 #include <list>
 
 using namespace KamataEngine;
@@ -37,4 +38,5 @@ private:
 	int fireCount_ = 0;                // 発射済み弾数（最大6）
 	Enemy* lockedEnemy_ = nullptr;     // ロックオンした敵
 	std::list<MissilePartocle*> missileParticles_;
+	std::list<Beam*> beams_;
 };

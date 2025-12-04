@@ -100,4 +100,7 @@ Matrix4x4 MakeRotateAxisMatrix(const Vector3& axis, float angle);
 
 Vector3 GetEulerFromMatrix(const Matrix4x4& m);
 
+Vector3 LookRotation(const Vector3& direction);
+
+Matrix4x4 MakeLookRotation(const Vector3& forward, const Vector3& up = {0, 1, 0});
 
