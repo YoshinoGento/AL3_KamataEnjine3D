@@ -91,3 +91,16 @@ Vector4 Transform(const Vector4& v, const Matrix4x4& m);
 
 // ワールド→スクリーン
 Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height);
+
+Vector3 Cross(const Vector3& a, const Vector3& b);
+
+float Dot(const Vector3& a, const Vector3& b);
+
+Matrix4x4 MakeRotateAxisMatrix(const Vector3& axis, float angle);
+
+Vector3 GetEulerFromMatrix(const Matrix4x4& m);
+
+Vector3 LookRotation(const Vector3& direction);
+
+Matrix4x4 MakeLookRotation(const Vector3& forward, const Vector3& up = {0, 1, 0});
+
