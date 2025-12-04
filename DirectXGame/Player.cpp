@@ -14,6 +14,8 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	worldTransform_.translation_ = position;
 	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
 	input_ = Input::GetInstance();
+	hitPoint_ = 3;
+	invincibleTimer_ = 0;
 }
 
 void Player::Update() {
@@ -29,6 +31,10 @@ void Player::Update() {
 	const float kCharacterSpeed = 0.01f;
 	const float kFriction = 0.9f;
 	const float kMaxSpeed = 3.0f;
+
+	if (invincibleTimer_ > 0) {
+		--invincibleTimer_;
+	}
 
 	if (input_->PushKey(DIK_W)) {
 		move.y += kCharacterSpeed;
@@ -82,6 +88,16 @@ void Player::Update() {
 }
 
 void Player::Draw() {
+
+	 // ★ 無敵中は点滅させる
+	if (invincibleTimer_ > 0) {
+		// 5フレームごとに ON/OFF 切り替え（点滅周期）
+		if (((invincibleTimer_ / 5) % 2) == 0) {
+			// このフレームは描画しない → 透明になる
+			return;
+		}
+	}
+
 	model_->Draw(worldTransform_, *camera_);
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Draw(*camera_);
@@ -136,6 +152,27 @@ void Player::FireToward(const Vector3& targetWorld) {
 
 	// 弾を登録する
 	bullets_.push_back(newBullet);
+}
+
+void Player::OnHitByBeam() {
+	//既に無敵中ならスルー
+	if (invincibleTimer_ > 0) {
+		return;
+	}
+
+	//HP減少
+	--hitPoint_;
+	if (hitPoint_ < 0) {
+		hitPoint_ = 0;
+	}
+
+	// 無敵時間セット（60フレーム＝1秒間）
+	invincibleTimer_ = 60; // 1秒間
+
+	// 余裕があれば演出を追加
+	//worldTransform_.translation_.z -= 0.5f; // 少し後退
+
+
 }
 
 

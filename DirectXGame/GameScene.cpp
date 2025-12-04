@@ -48,15 +48,20 @@ void GameScene::Update() {
 	}
 
 	player_->Update();
-
-
-	// プレイヤーの座標を取得
-	const Vector3& playerPosition = player_->GetWorldPosition();
+	const Vector3& playerPos = player_->GetWorldPosition();
 
 	// ボス更新
 	if (enemy_) {
-		enemy_->Update(playerPosition);
+		enemy_->Update(playerPos);
+
+		const float kPlayerRadius = 0.5f; // プレイヤー当たり判定の半径（好みで調整）
+
+		if (enemy_->IsPlayerHitByFunnelBeam(playerPos, kPlayerRadius)) {
+			// ここで HP 減少とか、被弾リアクションを入れる
+			player_->OnHitByBeam();
+		}
 	}
+
 
 	// プレイヤー弾 vs ボス部位の当たり判定（今まで通り）
 	if (enemy_) {

@@ -17,7 +17,9 @@ public:
 	// ★ 追加：狙い点へ撃つAPI（GameSceneから呼ぶ）
 	void FireToward(const Vector3& targetWorld);
 
-	
+	void OnHitByBeam(); //  被弾処理（未実装）
+
+	int GetHP() const { return hitPoint_; } // 仮実装
 
 	/// <summary>
 	/// 攻撃
@@ -50,5 +52,11 @@ private:
 	std::vector<Enemy*> lockedOnEnemies_;
 
 	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
+
+	// 仮実装：プレイヤーのHP
+	int hitPoint_ = 3;
+
+	// 無敵時間（被弾直後の連続ヒット防止用）
+	int invincibleTimer_ = 0;
 
 };
