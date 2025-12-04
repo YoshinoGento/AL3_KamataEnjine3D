@@ -15,10 +15,28 @@ public:
 	void Initialize(Model* playerModel, Model* playerBulletModel, Camera* camera, const Vector3& position);
 	void Update();
 	void Draw();
+
+	// ★ 追加：狙い点へ撃つAPI（GameSceneから呼ぶ）
+	void FireToward(const Vector3& targetWorld);
+
+	
+
+	/// <summary>
+	/// 攻撃
+	/// </summary>
+
 	void Attack();
 	~Player();
-	Vector3 GetWorldPosition() const;
 	void SetEnemy(Enemy* enemy);
+
+	/// <summary>
+	/// プレイヤーが持っている弾リストへの参照を取得
+	/// （読み取り専用のつもりなので const 参照を返す）
+	/// </summary>
+	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
+
+	// プレイヤーのワールド座標を取得
+	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 
 private:
 	WorldTransform worldTransform_;
@@ -30,8 +48,10 @@ private:
 	std::list<PlayerBullet*> bullets_;
 	std::list<HomingArcBullet*> arcBullets_;
 	Input* input_ = nullptr;
+
 	Enemy* enemy_ = nullptr;
 	std::vector<Enemy*> lockedOnEnemies_;
+
 	bool isFiringFanMissiles_ = false; // ファンネル弾発射中フラグ
 	int fireInterval_ = 5;             // フレーム間隔
 	int fireTimer_ = 0;                // タイマー

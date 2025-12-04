@@ -7,7 +7,10 @@ Vector3 operator+(const Vector3& v) { return v; }
 
 Vector3 operator-(const Vector3& v) { return Vector3(-v.x, -v.y, -v.z); }
 
-const Vector3 operator-(const Vector3& lhv, const Vector3& rhv) { return {lhv.x - rhv.x, lhv.y - rhv.y, lhv.z - rhv.z}; }
+
+const Vector3 operator-(const Vector3& lhv, const Vector3& rhv) { 
+	 return {lhv.x - rhv.x, lhv.y - rhv.y, lhv.z - rhv.z};
+}
 
 // 02_06の29枚目(CameraControllerのUpdate)で必要
 const Vector3 operator*(const Vector3& v1, const float f) {
@@ -23,7 +26,6 @@ const Vector3 operator+(const Vector3& v1, const Vector3& v2) {
 }
 
 // Vector3 - Vector3
-// const Vector3 operator-(const Vector3& v1, const Vector3& v2) {
 //	Vector3 temp(v1);
 //	return temp -= v2;
 //}

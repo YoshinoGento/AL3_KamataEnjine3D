@@ -29,6 +29,17 @@ public:
 	void Draw(const Camera &camera);
 
 	bool IsDead() const { return isDead_; }
+
+	
+    /// <summary>
+	/// 弾のワールド座標を取得
+	/// </summary>
+	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
+
+	/// <summary>
+	/// 当たり判定でヒットしたときに呼び出す
+	/// </summary>
+	void OnHit() { isDead_ = true; }
 	
 private:
 	// ワールド変換データ

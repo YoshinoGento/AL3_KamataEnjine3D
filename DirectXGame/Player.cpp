@@ -42,6 +42,7 @@ void Player::Update() {
 	}
 	if (input_->PushKey(DIK_A)) {
 		move.x -= kCharacterSpeed;
+
 	}
 
 	velocity_ += move;
@@ -145,18 +146,24 @@ void Player::Draw() {
 }
 
 void Player::Attack() {
-
-	// ---通常弾発射（スペースキー）--------------------------
-	if (input_->TriggerKey(DIK_SPACE)) {
+	// スペースキー or 左クリックで通常ショット
+	if (input_->TriggerKey(DIK_SPACE) || input_->IsTriggerMouse(0)) {
 		const float kBulletSpeed = 1.0f;
-		Vector3 velocity(0, 0, kBulletSpeed);
+
+		// ローカルZ+方向（前）に飛ぶ速度ベクトル
+		Vector3 velocity(0.0f, 0.0f, kBulletSpeed);
 		velocity = TransformNormal(velocity, worldTransform_.matWorld_);
 
+		// 弾の生成
 		PlayerBullet* newBullet = new PlayerBullet();
+
 		newBullet->Initialize(player_bullet_model_, worldTransform_.translation_, velocity);
+
+		// 弾リストに登録
 		bullets_.push_back(newBullet);
 	}
 	//=================================
+
 
 	//================ロックオン・ミサイル発射処理================
 	// ロックオン処理（右クリックなど）
@@ -187,6 +194,35 @@ void Player::Attack() {
 		beams_.push_back(beam);
 	}
 	//===========================
+
+	// ★ それ以外のロックオン / ホーミング処理は一旦すべて削除
+}
+
+
+
+void Player::FireToward(const Vector3& targetWorld) {
+	
+	// 弾の速度
+	const float kBulletSpeed = 1.0f;
+
+	// 自機から狙い点への方向ベクトルを計算
+	const Vector3& playerPos = worldTransform_.translation_;
+
+	// 方向ベクトル(プレイヤー → 狙い点)
+	Vector3 direction = targetWorld - playerPos;
+
+	// 正規化して速度ベクトルに変換
+	direction = Normalized(direction);
+
+	//実際の速度
+	Vector3 velocity = direction * kBulletSpeed;
+
+	// 弾を生成し、初期化
+	PlayerBullet* newBullet = new PlayerBullet();
+	newBullet->Initialize(model_, playerPos, velocity);
+
+	// 弾を登録する
+	bullets_.push_back(newBullet);
 }
 
 
@@ -199,7 +235,7 @@ Player::~Player() {
 	}
 }
 
-Vector3 Player::GetWorldPosition() const { return worldTransform_.translation_; }
+
 
 void Player::SetEnemy(Enemy* enemy) { enemy_ = enemy; }
 
