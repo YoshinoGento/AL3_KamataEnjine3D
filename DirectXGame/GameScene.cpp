@@ -6,8 +6,10 @@
 using namespace KamataEngine;
 
 void GameScene::Initialize() {
-	player_model_ = Model::CreateFromOBJ("player");
+	player_model_ = Model::CreateFromOBJ("player1");
 	enemy_model_ = Model::CreateFromOBJ("enemy");
+	player_bullet_model_ = Model::CreateFromOBJ("PlayerBullet");
+
 
 	PlayerCamera_.Initialize();
 	EnemyCamera_.Initialize();
@@ -21,6 +23,9 @@ void GameScene::Initialize() {
 	camera_.UpdateMatrix();
 
 	debugCamera_ = new DebugCamera(1280, 720);
+
+	player_ = new Player();
+	player_->Initialize(player_model_,player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
 
 	// ① 先に enemy を作る（Player が参照するので）
 	enemy_ = new Enemy();

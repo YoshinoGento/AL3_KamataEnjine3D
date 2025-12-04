@@ -46,7 +46,7 @@ private:
 	WorldTransform worldTransform_;
 
 	// モデル
-	Model* model_ = nullptr;
+	Model* player_bullet_model = nullptr;
 
 	// テクスチャハンドル
 	uint32_t textureHandle_ = 0u;
