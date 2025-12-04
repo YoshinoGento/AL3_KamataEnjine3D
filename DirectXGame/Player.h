@@ -63,8 +63,6 @@ private:
 	// 無敵時間（被弾直後の連続ヒット防止用）
 	int invincibleTimer_ = 0;
 
-};
-
 	bool isFiringFanMissiles_ = false; // ファンネル弾発射中フラグ
 	int fireInterval_ = 5;             // フレーム間隔
 	int fireTimer_ = 0;                // タイマー
