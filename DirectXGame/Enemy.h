@@ -3,6 +3,7 @@
 #include "KamataEngine.h"
 #include "MatrixMath.h"
 
+class Player;
 
 using namespace KamataEngine;
 
@@ -33,6 +34,7 @@ public:
 	/// </summary>
 	bool IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerRadius);
 
+	void SetPlayer(Player* player) { player_ = player; }
 
 
 private:
@@ -97,6 +99,17 @@ private:
 	// ファンネル攻撃のクールタイム（フレーム数）
 	int funnelAttackCoolTimer_ = 0;
 
+	// プレイヤー
+	Player* player_ = nullptr;
+
+	// ミサイル
+	std::list<EnemyBullet*> bullets_;
+	
+	// 発射クールタイム
+	int fireTimer = 0;
+	// 発射間隔
+	static const int kFireInterval = 600;
+
 	// ファンネル攻撃を開始（空きがあれば1機だけ使用）
 	void StartFunnelAttack(const Vector3& playerPosition);
 
@@ -105,4 +118,7 @@ private:
 
 	// ファンネルの描画
 	void DrawFunnels(const Camera& camera);
+
+	// ミサイルの発射
+	void ShootMissile();
 };

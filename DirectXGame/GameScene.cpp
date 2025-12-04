@@ -24,10 +24,12 @@ void GameScene::Initialize() {
 
 	// ① 先に enemy を作る（Player が参照するので）
 	enemy_ = new Enemy();
+	player_ = new Player();
+
 	enemy_->Initialize(Vector3{0.0f, 0.0f, 10.0f});
+	enemy_->SetPlayer(player_);
 
 	// ② 次に player を作り enemy を渡す
-	player_ = new Player();
 	player_->SetEnemy(enemy_);
 	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
 }

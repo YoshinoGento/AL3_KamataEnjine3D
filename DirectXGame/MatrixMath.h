@@ -18,6 +18,8 @@ Vector3 operator-(const Vector3& v);
 // Vector3 * float
 const Vector3 operator*(const Vector3& v1, float f);
 
+const Vector3 operator*(const float f, const Vector3& v1);
+
 // Vector3 + Vector3
 const Vector3 operator+(const Vector3& v1, const Vector3& v2);
 
@@ -91,3 +93,6 @@ Vector4 Transform(const Vector4& v, const Matrix4x4& m);
 
 // ワールド→スクリーン
 Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height);
+
+// 球面線形補間
+Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t);

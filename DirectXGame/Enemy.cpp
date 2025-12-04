@@ -1,5 +1,6 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
+#include "Player.h"
 
 // フェーズごとのフレーム数（好みに合わせて調整）
 namespace {
@@ -58,6 +59,13 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 }
 
 void Enemy::Update(const Vector3& playerPosition) {
+	bullets_.remove_if([](EnemyBullet* bullet) {
+		if (bullet->IsDead()) {
+			delete bullet;
+			return true;
+		}
+		return false;
+	});
 
 	// === ファンネル攻撃処理 ===
 
@@ -73,6 +81,20 @@ void Enemy::Update(const Vector3& playerPosition) {
 
 	// ファンネルのステート更新
 	UpdateFunnels(playerPosition);
+
+	fireTimer--;
+	// 指定時間に達した
+	if (fireTimer <= 0) {
+		// 弾を発射
+		ShootMissile();
+		// 発射タイマーを初期化
+		fireTimer = kFireInterval;
+	}
+
+	// 弾更新
+	for (EnemyBullet* bullet : bullets_) {
+		bullet->Update();
+	}
 }
 
 bool Enemy::CheckHit(const Vector3& bulletPosition) {
@@ -243,6 +265,11 @@ void Enemy::Draw(const Camera& camera) {
 
 	// ファンネル描画
 	DrawFunnels(camera);
+
+	// 弾描画
+	for (EnemyBullet* bullet : bullets_) {
+		bullet->Draw(camera);
+	}
 }
 
 void Enemy::DrawFunnels(const Camera& camera) {
@@ -292,4 +319,30 @@ void Enemy::DrawFunnels(const Camera& camera) {
 			}
 		}
 	}
+}
+
+void Enemy::ShootMissile() {
+	// 弾の速さ
+	const float kBulletSpeed = 2.0f;
+	Vector3 velocity = {};
+
+	// 自キャラのワールド座標を取得する
+	Vector3 playerPos = player_->GetWorldPosition();
+	const BodyPart& bodyPart = bodyParts_[0];
+	// 敵キャラのワールド座標を取得する
+	Vector3 enemyPos = bodyPart.centerPosition;
+	// 敵キャラから自キャラへの差分ベクトルを求める
+	Vector3 e2p = playerPos - enemyPos;
+	// ベクトルの正規化
+	Normalized(e2p);
+	// ベクトルの長さを、速さに合わせる
+	velocity = e2p * kBulletSpeed;
+
+	// 弾を生成し、初期化
+	EnemyBullet* newBullet = new EnemyBullet();
+	newBullet->Initialize(model_, worldTransforms_[0].translation_, velocity);
+	newBullet->SetPlayer(player_);
+
+	// 弾を登録する
+	bullets_.push_back(newBullet);
 }

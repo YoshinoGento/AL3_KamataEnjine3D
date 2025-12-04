@@ -1,6 +1,7 @@
 #include "MatrixMath.h"
 #include <cmath>
 #include <numbers>
+#include <algorithm>
 
 // 02_14 29枚目 単項演算子オーバーロード
 Vector3 operator+(const Vector3& v) { return v; }
@@ -15,6 +16,11 @@ const Vector3 operator-(const Vector3& lhv, const Vector3& rhv) {
 // 02_06の29枚目(CameraControllerのUpdate)で必要
 const Vector3 operator*(const Vector3& v1, const float f) {
 
+	Vector3 temp(v1);
+	return temp *= f;
+}
+
+const Vector3 operator*(const float f, const Vector3& v1) {
 	Vector3 temp(v1);
 	return temp *= f;
 }
@@ -297,4 +303,46 @@ Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Ma
 	float y = (-clip.y / clip.z) * 0.5f + 0.5f;
 
 	return {x * width, y * height};
+}
+
+// 内積
+float Dot(const Vector3& v1, const Vector3& v2) {
+	float result = v1.x * v2.x + v1.y * v2.y + v1.z * v2.z;
+
+	return result;
+}
+
+Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
+	Vector3 nv1 = Normalized(v1);
+	Vector3 nv2 = Normalized(v2);
+
+	float dot = Dot(nv1, nv2);
+	// 誤差により1.0fを超えるのを防ぐ
+	dot = std::clamp(dot, -1.0f, 1.0f);
+	// アークコサインでθの角度を求める
+	float theta = acos(dot);
+	// θの角度からsinθを求める
+	float sinTheta = sin(theta);
+	// サイン(θ(1-t))を求める
+	float sinThetaFrom = sin((1 - t) * theta);
+	// サインθtを求める
+	float sinThetaTo = sin(t * theta);
+
+	Vector3 npVector;
+	// ゼロ除算を防ぐ
+	if (sinTheta < 1.0e-5) {
+		npVector = nv1;
+	} else {
+		// 球面線形保管したベクトル（単位ベクトル）
+		npVector = (sinThetaFrom * nv1 + sinThetaTo * nv2) / sinTheta;
+	}
+
+	// ベクトルの長さはv1とv2の長さを線形補間
+	float length1 = Length(v1);
+	float length2 = Length(v2);
+	// Lerpで補間ベクトルの長さを求める
+	float length = Lerp(length1, length2, t);
+
+	// 長さを反映
+	return length * npVector;
 }
