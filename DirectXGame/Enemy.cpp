@@ -408,3 +408,5 @@ bool Enemy::IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerR
 
 	return false;
 }
+
+Vector3 Enemy::GetWorldPosition() const { return worldTransform_.translation_; }

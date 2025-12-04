@@ -39,6 +39,8 @@ public:
 	/// <returns>true ならどれかのビームに被弾</returns>
 	bool IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerRadius);
 
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+
 private:
 	// =========================
 	// ボス本体の部位
