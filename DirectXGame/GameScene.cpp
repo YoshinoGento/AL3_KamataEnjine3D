@@ -24,9 +24,7 @@ void GameScene::Initialize() {
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
-	player_ = new Player();
-	player_->Initialize(player_model_,player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
-
+	
 	// ① 先に enemy を作る（Player が参照するので）
 	enemy_ = new Enemy();
 	enemy_->Initialize(Vector3{0.0f, 0.0f, 10.0f});
@@ -34,7 +32,7 @@ void GameScene::Initialize() {
 	// ② 次に player を作り enemy を渡す
 	player_ = new Player();
 	player_->SetEnemy(enemy_);
-	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
+	player_->Initialize(player_model_, player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
 }
 
 void GameScene::Update() {

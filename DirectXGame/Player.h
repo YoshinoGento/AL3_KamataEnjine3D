@@ -56,15 +56,11 @@ private:
 	std::vector<Enemy*> lockedOnEnemies_;
 
 
-	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
-
 	// 仮実装：プレイヤーのHP
 	int hitPoint_ = 3;
 
 	// 無敵時間（被弾直後の連続ヒット防止用）
 	int invincibleTimer_ = 0;
-
-};
 
 	bool isFiringFanMissiles_ = false; // ファンネル弾発射中フラグ
 	int fireInterval_ = 5;             // フレーム間隔
