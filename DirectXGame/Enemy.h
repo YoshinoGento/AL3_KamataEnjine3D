@@ -80,6 +80,9 @@ private:
 		};
 
 		WorldTransform wt; // ファンネル本体のワールド変換
+
+		WorldTransform worldTransform_; // Bossのワールド変換
+
 		State state = Inactive;
 
 		// 現在の状態に残っているフレーム数
