@@ -7,7 +7,7 @@ using namespace KamataEngine;
 
 void GameScene::Initialize() {
 	player_model_ = Model::CreateFromOBJ("player1");
-	enemy_model_ = Model::CreateFromOBJ("enemy");
+	enemy_model_ = Model::CreateFromOBJ("Boss");
 	player_bullet_model_ = Model::CreateFromOBJ("PlayerBullet");
 
 

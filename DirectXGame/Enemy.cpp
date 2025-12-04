@@ -18,7 +18,7 @@ const float kBeamRadius = 0.3f;
 void Enemy::Initialize(const Vector3& bossBasePosition) {
 
 	// 可視化用モデルをロード（暫定で "player" を使用）
-	model_ = Model::CreateFromOBJ("player");
+	model_ = Model::CreateFromOBJ("Boss");
 
 	// ビーム用モデルをロード（円柱モデル）
 	beamModel_ = Model::CreateFromOBJ("beam");
