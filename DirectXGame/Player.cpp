@@ -17,6 +17,9 @@ void Player::Initialize(Model* playerModel, Model* playerBulletModel, Camera* ca
 	input_ = Input::GetInstance();
 	hitPoint_ = 3;
 	invincibleTimer_ = 0;
+	beamCharger_.Initialize();
+
+
 }
 
 void Player::Update() {
@@ -64,6 +67,8 @@ void Player::Update() {
 
 	worldTransform_.translation_.x = std::clamp(worldTransform_.translation_.x, -kMoveLimitX, +kMoveLimitX);
 	worldTransform_.translation_.y = std::clamp(worldTransform_.translation_.y, -kMoveLimitY, +kMoveLimitY);
+
+
 
 	Attack();
 
@@ -204,9 +209,12 @@ void Player::Attack() {
 	//==========ビーム===========
 	if (input_->TriggerKey(DIK_E)) {
 		Beam* beam = new Beam();
-		Vector3 front = TransformNormal({0, 0, 1}, worldTransform_.matWorld_); // Z+方向 = 正面
-		Vector3 target = worldTransform_.translation_ + front * 100.0f;        // 遠くへまっすぐ
-		beam->Initialize(worldTransform_.translation_, target);
+		Vector3 front = TransformNormal({0, 0, 1}, worldTransform_.matWorld_);
+		Vector3 target = worldTransform_.translation_ + front * 100.0f;
+
+		float chargePower = beamCharger_.Consume(); // 吸収した敵攻撃量を使用
+		beam->Initialize(worldTransform_.translation_, target, chargePower);
+
 		beams_.push_back(beam);
 	}
 	//===========================
@@ -275,5 +283,28 @@ Player::~Player() {
 
 
 void Player::SetEnemy(Enemy* enemy) { enemy_ = enemy; }
+
+void Player::DrawChargeEffect(const Camera& camera) {
+	float rate = beamCharger_.GetChargeRate(); // 0.0〜1.0
+
+	if (rate <= 0.0f)
+		return;
+
+	// チャージエフェクトの色（例：青→赤）
+	Vector4 color = Lerp(Vector4{0, 0, 1, 1}, Vector4{1, 0, 0, 1}, rate);
+
+	// チャージ演出（仮に小さなSphereモデルで描く）
+	WorldTransform wt;
+	wt.Initialize();
+	wt.translation_ = worldTransform_.translation_ + Vector3{0, 0.5f, 0}; // 頭上
+	wt.scale_ = {0.5f, 0.5f, 0.5f} * rate;                                // チャージ率でスケール
+
+	WorldTransformUpdate(wt);
+
+	Model* chargeModel = Model::CreateFromOBJ("ChargeEffect");
+	if (chargeModel) {
+		chargeModel->Draw(wt, camera, color); // ← color付きで描けるなら
+	}
+}
 
 
