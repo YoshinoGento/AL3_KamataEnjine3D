@@ -11,6 +11,8 @@ const int kMoveSideToEdgeFrames = 30; // フェーズ2：Zを合わせた位置 
 const int kChargingFrames = 120;       // チャージ時間
 const int kFiringFrames = 120;        // フェーズ3：照射継続時間
 
+const int kRightExtraChargeFrames = 30; // 右側ファンネルだけチャージ時間を少し長くする
+
 // ビームの太さ（円柱の半径として扱う）
 const float kBeamRadius = 0.3f;
 } // namespace
@@ -153,124 +155,144 @@ bool Enemy::CheckHit(const Vector3& bulletPosition) {
 // ============================
 void Enemy::StartFunnelAttack(const Vector3& playerPosition) {
 
-	// 空いているファンネルを1機だけ使う
-	Funnel* freeFunnel = nullptr;
-	for (int i = 0; i < kFunnelCount; ++i) {
-		if (funnels_[i].state == Funnel::Inactive) {
-			freeFunnel = &funnels_[i];
-			break;
+	// 左ファンネル（index 0）
+	{
+		Funnel& f = funnels_[0];
+		if (f.state == Funnel::Inactive && !bodyParts_[1].isDestroyed) {
+
+			f.state = Funnel::MoveToPlane;
+			f.timer = kMoveToPlaneFrames;
+
+			const BodyPart& base = bodyParts_[1];
+
+			f.startPosition = base.centerPosition;
+			f.wt.translation_ = f.startPosition;
+			f.targetPlanePosition = {base.centerPosition.x, base.centerPosition.y, playerPosition.z};
+
+			float edgeX = -7.5f;
+			f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
+
+			f.beamTarget = playerPosition;
+			f.fromLeft = true;
 		}
 	}
-	if (!freeFunnel) {
-		return; // 全部使用中
+
+	// 右ファンネル（index 1）
+	{
+		Funnel& f = funnels_[1];
+		if (f.state == Funnel::Inactive && !bodyParts_[2].isDestroyed) {
+
+			f.state = Funnel::MoveToPlane;
+			f.timer = kMoveToPlaneFrames;
+
+			const BodyPart& base = bodyParts_[2];
+
+			f.startPosition = base.centerPosition;
+			f.wt.translation_ = f.startPosition;
+			f.targetPlanePosition = {base.centerPosition.x, base.centerPosition.y, playerPosition.z};
+
+			float edgeX = +7.5f;
+			f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
+
+			f.beamTarget = playerPosition;
+			f.fromLeft = false;
+		}
 	}
 
-	Funnel& f = *freeFunnel;
-
-	// どの部位から飛ばすか（今回は index=1 をファンネルベースとする）
-	const BodyPart& basePart = bodyParts_[1];
-
-	// フェーズ1開始位置：ベース部位の位置
-	f.startPosition = basePart.centerPosition;
-	f.wt.translation_ = f.startPosition;
-
-	// フェーズ1終了位置：プレイヤーと同じZで、X/Yはベースのまま（まずZだけ合わせる）
-	f.targetPlanePosition = {basePart.centerPosition.x, basePart.centerPosition.y, playerPosition.z};
-
-	// どちら側の端から撃つか（とりあえずプレイヤーの左側/右側で決定）
-	f.fromLeft = (playerPosition.x >= 0.0f); // プレイヤーが右寄りなら左から撃つ 等
-
-	// 画面端のX（Playerの移動制限と同じぐらい＋α）
-	const float kVisibleEdgeX = 7.5f;
-	float edgeX = f.fromLeft ? -kVisibleEdgeX : kVisibleEdgeX;
-
-	// フェーズ2終了位置：画面端での照射位置（X:端 / Y,Z: プレイヤーと同一）
-	f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
-
-	// プレイヤーの現在位置をロックオンしておく（ビーム先端のターゲット）
-	f.beamTarget = playerPosition;
-
-	// フェーズ1：Z を合わせる移動時間
-	f.timer = kMoveToPlaneFrames;
-	f.state = Funnel::MoveToPlane;
-
-	// 次の攻撃までのクールタイム再セット
-	funnelAttackCoolTimer_ = 240; // 4秒ぐらい（好みで調整）
+	// 次の攻撃までのクール
+	funnelAttackCoolTimer_ = 240;
 }
+
 
 // ============================
 // ファンネル攻撃：状態更新
 // ============================
-void Enemy::UpdateFunnels(const Vector3& /*playerPosition*/) {
-
+void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 	for (int i = 0; i < kFunnelCount; ++i) {
 
 		Funnel& f = funnels_[i];
 
+		// ★ 右ファンネル専用の追従処理（攻撃前のみ）
+		if (i == 1 && (f.state == Funnel::MoveToPlane || f.state == Funnel::MoveSideToEdge || f.state == Funnel::Charging)) {
+			// 右ファンネルは攻撃前はずっとプレイヤーを追う
+			f.beamTarget = playerPosition;
+
+			// Z合わせ
+			f.targetPlanePosition.z = playerPosition.z;
+
+			// 右側の端座標も追従
+			float edgeX = +7.5f;
+			f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
+
+			// ファンネル本体を向ける
+			Vector3 dir = f.beamTarget - f.wt.translation_;
+			float len = Length(dir);
+			if (len > 0.01f) {
+				Vector3 nd = dir / len;
+				float yaw = std::atan2f(nd.x, nd.z);
+				float pitch = std::atan2f(-nd.y, sqrtf(nd.x * nd.x + nd.z * nd.z));
+				f.wt.rotation_ = {pitch, yaw, 0.0f};
+			}
+		}
+
+		// ===============================
+		// ★ 通常フェーズ
+		// ===============================
 		switch (f.state) {
 		case Funnel::Inactive:
-			// 何もしない
 			break;
 
-		case Funnel::MoveToPlane: {
-			// フェーズ1: startPosition → targetPlanePosition へ前進（Z を合わせる）
+		case Funnel::MoveToPlane:
 			if (f.timer > 0) {
-				float t = 1.0f - static_cast<float>(f.timer) / static_cast<float>(kMoveToPlaneFrames); // 0→1
+				float t = 1.0f - (float)f.timer / kMoveToPlaneFrames;
 				f.wt.translation_ = Lerp(f.startPosition, f.targetPlanePosition, t);
 				--f.timer;
 			} else {
-				// Z を合わせ終わったら、フェーズ2：横移動開始
 				f.state = Funnel::MoveSideToEdge;
 				f.timer = kMoveSideToEdgeFrames;
 			}
 			break;
-		}
 
-		case Funnel::MoveSideToEdge: {
-			// フェーズ2: targetPlanePosition → edgePosition へ横移動
+		case Funnel::MoveSideToEdge:
 			if (f.timer > 0) {
-				float t = 1.0f - static_cast<float>(f.timer) / static_cast<float>(kMoveSideToEdgeFrames); // 0→1
+				float t = 1.0f - (float)f.timer / kMoveSideToEdgeFrames;
 				f.wt.translation_ = Lerp(f.targetPlanePosition, f.edgePosition, t);
 				--f.timer;
 			} else {
-				// 画面端に到達 → ★チャージフェーズへ
-				f.wt.translation_ = f.edgePosition;
-				f.state = Funnel::Charging; // ← ここを Firing ではなく Charging に
-				f.timer = kChargingFrames;  // チャージに使う時間
+				f.state = Funnel::Charging;
+
+				// ★ 左右でチャージ時間変える
+				if (i == 0) {
+					// 左：普通のチャージ
+					f.timer = kChargingFrames;
+				} else {
+					// 右：遅れて撃つ
+					f.timer = kChargingFrames + kRightExtraChargeFrames;
+				}
 			}
 			break;
-		}
 
-		case Funnel::Charging: {
-			// 画面端でビームを溜めている状態（ここではビームをまだ出さない）
+		case Funnel::Charging:
 			if (f.timer > 0) {
 				--f.timer;
-				// ここで「チャージ用の光」だけ描画する、なども後で足せる
 			} else {
-				// チャージ完了 → 照射フェーズ開始
+				// ★ この行に絶対到達すること！
 				f.state = Funnel::Firing;
 				f.timer = kFiringFrames;
 			}
 			break;
-		}
 
-		case Funnel::Firing: {
-			// フェーズ3: 画面端から照射中
+		case Funnel::Firing:
 			if (f.timer > 0) {
 				--f.timer;
-				// ここで本当はビームのアニメーションやエフェクトを入れる
 			} else {
-				// 終了 → 待機へ戻る
 				f.state = Funnel::Inactive;
 			}
 			break;
 		}
-
-		default:
-			break;
-		}
 	}
 }
+
 
 // ============================
 // ファンネル描画（本体＋円柱ビーム）

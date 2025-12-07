@@ -144,12 +144,6 @@ void GameScene::Draw() {
 	player_->Draw();
 	enemy_->Draw(camera_);
 
-
-	// ボス描画
-	if (enemy_) {
-		enemy_->Draw(camera_);
-	}
-
 	// 3Dモデル描画後処理
 	Model::PostDraw();
 }
