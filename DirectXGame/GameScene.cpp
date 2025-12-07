@@ -36,6 +36,10 @@ void GameScene::Initialize() {
 	player_->SetEnemy(enemy_);
 
 	player_->Initialize(player_model_, player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
+
+	skydome_model_ = Model::CreateFromOBJ("FaceSkySphere");
+	skydome_ = new Skydome;
+	skydome_->Initialize(skydome_model_, &camera_);
 }
 
 void GameScene::Update() {
@@ -52,6 +56,8 @@ void GameScene::Update() {
 	} else {
 		camera_.UpdateMatrix();
 	}
+
+	skydome_->Update();
 
 	player_->Update();
 	const Vector3& playerPos = player_->GetWorldPosition();
@@ -144,6 +150,7 @@ void GameScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	Model::PreDraw(dxCommon->GetCommandList());
 
+	skydome_->Draw();
 	player_->Draw();
 	enemy_->Draw(camera_);
 
@@ -156,4 +163,5 @@ void GameScene::Delete() {
 	delete player_model_;
 	delete debugCamera_;
 	delete enemy_;
+	delete skydome_;
 }
