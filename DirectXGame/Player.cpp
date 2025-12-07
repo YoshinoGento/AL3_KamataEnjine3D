@@ -290,21 +290,29 @@ void Player::DrawChargeEffect(const Camera& camera) {
 	if (rate <= 0.0f)
 		return;
 
-	// チャージエフェクトの色（例：青→赤）
+	// チャージエフェクトの色（青→赤）
 	Vector4 color = Lerp(Vector4{0, 0, 1, 1}, Vector4{1, 0, 0, 1}, rate);
 
-	// チャージ演出（仮に小さなSphereモデルで描く）
+	// チャージ演出（Sphereなど）
 	WorldTransform wt;
 	wt.Initialize();
 	wt.translation_ = worldTransform_.translation_ + Vector3{0, 0.5f, 0}; // 頭上
-	wt.scale_ = {0.5f, 0.5f, 0.5f} * rate;                                // チャージ率でスケール
+	wt.scale_ = Vector3{0.5f, 0.5f, 0.5f} * rate;
 
 	WorldTransformUpdate(wt);
 
 	Model* chargeModel = Model::CreateFromOBJ("ChargeEffect");
-	if (chargeModel) {
-		chargeModel->Draw(wt, camera, color); // ← color付きで描けるなら
-	}
+	if (!chargeModel)
+		return;
+
+	// 正しい使い方
+	ObjectColor objColor;
+	objColor.Initialize();
+	objColor.SetColor(color);
+
+	chargeModel->Draw(wt, camera, &objColor);
 }
+
+
 
 

@@ -32,7 +32,7 @@ public:
 	~Player();
 	void SetEnemy(Enemy* enemy);
 
-	void DrawChargeEffect(const Camera& camera);
+	
 
 	/// <summary>
 	/// プレイヤーが持っている弾リストへの参照を取得
@@ -75,5 +75,7 @@ private:
 	std::list<MissilePartocle*> missileParticles_;
 	std::list<Beam*> beams_;
 
+
+	void DrawChargeEffect(const Camera& camera);
 };
 

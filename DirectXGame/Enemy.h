@@ -64,6 +64,9 @@ private:
 	// ビーム専用モデル（円柱）
 	Model* beamModel_ = nullptr;
 
+	// ファンネル専用モデル
+	Model* funnelModel_ = nullptr;
+
 	// =========================
 	// ファンネル攻撃用
 	// =========================
