@@ -60,7 +60,6 @@ private:
 
 	BeamCharger beamCharger_;
 
-
 	// 仮実装：プレイヤーのHP
 	int hitPoint_ = 3;
 

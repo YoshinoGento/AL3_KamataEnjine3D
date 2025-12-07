@@ -1,6 +1,8 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
+#include "Player.h"
 #include <cmath> // atan2f, sqrtf
+#include "EnemyBullet.h"
 
 using namespace KamataEngine;
 
@@ -77,6 +79,13 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 }
 
 void Enemy::Update(const Vector3& playerPosition) {
+	bullets_.remove_if([](EnemyBullet* bullet) {
+		if (bullet->IsDead()) {
+			delete bullet;
+			return true;
+		}
+		return false;
+	});
 
 	// ファンネル攻撃クールタイム処理
 	if (funnelAttackCoolTimer_ > 0) {
@@ -90,6 +99,20 @@ void Enemy::Update(const Vector3& playerPosition) {
 
 	// ファンネルの状態更新（L字移動＋照射）
 	UpdateFunnels(playerPosition);
+
+	fireTimer--;
+	// 指定時間に達した
+	if (fireTimer <= 0) {
+		// 弾を発射
+		ShootMissile();
+		// 発射タイマーを初期化
+		fireTimer = kFireInterval;
+	}
+
+	// 弾更新
+	for (EnemyBullet* bullet : bullets_) {
+		bullet->Update();
+	}
 }
 
 void Enemy::Draw(const Camera& camera) {
@@ -328,6 +351,11 @@ void Enemy::DrawFunnels(const Camera& camera) {
 			Vector3 beamStart = f.wt.translation_;
 			Vector3 beamEnd = f.beamTarget;
 
+			// 弾描画
+			for (EnemyBullet* bullet : bullets_) {
+				bullet->Draw(camera);
+			}
+
 			// 方向ベクトルと長さ
 			Vector3 dir = beamEnd - beamStart;
 			float length = Length(dir);
@@ -436,3 +464,29 @@ bool Enemy::IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerR
 }
 
 Vector3 Enemy::GetWorldPosition() const { return worldTransforms_->translation_; }
+
+void Enemy::ShootMissile() {
+	// 弾の速さ
+	const float kBulletSpeed = 2.0f;
+	Vector3 velocity = {};
+
+	// 自キャラのワールド座標を取得する
+	Vector3 playerPos = player_->GetWorldPosition();
+	const BodyPart& bodyPart = bodyParts_[0];
+	// 敵キャラのワールド座標を取得する
+	Vector3 enemyPos = bodyPart.centerPosition;
+	// 敵キャラから自キャラへの差分ベクトルを求める
+	Vector3 e2p = playerPos - enemyPos;
+	// ベクトルの正規化
+	Normalized(e2p);
+	// ベクトルの長さを、速さに合わせる
+	velocity = e2p * kBulletSpeed;
+
+	// 弾を生成し、初期化
+	EnemyBullet* newBullet = new EnemyBullet();
+	newBullet->Initialize(model_, worldTransforms_[0].translation_, velocity);
+	newBullet->SetPlayer(player_);
+
+	// 弾を登録する
+	bullets_.push_back(newBullet);
+}
