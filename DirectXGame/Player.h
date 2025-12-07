@@ -54,9 +54,6 @@ private:
 	Enemy* enemy_ = nullptr;
 	std::vector<Enemy*> lockedOnEnemies_;
 
-
-	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
-
 	// 仮実装：プレイヤーのHP
 	int hitPoint_ = 3;
 

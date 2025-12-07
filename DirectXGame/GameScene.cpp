@@ -36,7 +36,7 @@ void GameScene::Initialize() {
 
 	// ② 次に player を作り enemy を渡す
 	player_->SetEnemy(enemy_);
-	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
+	player_->Initialize(player_model_, player_bullet_model_, &camera_, {0.0f, 0.0f, 0.0f});
 }
 
 void GameScene::Update() {

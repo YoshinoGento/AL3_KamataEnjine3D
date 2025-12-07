@@ -2,6 +2,7 @@
 #include "KamataEngine.h"
 #include "Player.h"
 #include <cmath> // atan2f, sqrtf
+#include "EnemyBullet.h"
 
 using namespace KamataEngine;
 
@@ -324,14 +325,11 @@ void Enemy::DrawFunnels(const Camera& camera) {
 			Vector3 beamStart = f.wt.translation_;
 			Vector3 beamEnd = f.beamTarget;
 
-	// ファンネル描画
-	DrawFunnels(camera);
- }
+			// 弾描画
+			for (EnemyBullet* bullet : bullets_) {
+				bullet->Draw(camera);
+			}
 
-	// 弾描画
-	for (EnemyBullet* bullet : bullets_) {
-		bullet->Draw(camera);
-	}
 			// 方向ベクトルと長さ
 			Vector3 dir = beamEnd - beamStart;
 			float length = Length(dir);
@@ -438,6 +436,8 @@ bool Enemy::IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerR
 
 	return false;
 }
+
+Vector3 Enemy::GetWorldPosition() const { return worldTransforms_->translation_; }
 
 void Enemy::ShootMissile() {
 	// 弾の速さ

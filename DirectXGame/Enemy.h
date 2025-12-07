@@ -3,6 +3,7 @@
 #include "MatrixMath.h"
 
 class Player;
+class EnemyBullet;
 
 using namespace KamataEngine;
 
@@ -40,6 +41,8 @@ public:
 	/// <param name="playerRadius">プレイヤー当たり判定の半径</param>
 	/// <returns>true ならどれかのビームに被弾</returns>
 	bool IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerRadius);
+
+	Vector3 GetWorldPosition() const;
 
 	void SetPlayer(Player* player) { player_ = player; }
 
