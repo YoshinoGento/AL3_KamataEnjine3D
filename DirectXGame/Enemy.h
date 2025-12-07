@@ -69,6 +69,9 @@ private:
 	// ビーム専用モデル（円柱）
 	Model* beamModel_ = nullptr;
 
+	// ファンネル専用モデル
+	Model* funnelModel_ = nullptr;
+
 	// =========================
 	// ファンネル攻撃用
 	// =========================
@@ -85,6 +88,7 @@ private:
 		};
 
 		WorldTransform wt; // ファンネル本体のワールド変換
+
 		State state = Inactive;
 
 		// 現在の状態に残っているフレーム数

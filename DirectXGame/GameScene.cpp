@@ -7,7 +7,7 @@ using namespace KamataEngine;
 
 void GameScene::Initialize() {
 	player_model_ = Model::CreateFromOBJ("player1");
-	enemy_model_ = Model::CreateFromOBJ("enemy");
+	enemy_model_ = Model::CreateFromOBJ("Boss");
 	player_bullet_model_ = Model::CreateFromOBJ("PlayerBullet");
 
 
@@ -24,9 +24,7 @@ void GameScene::Initialize() {
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
-	player_ = new Player();
-	player_->Initialize(player_model_,player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
-
+	
 	// ① 先に enemy を作る（Player が参照するので）
 	enemy_ = new Enemy();
 	player_ = new Player();
@@ -36,7 +34,8 @@ void GameScene::Initialize() {
 
 	// ② 次に player を作り enemy を渡す
 	player_->SetEnemy(enemy_);
-	player_->Initialize(player_model_, player_bullet_model_, &camera_, {0.0f, 0.0f, 0.0f});
+
+	player_->Initialize(player_model_, player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
 }
 
 void GameScene::Update() {
@@ -147,12 +146,6 @@ void GameScene::Draw() {
 
 	player_->Draw();
 	enemy_->Draw(camera_);
-
-
-	// ボス描画
-	if (enemy_) {
-		enemy_->Draw(camera_);
-	}
 
 	// 3Dモデル描画後処理
 	Model::PostDraw();
