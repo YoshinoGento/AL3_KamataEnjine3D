@@ -25,6 +25,9 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 	// ビーム用モデルをロード（円柱モデル）
 	beamModel_ = Model::CreateFromOBJ("beam");
 
+	// ファンネル用モデルをロード
+	funnelModel_ = Model::CreateFromOBJ("Funnel");
+
 	// -----------------------------
 	// ボス本体の部位データを設定
 	// -----------------------------
@@ -299,7 +302,7 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 // ============================
 void Enemy::DrawFunnels(const Camera& camera) {
 
-	if (!model_) {
+	if (!funnelModel_) {
 		return;
 	}
 
@@ -313,7 +316,7 @@ void Enemy::DrawFunnels(const Camera& camera) {
 		// ファンネル本体の描画
 		// ---------------------
 		WorldTransformUpdate(f.wt);
-		model_->Draw(f.wt, camera);
+		funnelModel_->Draw(f.wt, camera);
 
 		// ---------------------
 		// 照射ビーム本体（円柱）の描画
@@ -360,7 +363,7 @@ void Enemy::DrawFunnels(const Camera& camera) {
 			if (beamModel_) {
 				beamModel_->Draw(beamWorldTransform_, camera);
 			} else {
-				model_->Draw(beamWorldTransform_, camera); // フォールバック
+				funnelModel_->Draw(beamWorldTransform_, camera); // フォールバック
 			}
 		}
 	}
