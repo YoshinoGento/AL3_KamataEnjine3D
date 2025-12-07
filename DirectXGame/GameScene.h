@@ -3,6 +3,7 @@
 #include "KamataEngine.h"
 #include "Player.h"
 #include <memory> // スマートポインタを使うなら
+#include "Skydome.h"
 
 using namespace KamataEngine;
 
@@ -25,6 +26,8 @@ private:
 	uint32_t textureHandle_ = 0u;
 	DebugCamera* debugCamera_ = nullptr;
 	bool isDebugCameraActive_ = false;
+	Skydome* skydome_ = nullptr;
+	Model* skydome_model_ = nullptr;
 
 
 };
