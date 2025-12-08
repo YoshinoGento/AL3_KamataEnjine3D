@@ -1,5 +1,6 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
+#include "Player.h"
 #include <algorithm> // std::max
 #include <cmath>     // atan2f, sqrtf
 
@@ -346,6 +347,7 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 		switch (f.state) {
 		case Funnel::Inactive:
 			break;
+
 
 		case Funnel::MoveToPlane: {
 			if (f.timer > 0) {
