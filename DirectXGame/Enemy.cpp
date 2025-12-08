@@ -2,6 +2,9 @@
 #include "KamataEngine.h"
 #include <cmath> // atan2f, sqrtf
 
+#include <algorithm> // ← std::max を使うため
+
+
 using namespace KamataEngine;
 
 // フェーズごとのフレーム数（好みに合わせて調整）
@@ -16,6 +19,33 @@ const int kRightExtraChargeFrames = 30; // 右側ファンネルだけチャー�
 // ビームの太さ（円柱の半径として扱う）
 const float kBeamRadius = 0.3f;
 } // namespace
+
+namespace {
+
+// dir（正規化済み）の方向を向く回転を計算して、モデル用のオフセットを足す
+void SetWorldTransformLookDir(WorldTransform& wt, const Vector3& dir, float modelYawOffset = 0.0f, float modelPitchOffset = 0.0f) {
+	// 長さチェックは呼び出し側で済ませている前提だが、一応保険
+	float lenSq = dir.x * dir.x + dir.y * dir.y + dir.z * dir.z;
+	if (lenSq < 0.000001f) {
+		return;
+	}
+
+	Vector3 nd = Normalized(dir);
+
+	float yaw = std::atan2f(nd.x, nd.z);
+	float pitch = std::atan2f(-nd.y, std::sqrtf(nd.x * nd.x + nd.z * nd.z));
+
+	wt.rotation_.x = pitch + modelPitchOffset;
+	wt.rotation_.y = yaw + modelYawOffset;
+	wt.rotation_.z = 0.0f;
+}
+
+// モデル前方が「+X」を向いているようなOBJの場合は
+// yaw に ±90度足して補正する
+const float kFunnelModelYawOffset = ToRadians(90.0f); // 90度回転させたい例
+
+} // namespace
+
 
 void Enemy::Initialize(const Vector3& bossBasePosition) {
 
@@ -153,7 +183,6 @@ bool Enemy::CheckHit(const Vector3& bulletPosition) {
 	return false;
 }
 
-
 // ============================
 // ファンネル攻撃：開始
 // ============================
@@ -229,14 +258,12 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 			f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
 
 			// ファンネル本体を向ける
+			// ファンネル本体を向ける（ヘルパーで統一）
 			Vector3 dir = f.beamTarget - f.wt.translation_;
-			float len = Length(dir);
-			if (len > 0.01f) {
-				Vector3 nd = dir / len;
-				float yaw = std::atan2f(nd.x, nd.z);
-				float pitch = std::atan2f(-nd.y, sqrtf(nd.x * nd.x + nd.z * nd.z));
-				f.wt.rotation_ = {pitch, yaw, 0.0f};
+			if (Length(dir) > 0.01f) {
+				SetWorldTransformLookDir(f.wt, dir, kFunnelModelYawOffset, 0.0f);
 			}
+
 		}
 
 		// ===============================
@@ -249,8 +276,15 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 		case Funnel::MoveToPlane:
 			if (f.timer > 0) {
 				float t = 1.0f - (float)f.timer / kMoveToPlaneFrames;
+
+				Vector3 oldPos = f.wt.translation_;
 				f.wt.translation_ = Lerp(f.startPosition, f.targetPlanePosition, t);
 				--f.timer;
+
+				Vector3 moveDir = f.wt.translation_ - oldPos;
+				if (Length(moveDir) > 0.001f) {
+					SetWorldTransformLookDir(f.wt, moveDir, kFunnelModelYawOffset, 0.0f);
+				}
 			} else {
 				f.state = Funnel::MoveSideToEdge;
 				f.timer = kMoveSideToEdgeFrames;
@@ -259,9 +293,16 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 
 		case Funnel::MoveSideToEdge:
 			if (f.timer > 0) {
-				float t = 1.0f - (float)f.timer / kMoveSideToEdgeFrames;
+				float t = 1.0f - (float)f.timer / (float)kMoveSideToEdgeFrames;
+				Vector3 oldPos = f.wt.translation_;
 				f.wt.translation_ = Lerp(f.targetPlanePosition, f.edgePosition, t);
 				--f.timer;
+
+				// ★ ここも移動方向を向かせる
+				Vector3 moveDir = f.wt.translation_ - oldPos;
+				if (Length(moveDir) > 0.001f) {
+					SetWorldTransformLookDir(f.wt, moveDir, kFunnelModelYawOffset, 0.0f);
+				}
 			} else {
 				f.state = Funnel::Charging;
 
@@ -277,6 +318,12 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 			break;
 
 		case Funnel::Charging:
+
+		// 照準方向を向かせる
+			Vector3 aimDir = f.beamTarget - f.wt.translation_;
+			if (Length(aimDir) > 0.001f) {
+				SetWorldTransformLookDir(f.wt, aimDir, kFunnelModelYawOffset, 0.0f);
+			}
 			if (f.timer > 0) {
 				--f.timer;
 			} else {
@@ -287,6 +334,13 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 			break;
 
 		case Funnel::Firing:
+
+		 // ビームを撃っている間も照準方向を向く
+			aimDir = f.beamTarget - f.wt.translation_;
+			if (Length(aimDir) > 0.001f) {
+				SetWorldTransformLookDir(f.wt, aimDir, kFunnelModelYawOffset, 0.0f);
+			}
+
 			if (f.timer > 0) {
 				--f.timer;
 			} else {
@@ -324,49 +378,66 @@ void Enemy::DrawFunnels(const Camera& camera) {
 		// ---------------------
 		if (f.state == Funnel::Firing) {
 
-			// ビームの始点（ファンネル位置）と終点（ターゲット位置）
+			// 始点：ファンネルの位置
 			Vector3 beamStart = f.wt.translation_;
-			Vector3 beamEnd = f.beamTarget;
 
-			// 方向ベクトルと長さ
-			Vector3 dir = beamEnd - beamStart;
-			float length = Length(dir);
-			if (length < 0.001f) {
+			// “本当の”終点：ロックしたプレイヤー位置（当たり判定用）
+			Vector3 realEnd = f.beamTarget;
+
+			// 方向ベクトル
+			Vector3 dir{realEnd.x - beamStart.x, realEnd.y - beamStart.y, realEnd.z - beamStart.z};
+
+			float realLength = Length(dir);
+			if (realLength < 0.01f) {
 				continue;
 			}
 
-			// 方向の正規化
-			Vector3 nd = Normalized(dir);
+			Vector3 nd{dir.x / realLength, dir.y / realLength, dir.z / realLength};
 
-			// ★ ファンネル位置から少しだけ前方にずらして発射
-			const float kStartOffset = 2.0f; // 好みで調整
-			beamStart += nd * kStartOffset;
+			// ─────────────────
+			// ここから“見た目用”の長さ
+			// ─────────────────
+			// 最低でもこの長さまでは伸ばす（画面サイズに合わせて調整）
+			const float kMinVisualLength = 30.0f; // まだ短ければ 40, 50 とかに増やしてOK
+			float visualLength = realLength;
+			if (visualLength < kMinVisualLength) {
+				visualLength = kMinVisualLength;
+			}
 
-			// ビームの中心位置（中点）
-			Vector3 midPos = (beamStart + beamEnd) * 0.5f;
-			midPos.y -= 1.2f; // 少し下にずらす（見た目調整）
-			
 
-			// 円柱モデルが「ローカルZ軸方向」に伸びている前提で、
-			// Z軸→nd へ回すためのヨー・ピッチを求める（簡易版）
-			float yaw = std::atan2f(nd.x, nd.z);                                     // Y軸回転
-			float pitch = std::atan2f(-nd.y, std::sqrtf(nd.x * nd.x + nd.z * nd.z)); // X軸回転
+			// 見た目用の終点：プレイヤーよりさらに先まで伸びる
+			Vector3 visualEnd{beamStart.x + nd.x * visualLength, beamStart.y + nd.y * visualLength, beamStart.z + nd.z * visualLength};
 
+			// 銃口がめり込むのが気になるなら、少しだけ前に出す
+			const float kStartOffset = 0.5f;
+			beamStart.x += nd.x * kStartOffset;
+			beamStart.y += nd.y * kStartOffset;
+			beamStart.z += nd.z * kStartOffset;
+
+			// 中点（始点と見た目終点の中間）
+			Vector3 midPos{(beamStart.x + visualEnd.x) * 0.5f, (beamStart.y + visualEnd.y) * 0.5f, (beamStart.z + visualEnd.z) * 0.5f};
+
+			// 向き（+Z が前提のモデルに合わせる）
+			float yaw = std::atan2f(nd.x, nd.z);
+			float pitch = std::atan2f(-nd.y, std::sqrtf(nd.x * nd.x + nd.z * nd.z));
+
+			// ビーム用 WorldTransform を設定
+			beamWorldTransform_.Initialize(); // 1フレームに1回ならこれでOK
 			beamWorldTransform_.translation_ = midPos;
 			beamWorldTransform_.rotation_ = {pitch, yaw, 0.0f};
 
-			// X/Y は半径、Z は長さ方向にスケール（モデル原点から±Zなので 0.5 を掛ける）
-			beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, length * 0.5f};
+			// X/Y が太さ、Z が長さ方向
+			beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, visualLength * 0.5f};
 
 			WorldTransformUpdate(beamWorldTransform_);
-
-			// ビーム専用モデルがあればそれを使う
 			if (beamModel_) {
 				beamModel_->Draw(beamWorldTransform_, camera);
-			} else {
-				funnelModel_->Draw(beamWorldTransform_, camera); // フォールバック
+			} else if (model_) {
+				// beamModel_ 未設定の場合は、とりあえず通常モデルを細長くして代用
+				model_->Draw(beamWorldTransform_, camera);
 			}
 		}
+
 	}
 }
 
