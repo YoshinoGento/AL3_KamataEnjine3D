@@ -85,6 +85,10 @@ void Player::Update() {
 		if (isChargingBeam_) {
 			// チャージ開始
 			barrier_.SetActive(true);
+
+			 if (barrier_.IsBroken()) {
+				barrier_.Reset(); // ★追加：壊れてたら復活
+			}
 		} else {
 			// チャージ終了 → ビーム発射
 			barrier_.SetActive(false);

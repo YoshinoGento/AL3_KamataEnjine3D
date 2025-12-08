@@ -56,7 +56,6 @@ bool Barrier::IsCoolingDown() const { return isBroken_ && coolTime_ > 0.0f; }
 float Barrier::GetDurabilityRate() const { return durability_ / kMaxDurability; }
 
 void Barrier::Draw(const Camera& camera, const Vector3& playerPosition) {
-	(void)playerPosition; // 未使用警告防止
 	if (isBroken_ || !model_) {
 		return;
 	}
@@ -65,8 +64,17 @@ void Barrier::Draw(const Camera& camera, const Vector3& playerPosition) {
 
 	// 色をLerpでスムーズに変化
 	color_ = Lerp({0.2f, 0.6f, 1.0f, 0.2f}, {1.0f, 0.2f, 0.2f, 0.4f}, 1.0f - rate);
-
-	// オブジェクトカラーに色をセット
 	objectColor_.SetColor(color_);
+
+	// ★ プレイヤーの位置を追従させる（Z方向にオフセットもあり？）
+	worldTransform_.translation_ = playerPosition;
+	WorldTransformUpdate(worldTransform_); // ←これ重要！
+
 	model_->Draw(worldTransform_, camera, &objectColor_);
+}
+
+
+void Barrier::Reset() {
+	isBroken_ = false;
+	durability_ = kMaxDurability;
 }

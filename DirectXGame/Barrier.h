@@ -28,6 +28,8 @@ public:
 	void SetActive(bool active) { isActive_ = active; }
 	bool IsActive() const { return isActive_; }
 
+	void Reset();
+
 private:
 	float durability_ = kMaxDurability;
 	float coolTime_ = 0.0f;
