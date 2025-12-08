@@ -1,9 +1,9 @@
 #pragma once
 #include "KamataEngine.h"
 #include "MatrixMath.h"
+#include "EnemyBullet.h"
 
 class Player;
-class EnemyBullet;
 
 using namespace KamataEngine;
 
@@ -45,6 +45,8 @@ public:
 	Vector3 GetWorldPosition() const;
 
 	void SetPlayer(Player* player) { player_ = player; }
+
+	const std::list<EnemyBullet*>& GetBullets() const { return bullets_; }
 
 private:
 	// =========================

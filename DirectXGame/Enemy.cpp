@@ -2,7 +2,6 @@
 #include "KamataEngine.h"
 #include "Player.h"
 #include <cmath> // atan2f, sqrtf
-#include "EnemyBullet.h"
 
 using namespace KamataEngine;
 

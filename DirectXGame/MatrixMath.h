@@ -26,6 +26,11 @@ const Vector3 operator+(const Vector3& v1, const Vector3& v2);
 // Vector3 - Vector3
 const Vector3 operator-(const Vector3& v1, const Vector3& v2);
 
+// Vector3 + float
+const Vector3 operator+(const Vector3& v, float f);
+
+// Vector3 - float
+const Vector3 operator-(const Vector3& v, float f);
 
 // 02_06のスライド24枚目のLerp関数
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
