@@ -137,6 +137,11 @@ void Enemy::Draw(const Camera& camera) {
 
 	// ファンネル描画（本体＋ビーム）
 	DrawFunnels(camera);
+
+	// 弾描画
+	for (EnemyBullet* bullet : bullets_) {
+		bullet->Draw(camera);
+	}
 }
 
 bool Enemy::CheckHit(const Vector3& bulletPosition) {
@@ -349,11 +354,6 @@ void Enemy::DrawFunnels(const Camera& camera) {
 			// ビームの始点（ファンネル位置）と終点（ターゲット位置）
 			Vector3 beamStart = f.wt.translation_;
 			Vector3 beamEnd = f.beamTarget;
-
-			// 弾描画
-			for (EnemyBullet* bullet : bullets_) {
-				bullet->Draw(camera);
-			}
 
 			// 方向ベクトルと長さ
 			Vector3 dir = beamEnd - beamStart;
