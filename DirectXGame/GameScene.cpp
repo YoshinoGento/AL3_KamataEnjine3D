@@ -7,7 +7,7 @@ using namespace KamataEngine;
 
 void GameScene::Initialize() {
 	player_model_ = Model::CreateFromOBJ("player1");
-	enemy_model_ = Model::CreateFromOBJ("enemy");
+	enemy_model_ = Model::CreateFromOBJ("Boss");
 	player_bullet_model_ = Model::CreateFromOBJ("PlayerBullet");
 
 
@@ -24,9 +24,7 @@ void GameScene::Initialize() {
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
-	player_ = new Player();
-	player_->Initialize(player_model_,player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
-
+	
 	// ① 先に enemy を作る（Player が参照するので）
 	enemy_ = new Enemy();
 	player_ = new Player();
@@ -36,7 +34,12 @@ void GameScene::Initialize() {
 
 	// ② 次に player を作り enemy を渡す
 	player_->SetEnemy(enemy_);
-	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
+
+	player_->Initialize(player_model_, player_bullet_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
+
+	skydome_model_ = Model::CreateFromOBJ("FaceSkySphere");
+	skydome_ = new Skydome;
+	skydome_->Initialize(skydome_model_, &camera_);
 }
 
 void GameScene::Update() {
@@ -54,6 +57,8 @@ void GameScene::Update() {
 		camera_.UpdateMatrix();
 	}
 
+	skydome_->Update();
+
 	player_->Update();
 	const Vector3& playerPos = player_->GetWorldPosition();
 
@@ -69,7 +74,6 @@ void GameScene::Update() {
 		}
 	}
 
-
 	// プレイヤー弾 vs ボス部位の当たり判定（今まで通り）
 	if (enemy_) {
 		const std::list<PlayerBullet*>& bullets = player_->GetBullets();
@@ -80,6 +84,20 @@ void GameScene::Update() {
 			const Vector3& bulletPos = bullet->GetWorldPosition();
 			if (enemy_->CheckHit(bulletPos)) {
 				bullet->OnHit();
+			}
+		}
+	}
+
+	if (enemy_) {
+		const std::list<EnemyBullet*>& bullets = enemy_->GetBullets();
+		for (EnemyBullet* bullet : bullets) {
+			if (!bullet || bullet->IsDead()) {
+				continue;
+			}
+
+			const Vector3& bulletPos = bullet->GetWorldPosition();
+			if (player_->OnHitMissile(bulletPos)) {
+				player_->OnHitByBeam();
 			}
 		}
 	}
@@ -145,14 +163,9 @@ void GameScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	Model::PreDraw(dxCommon->GetCommandList());
 
+	skydome_->Draw();
 	player_->Draw();
 	enemy_->Draw(camera_);
-
-
-	// ボス描画
-	if (enemy_) {
-		enemy_->Draw(camera_);
-	}
 
 	// 3Dモデル描画後処理
 	Model::PostDraw();
@@ -163,4 +176,5 @@ void GameScene::Delete() {
 	delete player_model_;
 	delete debugCamera_;
 	delete enemy_;
+	delete skydome_;
 }

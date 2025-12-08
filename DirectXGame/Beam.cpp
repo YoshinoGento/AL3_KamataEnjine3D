@@ -4,30 +4,27 @@
 
 
 
-void Beam::Initialize(const Vector3& start, const Vector3& target) {
+void Beam::Initialize(const Vector3& start, const Vector3& target, float chargePower) {
 	model_ = Model::CreateFromOBJ("PlayerBeam");
 	worldTransform_.Initialize();
 
 	Vector3 dir = Normalized(target - start);
 	float length = Length(target - start);
-	float thickness = 0.1f; // ← 見た目の厚みを「長さの1割」にする
 
-	// スケール（Z方向に長いビーム）
+	// チャージ量（0～100）を 0.1～0.5 の太さにマッピング
+	float thickness = 0.1f + (chargePower / 100.0f) * 0.4f;
+
 	worldTransform_.scale_ = {thickness, thickness, length};
-
-	// 回転（Z+方向をdirに）
 	worldTransform_.rotation_ = GetEulerFromMatrix(MakeLookRotation(dir));
-
-	// ✅ モデルの中心が真ん中なら、Z+に半分ずらすことで「startから先に」伸びる
-	//worldTransform_.translation_ = start + dir * (2.0f * 0.5f * length); // Blender実サイズ2.0 × スケール
-	worldTransform_.translation_ = start; // ← これだけでOK
-
-
+	worldTransform_.translation_ = start;
 
 	WorldTransformUpdate(worldTransform_);
 
 	time_ = 0.0f;
 	isDead_ = false;
+
+	// ライフタイムをチャージに応じて少し伸ばす（任意）
+	lifeTime_ = 20.0f + (chargePower / 100.0f) * 20.0f;
 }
 
 

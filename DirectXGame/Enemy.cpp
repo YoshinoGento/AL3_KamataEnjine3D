@@ -1,28 +1,115 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
 #include "Player.h"
-#include <cmath> // atan2f, sqrtf
+#include <algorithm> // std::max
+#include <cmath>     // atan2f, sqrtf
 
 using namespace KamataEngine;
 
 // フェーズごとのフレーム数（好みに合わせて調整）
 namespace {
-const int kMoveToPlaneFrames = 30;    // フェーズ1：ボス → プレイヤーZ平面
-const int kMoveSideToEdgeFrames = 30; // フェーズ2：Zを合わせた位置 → 画面端
-const int kChargingFrames = 120;       // チャージ時間
-const int kFiringFrames = 120;        // フェーズ3：照射継続時間
+const int kMoveToPlaneFrames = 30;      // フェーズ1：ボス → プレイヤーZ平面
+const int kMoveSideToEdgeFrames = 30;   // フェーズ2：Zを合わせた位置 → 画面端
+const int kChargingFrames = 120;        // チャージ時間
+const int kFiringFrames = 120;          // フェーズ3：照射継続時間
+const int kRightExtraChargeFrames = 30; // 右側ファンネルだけチャージ時間を少し長くする
 
-// ビームの太さ（円柱の半径として扱う）
+// ビームの太さ（見た目用：円柱モデルの半径）
 const float kBeamRadius = 0.3f;
 } // namespace
 
+namespace {
+
+// dir（正規化済み）の方向を向く回転を計算して、モデル用のオフセットを足す
+void SetWorldTransformLookDir(WorldTransform& wt, const Vector3& dir, float modelYawOffset = 0.0f, float modelPitchOffset = 0.0f) {
+
+	float lenSq = dir.x * dir.x + dir.y * dir.y + dir.z * dir.z;
+	if (lenSq < 0.000001f) {
+		return;
+	}
+
+	Vector3 nd = Normalized(dir);
+
+	float yaw = std::atan2f(nd.x, nd.z);
+	float pitch = std::atan2f(-nd.y, std::sqrtf(nd.x * nd.x + nd.z * nd.z));
+
+	wt.rotation_.x = pitch + modelPitchOffset;
+	wt.rotation_.y = yaw + modelYawOffset;
+	wt.rotation_.z = 0.0f;
+}
+
+// プレイヤー方向に「水平だけ」向かせるヘルパ
+// yawOffset でモデルの向き補正（左右で別オフセットを掛けたいとき用）
+void FacePlayerHorizontally(WorldTransform& wt, const Vector3& funnelPos, const Vector3& playerPos, float yawOffset) {
+	// プレイヤーへの水平ベクトル
+	Vector3 dir{
+	    playerPos.x - funnelPos.x,
+	    0.0f, // ← 上下方向は無視して水平回転だけ
+	    playerPos.z - funnelPos.z};
+
+	float lenSq = dir.x * dir.x + dir.z * dir.z;
+	if (lenSq < 0.000001f) {
+		return;
+	}
+
+	float len = std::sqrt(lenSq);
+	dir.x /= len;
+	dir.z /= len;
+
+	float yaw = std::atan2f(dir.x, dir.z);
+
+	wt.rotation_.x = 0.0f; // 水平回転だけ
+	wt.rotation_.y = yaw + yawOffset;
+	wt.rotation_.z = 0.0f;
+}
+
+// ファンネル用：
+
+
+// 左右で別オフセット（モデルの向き補正）
+const float kFunnelModelYawOffsetLeft = ToRadians(90.0f);   // 左用
+const float kFunnelModelYawOffsetRight = ToRadians(-90.0f); // 右用（必要に応じて ±90 / 180 に調整）
+
+inline float GetFunnelYawOffset(int funnelIndex) { return (funnelIndex == 0) ? kFunnelModelYawOffsetLeft : kFunnelModelYawOffsetRight; }
+
+
+// yaw は左右ごとの固定値にして、pitch だけターゲットの高さに向ける
+void SetFunnelYawSidePitchToTarget(WorldTransform& wt, int funnelIndex, const Vector3& funnelPos, const Vector3& targetPos) {
+	// 左右ごとの「真横」向きオフセット（既存のものを利用）
+	float yawBase = GetFunnelYawOffset(funnelIndex);
+
+	Vector3 diff = targetPos - funnelPos;
+
+	// 水平距離（XZ 平面）
+	float horiz = std::sqrt(diff.x * diff.x + diff.z * diff.z);
+	float vert = diff.y;
+
+	if (horiz < 0.0001f && std::fabs(vert) < 0.0001f) {
+		wt.rotation_.x = 0.0f;
+		wt.rotation_.y = yawBase;
+		wt.rotation_.z = 0.0f;
+		return;
+	}
+
+	// 上下の角度だけを見る（うなずき）
+	float pitch = std::atan2f(-vert, horiz); // 上を見るときにマイナスになるように
+
+	wt.rotation_.x = pitch;
+	wt.rotation_.y = yawBase; // ★ yaw は常に左右固定
+	wt.rotation_.z = 0.0f;
+}
+
+} // namespace
+
+// ============================
+// 初期化
+// ============================
 void Enemy::Initialize(const Vector3& bossBasePosition) {
 
-	// 可視化用モデルをロード（暫定で "player" を使用）
-	model_ = Model::CreateFromOBJ("player");
-
-	// ビーム用モデルをロード（円柱モデル）
+	// 可視化用モデル
+	model_ = Model::CreateFromOBJ("Boss");
 	beamModel_ = Model::CreateFromOBJ("beam");
+	funnelModel_ = Model::CreateFromOBJ("Funnel");
 
 	// -----------------------------
 	// ボス本体の部位データを設定
@@ -30,7 +117,7 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 
 	// 0: 中央のコア
 	bodyParts_[0].centerPosition = bossBasePosition + Vector3{0.0f, 0.5f, 0.0f};
-	bodyParts_[0].boxSize = Vector3{2.0f, 1.0f, 1.0f}; // X,Y,Z の長さ
+	bodyParts_[0].boxSize = Vector3{2.0f, 1.0f, 1.0f};
 	bodyParts_[0].hitPoint = 5;
 	bodyParts_[0].isDestroyed = false;
 
@@ -58,20 +145,23 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 	// -----------------------------
 	for (int i = 0; i < kFunnelCount; ++i) {
 		funnels_[i].wt.Initialize();
-		funnels_[i].wt.scale_ = {0.5f, 0.5f, 0.5f}; // ファンネル本体の大きさ
+		funnels_[i].wt.scale_ = {0.5f, 0.5f, 0.5f};
 		funnels_[i].state = Funnel::Inactive;
 		funnels_[i].timer = 0;
+		funnels_[i].beamTarget = bossBasePosition; // 初期値は適当でOK（後で上書き）
 	}
 
 	// ビーム描画用 WorldTransform（全ビーム共通で使い回し）
 	beamWorldTransform_.Initialize();
-	// X/Y が半径、Z が長さ方向（後で length によって変える）
 	beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, 1.0f};
 
 	// 最初の攻撃まで少し待つ
 	funnelAttackCoolTimer_ = 180;
 }
 
+// ============================
+// 更新
+// ============================
 void Enemy::Update(const Vector3& playerPosition) {
 	bullets_.remove_if([](EnemyBullet* bullet) {
 		if (bullet->IsDead()) {
@@ -81,17 +171,14 @@ void Enemy::Update(const Vector3& playerPosition) {
 		return false;
 	});
 
-	// ファンネル攻撃クールタイム処理
 	if (funnelAttackCoolTimer_ > 0) {
 		--funnelAttackCoolTimer_;
 	}
 
-	// クールタイム終了 ＆ 空きファンネルあり → 攻撃開始
 	if (funnelAttackCoolTimer_ == 0) {
 		StartFunnelAttack(playerPosition);
 	}
 
-	// ファンネルの状態更新（L字移動＋照射）
 	UpdateFunnels(playerPosition);
 
 	fireTimer--;
@@ -109,6 +196,9 @@ void Enemy::Update(const Vector3& playerPosition) {
 	}
 }
 
+// ============================
+// 描画
+// ============================
 void Enemy::Draw(const Camera& camera) {
 
 	if (!model_) {
@@ -132,37 +222,38 @@ void Enemy::Draw(const Camera& camera) {
 
 	// ファンネル描画（本体＋ビーム）
 	DrawFunnels(camera);
+
+	// 弾描画
+	for (EnemyBullet* bullet : bullets_) {
+		bullet->Draw(camera);
+	}
 }
 
+// ============================
+// AABB での被弾判定（部位破壊）
+// ============================
 bool Enemy::CheckHit(const Vector3& bulletPosition) {
 
 	for (int bodyPartIndex = 0; bodyPartIndex < kBodyPartCount; ++bodyPartIndex) {
 
 		BodyPart& bodyPart = bodyParts_[bodyPartIndex];
 
-		// すでに破壊済みなら無視
 		if (bodyPart.isDestroyed) {
 			continue;
 		}
 
-		// AABB の min / max を計算
 		Vector3 halfBoxSize = bodyPart.boxSize * 0.5f;
 		Vector3 minPosition = bodyPart.centerPosition - halfBoxSize;
 		Vector3 maxPosition = bodyPart.centerPosition + halfBoxSize;
 
-		// 点（弾）の位置が AABB 内にあるか判定
 		bool isInside = (bulletPosition.x >= minPosition.x && bulletPosition.x <= maxPosition.x) && (bulletPosition.y >= minPosition.y && bulletPosition.y <= maxPosition.y) &&
 		                (bulletPosition.z >= minPosition.z && bulletPosition.z <= maxPosition.z);
 
 		if (isInside) {
-			// ヒットしたのでダメージ
 			bodyPart.hitPoint--;
-
 			if (bodyPart.hitPoint <= 0) {
 				bodyPart.isDestroyed = true;
 			}
-
-			// 1発で複数部位に当たらないように、ここで終了
 			return true;
 		}
 	}
@@ -175,73 +266,99 @@ bool Enemy::CheckHit(const Vector3& bulletPosition) {
 // ============================
 void Enemy::StartFunnelAttack(const Vector3& playerPosition) {
 
-	// 空いているファンネルを1機だけ使う
-	Funnel* freeFunnel = nullptr;
-	for (int i = 0; i < kFunnelCount; ++i) {
-		if (funnels_[i].state == Funnel::Inactive) {
-			freeFunnel = &funnels_[i];
-			break;
+	// 左ファンネル（index 0）
+	{
+		Funnel& f = funnels_[0];
+		if (f.state == Funnel::Inactive && !bodyParts_[1].isDestroyed) {
+
+			f.state = Funnel::MoveToPlane;
+			f.timer = kMoveToPlaneFrames;
+
+			const BodyPart& base = bodyParts_[1];
+
+			f.startPosition = base.centerPosition;
+			f.wt.translation_ = f.startPosition;
+			f.targetPlanePosition = {base.centerPosition.x, base.centerPosition.y, playerPosition.z};
+
+			float edgeX = -7.5f;
+			f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
+
+			f.beamTarget = playerPosition; // 左は素直にロック
+			f.fromLeft = true;
 		}
 	}
-	if (!freeFunnel) {
-		return; // 全部使用中
+
+	// 右ファンネル（index 1）
+	{
+		Funnel& f = funnels_[1];
+		if (f.state == Funnel::Inactive && !bodyParts_[2].isDestroyed) {
+
+			f.state = Funnel::MoveToPlane;
+			f.timer = kMoveToPlaneFrames;
+
+			const BodyPart& base = bodyParts_[2];
+
+			f.startPosition = base.centerPosition;
+			f.wt.translation_ = f.startPosition;
+			f.targetPlanePosition = {base.centerPosition.x, base.centerPosition.y, playerPosition.z};
+
+			float edgeX = +7.5f;
+			f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
+
+			f.beamTarget = playerPosition; // 初回は一旦ロック
+			f.fromLeft = false;
+		}
 	}
 
-	Funnel& f = *freeFunnel;
-
-	// どの部位から飛ばすか（今回は index=1 をファンネルベースとする）
-	const BodyPart& basePart = bodyParts_[1];
-
-	// フェーズ1開始位置：ベース部位の位置
-	f.startPosition = basePart.centerPosition;
-	f.wt.translation_ = f.startPosition;
-
-	// フェーズ1終了位置：プレイヤーと同じZで、X/Yはベースのまま（まずZだけ合わせる）
-	f.targetPlanePosition = {basePart.centerPosition.x, basePart.centerPosition.y, playerPosition.z};
-
-	// どちら側の端から撃つか（とりあえずプレイヤーの左側/右側で決定）
-	f.fromLeft = (playerPosition.x >= 0.0f); // プレイヤーが右寄りなら左から撃つ 等
-
-	// 画面端のX（Playerの移動制限と同じぐらい＋α）
-	const float kVisibleEdgeX = 7.5f;
-	float edgeX = f.fromLeft ? -kVisibleEdgeX : kVisibleEdgeX;
-
-	// フェーズ2終了位置：画面端での照射位置（X:端 / Y,Z: プレイヤーと同一）
-	f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
-
-	// プレイヤーの現在位置をロックオンしておく（ビーム先端のターゲット）
-	f.beamTarget = playerPosition;
-
-	// フェーズ1：Z を合わせる移動時間
-	f.timer = kMoveToPlaneFrames;
-	f.state = Funnel::MoveToPlane;
-
-	// 次の攻撃までのクールタイム再セット
-	funnelAttackCoolTimer_ = 240; // 4秒ぐらい（好みで調整）
+	// 次の攻撃までのクール
+	funnelAttackCoolTimer_ = 240;
 }
 
 // ============================
 // ファンネル攻撃：状態更新
 // ============================
-void Enemy::UpdateFunnels(const Vector3& /*playerPosition*/) {
+void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 
 	for (int i = 0; i < kFunnelCount; ++i) {
 
 		Funnel& f = funnels_[i];
 
+		// ★ 右ファンネル専用の“弱追従”処理（攻撃前のみ）
+		if (i == 1 && (f.state == Funnel::MoveToPlane || f.state == Funnel::MoveSideToEdge || f.state == Funnel::Charging)) {
+
+			// 右ファンネルは攻撃前はプレイヤーに「弱く」追従
+			Vector3 desiredTarget = playerPosition;
+			// 追従の強さ（0〜1）：小さいほどヌルっと追従して避けやすい
+			const float followRate = 0.12f;
+			f.beamTarget = Lerp(f.beamTarget, desiredTarget, followRate);
+
+			// Z合わせ＆端も追従
+			f.targetPlanePosition.z = playerPosition.z;
+			float edgeX = +7.5f;
+			f.edgePosition = {edgeX, playerPosition.y, playerPosition.z};
+
+			// 見た目上も「プレイヤーの方を向いてる」感じにする
+			SetFunnelYawSidePitchToTarget(f.wt, i, f.wt.translation_, f.beamTarget);
+		}
+
+		// ===============================
+		// 通常フェーズ
+		// ===============================
 		switch (f.state) {
 		case Funnel::Inactive:
-			// 何もしない
 			break;
 
+
 		case Funnel::MoveToPlane: {
-			// フェーズ1: startPosition → targetPlanePosition へ前進（Z を合わせる）
 			if (f.timer > 0) {
-				float t = 1.0f - static_cast<float>(f.timer) / static_cast<float>(kMoveToPlaneFrames); // 0→1
+				float t = 1.0f - (float)f.timer / (float)kMoveToPlaneFrames;
+
 				f.wt.translation_ = Lerp(f.startPosition, f.targetPlanePosition, t);
 				--f.timer;
+
+				// ★ 真横向き固定＋うなずきだけターゲットを見る
+				SetFunnelYawSidePitchToTarget(f.wt, i, f.wt.translation_, f.beamTarget);
 			} else {
-				// Z を合わせ終わったら、フェーズ2：横移動開始
 				f.state = Funnel::MoveSideToEdge;
 				f.timer = kMoveSideToEdgeFrames;
 			}
@@ -249,27 +366,34 @@ void Enemy::UpdateFunnels(const Vector3& /*playerPosition*/) {
 		}
 
 		case Funnel::MoveSideToEdge: {
-			// フェーズ2: targetPlanePosition → edgePosition へ横移動
 			if (f.timer > 0) {
-				float t = 1.0f - static_cast<float>(f.timer) / static_cast<float>(kMoveSideToEdgeFrames); // 0→1
+				float t = 1.0f - (float)f.timer / (float)kMoveSideToEdgeFrames;
+
 				f.wt.translation_ = Lerp(f.targetPlanePosition, f.edgePosition, t);
 				--f.timer;
+
+				// ★ 端へ移動中も銃口はプレイヤー（or beamTarget）の方向を向いたまま
+				float yawOffset = GetFunnelYawOffset(i);
+				FacePlayerHorizontally(f.wt, f.wt.translation_, f.beamTarget, yawOffset);
 			} else {
-				// 画面端に到達 → ★チャージフェーズへ
-				f.wt.translation_ = f.edgePosition;
-				f.state = Funnel::Charging; // ← ここを Firing ではなく Charging に
-				f.timer = kChargingFrames;  // チャージに使う時間
+				f.state = Funnel::Charging;
+				if (i == 0) {
+					f.timer = kChargingFrames;
+				} else {
+					f.timer = kChargingFrames + kRightExtraChargeFrames;
+				}
 			}
 			break;
 		}
 
 		case Funnel::Charging: {
-			// 画面端でビームを溜めている状態（ここではビームをまだ出さない）
+
+			// チャージ中は「ロックした（or 追従中の）ターゲット」にうなずく
+			SetFunnelYawSidePitchToTarget(f.wt, i, f.wt.translation_, f.beamTarget);
+
 			if (f.timer > 0) {
 				--f.timer;
-				// ここで「チャージ用の光」だけ描画する、なども後で足せる
 			} else {
-				// チャージ完了 → 照射フェーズ開始
 				f.state = Funnel::Firing;
 				f.timer = kFiringFrames;
 			}
@@ -277,19 +401,17 @@ void Enemy::UpdateFunnels(const Vector3& /*playerPosition*/) {
 		}
 
 		case Funnel::Firing: {
-			// フェーズ3: 画面端から照射中
+
+			// 照射中も「ロックした方向」にうなずいた姿勢のまま
+			SetFunnelYawSidePitchToTarget(f.wt, i, f.wt.translation_, f.beamTarget);
+
 			if (f.timer > 0) {
 				--f.timer;
-				// ここで本当はビームのアニメーションやエフェクトを入れる
 			} else {
-				// 終了 → 待機へ戻る
 				f.state = Funnel::Inactive;
 			}
 			break;
 		}
-
-		default:
-			break;
 		}
 	}
 }
@@ -299,7 +421,7 @@ void Enemy::UpdateFunnels(const Vector3& /*playerPosition*/) {
 // ============================
 void Enemy::DrawFunnels(const Camera& camera) {
 
-	if (!model_) {
+	if (!funnelModel_) {
 		return;
 	}
 
@@ -309,66 +431,70 @@ void Enemy::DrawFunnels(const Camera& camera) {
 			continue;
 		}
 
-		// ---------------------
-		// ファンネル本体の描画
-		// ---------------------
+		// ファンネル本体
 		WorldTransformUpdate(f.wt);
-		model_->Draw(f.wt, camera);
+		funnelModel_->Draw(f.wt, camera);
 
-		// ---------------------
-		// 照射ビーム本体（円柱）の描画
-		// ---------------------
+		// ビーム描画（照射中のみ）
 		if (f.state == Funnel::Firing) {
 
-			// ビームの始点（ファンネル位置）と終点（ターゲット位置）
+			// 始点：ファンネルの位置
 			Vector3 beamStart = f.wt.translation_;
-			Vector3 beamEnd = f.beamTarget;
+			// 少し下げる調整（銃口の位置合わせ）
+			beamStart.y -= 1.4f;
 
-	// ファンネル描画
-	DrawFunnels(camera);
- }
+			// 本来のターゲット（当たり判定はこれを使う）
+			Vector3 realEnd = f.beamTarget;
 
-	// 弾描画
-	for (EnemyBullet* bullet : bullets_) {
-		bullet->Draw(camera);
-	}
-			// 方向ベクトルと長さ
-			Vector3 dir = beamEnd - beamStart;
-			float length = Length(dir);
-			if (length < 0.001f) {
+			// 方向ベクトル
+			Vector3 dir{realEnd.x - beamStart.x, realEnd.y - beamStart.y, realEnd.z - beamStart.z};
+
+			// ★ 左ファンネルだけは見た目のビーム方向を「+X 方向」に固定
+			if (i == 0) {
+				// X軸まっすぐ（画面左→右）にしたいので +X 方向固定
+				dir = {1.0f, 0.0f, 0.0f};
+			}
+
+			float realLength = Length(dir);
+			if (realLength < 0.01f) {
 				continue;
 			}
 
-			// 方向の正規化
 			Vector3 nd = Normalized(dir);
 
-			// ★ ファンネル位置から少しだけ前方にずらして発射
-			const float kStartOffset = 2.0f; // 好みで調整
-			beamStart += nd * kStartOffset;
+			// 見た目用の長さ（最低 30.0f までは伸ばす）
+			const float kMinVisualLength = 30.0f;
+			float visualLength = realLength;
+			if (visualLength < kMinVisualLength) {
+				visualLength = kMinVisualLength;
+			}
 
-			// ビームの中心位置（中点）
-			Vector3 midPos = (beamStart + beamEnd) * 0.5f;
-			midPos.y -= 1.2f; // 少し下にずらす（見た目調整）
-			
+			// 見た目用の終点
+			Vector3 visualEnd{beamStart.x + nd.x * visualLength, beamStart.y + nd.y * visualLength, beamStart.z + nd.z * visualLength};
 
-			// 円柱モデルが「ローカルZ軸方向」に伸びている前提で、
-			// Z軸→nd へ回すためのヨー・ピッチを求める（簡易版）
-			float yaw = std::atan2f(nd.x, nd.z);                                     // Y軸回転
-			float pitch = std::atan2f(-nd.y, std::sqrtf(nd.x * nd.x + nd.z * nd.z)); // X軸回転
+			// 銃口から少し前に出す
+			const float kStartOffset = 0.5f;
+			beamStart.x += nd.x * kStartOffset;
+			beamStart.y += nd.y * kStartOffset;
+			beamStart.z += nd.z * kStartOffset;
 
+			// 中点
+			Vector3 midPos{(beamStart.x + visualEnd.x) * 0.5f, (beamStart.y + visualEnd.y) * 0.5f, (beamStart.z + visualEnd.z) * 0.5f};
+
+			float yaw = std::atan2f(nd.x, nd.z);
+			float pitch = std::atan2f(-nd.y, std::sqrtf(nd.x * nd.x + nd.z * nd.z));
+
+			// ★ ここで Initialize() は呼ばない！
 			beamWorldTransform_.translation_ = midPos;
 			beamWorldTransform_.rotation_ = {pitch, yaw, 0.0f};
-
-			// X/Y は半径、Z は長さ方向にスケール（モデル原点から±Zなので 0.5 を掛ける）
-			beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, length * 0.5f};
+			beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, visualLength * 0.5f};
 
 			WorldTransformUpdate(beamWorldTransform_);
 
-			// ビーム専用モデルがあればそれを使う
 			if (beamModel_) {
 				beamModel_->Draw(beamWorldTransform_, camera);
-			} else {
-				model_->Draw(beamWorldTransform_, camera); // フォールバック
+			} else if (model_) {
+				model_->Draw(beamWorldTransform_, camera);
 			}
 		}
 	}
@@ -379,58 +505,72 @@ void Enemy::DrawFunnels(const Camera& camera) {
 // ============================
 bool Enemy::IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerRadius) {
 
-	// プレイヤー球＋ビーム円柱の「合成半径」の2乗
-	float combinedRadius = playerRadius + kBeamRadius;
+	// ビーム見た目よりかなり小さい当たり判定にして、理不尽ヒットを減らす
+	const float kBeamHitRadiusScale = 0.3f; // ← ここでさらに小さくしている
+	float beamHitRadius = kBeamRadius * kBeamHitRadiusScale;
+	float combinedRadius = playerRadius + beamHitRadius;
 	float combinedRadiusSq = combinedRadius * combinedRadius;
 
-	// 全ファンネルについてチェック
+	// 描画側と合わせるためのパラメータ
+	const float kMinVisualLength = 30.0f; // DrawFunnels の kMinVisualLength と揃える
+	const float kStartOffset = 0.5f;      // 銃口から少し前に出す量（DrawFunnels と揃える）
+	const float kMuzzleYOffset = 1.4f;    // beamStart.y -= 1.4f と同じ
+
 	for (int i = 0; i < kFunnelCount; ++i) {
 
 		const Funnel& f = funnels_[i];
-
-		// 照射中のファンネルのみ当たり判定対象
 		if (f.state != Funnel::Firing) {
 			continue;
 		}
 
-		// ビームの始点（ファンネル位置）と終点（ターゲット位置）
+		// ★ 始点：描画と同じように補正する
 		Vector3 beamStart = f.wt.translation_;
-		Vector3 beamEnd = f.beamTarget;
+		beamStart.y -= kMuzzleYOffset;
 
-		// 線分ベクトル
+		// 方向ベクトル dir を描画と揃える
+		Vector3 dir;
+
+		if (i == 0) {
+			// 左ファンネル: 見た目は +X 方向固定
+			dir = {1.0f, 0.0f, 0.0f};
+		} else {
+			// 右ファンネル: ロックしたターゲットに向かう
+			Vector3 rawDir = f.beamTarget - beamStart;
+			float len = Length(rawDir);
+			if (len < 0.0001f) {
+				continue;
+			}
+			dir = rawDir / len;
+		}
+
+		float visualLength = kMinVisualLength; // 当たり判定用の長さも最低値に固定でOK
+		Vector3 beamEnd = {beamStart.x + dir.x * visualLength, beamStart.y + dir.y * visualLength, beamStart.z + dir.z * visualLength};
+
+		// 銃口オフセット（描画と同じく少し前に出す）
+		beamStart.x += dir.x * kStartOffset;
+		beamStart.y += dir.y * kStartOffset;
+		beamStart.z += dir.z * kStartOffset;
+
+		// ここから先は「線分 [beamStart, beamEnd] と球の最短距離」判定
 		Vector3 seg = beamEnd - beamStart;
-
-		// 線分の長さ^2
 		float segLenSq = seg.x * seg.x + seg.y * seg.y + seg.z * seg.z;
 		if (segLenSq <= 0.0001f) {
-			continue; // 長さゼロならスキップ
+			continue;
 		}
 
-		// 始点からプレイヤーへのベクトル
 		Vector3 toPlayer = playerPosition - beamStart;
-
-		// 線分上の最近接点を求めるための t（0〜1 にクランプ）
 		float dot = toPlayer.x * seg.x + toPlayer.y * seg.y + toPlayer.z * seg.z;
 		float t = dot / segLenSq;
-		if (t < 0.0f) {
+		if (t < 0.0f)
 			t = 0.0f;
-		}
-		if (t > 1.0f) {
+		if (t > 1.0f)
 			t = 1.0f;
-		}
 
-		// 線分上の最近接点
-		Vector3 closestPoint = beamStart + seg * t;
+		Vector3 closestPoint = {beamStart.x + seg.x * t, beamStart.y + seg.y * t, beamStart.z + seg.z * t};
 
-		// プレイヤー中心との距離^2
-		Vector3 diff;
-		diff.x = playerPosition.x - closestPoint.x;
-		diff.y = playerPosition.y - closestPoint.y;
-		diff.z = playerPosition.z - closestPoint.z;
+		Vector3 diff = {playerPosition.x - closestPoint.x, playerPosition.y - closestPoint.y, playerPosition.z - closestPoint.z};
 
 		float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
-
-		// 合成半径以内ならビーム被弾
 		if (distSq <= combinedRadiusSq) {
 			return true;
 		}
@@ -438,6 +578,8 @@ bool Enemy::IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerR
 
 	return false;
 }
+
+Vector3 Enemy::GetWorldPosition() const { return worldTransforms_->translation_; }
 
 void Enemy::ShootMissile() {
 	// 弾の速さ

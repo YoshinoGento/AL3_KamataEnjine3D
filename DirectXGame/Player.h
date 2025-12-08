@@ -6,6 +6,7 @@
 #include "MissilePartocle.h"
 #include "PlayerBullet.h"
 #include "Beam.h"
+#include "BeamCharger.h"
 #include <list>
 
 using namespace KamataEngine;
@@ -31,6 +32,8 @@ public:
 	~Player();
 	void SetEnemy(Enemy* enemy);
 
+	
+
 	/// <summary>
 	/// プレイヤーが持っている弾リストへの参照を取得
 	/// （読み取り専用のつもりなので const 参照を返す）
@@ -40,10 +43,13 @@ public:
 	// プレイヤーのワールド座標を取得
 	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 
+	bool OnHitMissile(const Vector3& bulletPosition);
+
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
 	Model* player_bullet_model_ = nullptr;
+	Model* homing_arc_bullet_model_ = nullptr;
 	uint32_t textureHandle_ = 0u;
 	Camera* camera_ = nullptr;
 	Vector3 velocity_ = {0, 0, 0};
@@ -54,8 +60,7 @@ private:
 	Enemy* enemy_ = nullptr;
 	std::vector<Enemy*> lockedOnEnemies_;
 
-
-	Enemy* lockedEnemy_ = nullptr; // ロックオンした敵
+	BeamCharger beamCharger_;
 
 	// 仮実装：プレイヤーのHP
 	int hitPoint_ = 3;
@@ -70,5 +75,8 @@ private:
 	Enemy* lockedEnemy_ = nullptr;     // ロックオンした敵
 	std::list<MissilePartocle*> missileParticles_;
 	std::list<Beam*> beams_;
+
+
+	void DrawChargeEffect(const Camera& camera);
 };
 

@@ -1,6 +1,7 @@
 #pragma once
 #include "KamataEngine.h"
 #include "MatrixMath.h"
+#include "EnemyBullet.h"
 
 class Player;
 
@@ -41,7 +42,11 @@ public:
 	/// <returns>true ならどれかのビームに被弾</returns>
 	bool IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerRadius);
 
+	Vector3 GetWorldPosition() const;
+
 	void SetPlayer(Player* player) { player_ = player; }
+
+	const std::list<EnemyBullet*>& GetBullets() const { return bullets_; }
 
 private:
 	// =========================
@@ -66,6 +71,9 @@ private:
 	// ビーム専用モデル（円柱）
 	Model* beamModel_ = nullptr;
 
+	// ファンネル専用モデル
+	Model* funnelModel_ = nullptr;
+
 	// =========================
 	// ファンネル攻撃用
 	// =========================
@@ -82,6 +90,7 @@ private:
 		};
 
 		WorldTransform wt; // ファンネル本体のワールド変換
+
 		State state = Inactive;
 
 		// 現在の状態に残っているフレーム数

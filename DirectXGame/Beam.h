@@ -4,7 +4,7 @@
 
 class Beam {
 public:
-	void Initialize(const Vector3& start, const Vector3& direction);
+	void Initialize(const Vector3& start, const Vector3& target, float chargePower);
 	void Update();
 	void Draw(const Camera& camera);
 	bool IsDead() const { return isDead_; }

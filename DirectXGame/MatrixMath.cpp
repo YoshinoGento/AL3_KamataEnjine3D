@@ -2,6 +2,7 @@
 #include <cmath>
 #include <numbers>
 #include <algorithm>
+#include <cassert>
 
 // 02_14 29枚目 単項演算子オーバーロード
 Vector3 operator+(const Vector3& v) { return v; }
@@ -10,8 +11,11 @@ Vector3 operator-(const Vector3& v) { return Vector3(-v.x, -v.y, -v.z); }
 
 
 const Vector3 operator-(const Vector3& lhv, const Vector3& rhv) { 
-	 return {lhv.x - rhv.x, lhv.y - rhv.y, lhv.z - rhv.z};
-}
+	 return {lhv.x - rhv.x, lhv.y - rhv.y, lhv.z - rhv.z}; }
+
+const Vector3 operator+(const Vector3& v, float f) { return {v.x + f, v.y + f, v.z + f}; }
+
+const Vector3 operator-(const Vector3& v, float f) { return {v.x - f, v.y - f, v.z - f}; }
 
 // 02_06の29枚目(CameraControllerのUpdate)で必要
 const Vector3 operator*(const Vector3& v1, const float f) {
@@ -36,8 +40,15 @@ const Vector3 operator+(const Vector3& v1, const Vector3& v2) {
 //	return temp -= v2;
 //}
 
+inline float Lerp(float a, float b, float t) { return a + (b - a) * t; }
+
+
 // 02_06のスライド24枚目のLerp関数
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) { return Vector3(Lerp(v1.x, v2.x, t), Lerp(v1.y, v2.y, t), Lerp(v1.z, v2.z, t)); }
+
+// Vector4用のLerp関数
+Vector4 Lerp(const Vector4& a, const Vector4& b, float t) { return {a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t}; }
+
 
 // Vector3 / float
 const Vector3 operator/(const Vector3& v, float s) {
@@ -169,7 +180,6 @@ void WorldTransformUpdate(WorldTransform& worldTransform) {
 	worldTransform.TransferMatrix();
 }
 
-float Lerp(float x1, float x2, float t) { return (1.0f - t) * x1 + t * x2; }
 
 float EaseIn(float x1, float x2, float t) {
 	float easedT = t * t;
@@ -248,8 +258,6 @@ Vector3 UnProjectToWorldSpace(const Vector2& screenPos, float z, const Matrix4x4
 	return {world.x, world.y, world.z};
 }
 
-#include "MatrixMath.h"
-#include <cassert>
 
 // 逆行列計算（シンプルなガウスジョルダン消去法の実装）
 Matrix4x4 Inverse(const Matrix4x4& m) {
