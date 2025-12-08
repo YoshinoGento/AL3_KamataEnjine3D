@@ -43,6 +43,8 @@ public:
 	// プレイヤーのワールド座標を取得
 	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 
+	bool OnHitMissile(const Vector3& bulletPosition);
+
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
@@ -59,7 +61,6 @@ private:
 	std::vector<Enemy*> lockedOnEnemies_;
 
 	BeamCharger beamCharger_;
-
 
 	// 仮実装：プレイヤーのHP
 	int hitPoint_ = 3;

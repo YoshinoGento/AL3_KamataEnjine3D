@@ -18,12 +18,19 @@ Vector3 operator-(const Vector3& v);
 // Vector3 * float
 const Vector3 operator*(const Vector3& v1, float f);
 
+const Vector3 operator*(const float f, const Vector3& v1);
+
 // Vector3 + Vector3
 const Vector3 operator+(const Vector3& v1, const Vector3& v2);
 
 // Vector3 - Vector3
 const Vector3 operator-(const Vector3& v1, const Vector3& v2);
 
+// Vector3 + float
+const Vector3 operator+(const Vector3& v, float f);
+
+// Vector3 - float
+const Vector3 operator-(const Vector3& v, float f);
 
 // 02_06のスライド24枚目のLerp関数
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t);
@@ -96,6 +103,8 @@ Vector4 Transform(const Vector4& v, const Matrix4x4& m);
 // ワールド→スクリーン
 Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height);
 
+Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t);
+
 Vector3 Cross(const Vector3& a, const Vector3& b);
 
 float Dot(const Vector3& a, const Vector3& b);
@@ -107,4 +116,3 @@ Vector3 GetEulerFromMatrix(const Matrix4x4& m);
 Vector3 LookRotation(const Vector3& direction);
 
 Matrix4x4 MakeLookRotation(const Vector3& forward, const Vector3& up = {0, 1, 0});
-
