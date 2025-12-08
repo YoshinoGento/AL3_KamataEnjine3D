@@ -18,11 +18,14 @@ void Player::Initialize(Model* playerModel, Model* playerBulletModel, Camera* ca
 	hitPoint_ = 3;
 	invincibleTimer_ = 0;
 	beamCharger_.Initialize();
-
-
+	barrier_.Initialize();
+	isChargingBeam_ = false;
 }
 
 void Player::Update() {
+
+
+
 	bullets_.remove_if([](PlayerBullet* bullet) {
 		if (bullet->IsDead()) {
 			delete bullet;
@@ -51,7 +54,6 @@ void Player::Update() {
 	}
 	if (input_->PushKey(DIK_A)) {
 		move.x -= kCharacterSpeed;
-
 	}
 
 	velocity_ += move;
@@ -70,9 +72,47 @@ void Player::Update() {
 
 
 
+
+
+	
+	// 入力の現在状態を取得
+	bool isEPressed = input_->PushKey(DIK_E);
+
+	// トグル処理：Eキーが「前回離れてて、今回押された」場合
+	if (!wasETrigger_ && isEPressed) {
+		isChargingBeam_ = !isChargingBeam_;
+
+		if (isChargingBeam_) {
+			// チャージ開始
+			barrier_.SetActive(true);
+		} else {
+			// チャージ終了 → ビーム発射
+			barrier_.SetActive(false);
+
+			// ★ 先にチャージパワーを取得
+			float chargePower = beamCharger_.Consume();
+
+			// ★ ビーム生成
+			Beam* beam = new Beam();
+			Vector3 front = TransformNormal({0, 0, 1}, worldTransform_.matWorld_);
+			Vector3 target = worldTransform_.translation_ + front * 100.0f;
+			beam->Initialize(worldTransform_.translation_, target, chargePower);
+			beams_.push_back(beam);
+
+			// ★ 最後にリセット
+			barrier_.OnBeamFired();   // 状態リセット
+			barrier_.SetActive(true); // バリア再展開
+		}
+	}
+
+	// 次フレーム用に保存
+	wasETrigger_ = isEPressed;
+
+
+
 	Attack();
 
-	 // ✅ ←★ ここに追加！弾の段階的発射
+	// ✅ ←★ ここに追加！弾の段階的発射
 	if (isFiringFanMissiles_) {
 		fireTimer_++;
 
@@ -110,9 +150,6 @@ void Player::Update() {
 		return false;
 	});
 
-
-
-
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Update();
 	}
@@ -120,7 +157,6 @@ void Player::Update() {
 	for (HomingArcBullet* arcBullet : arcBullets_) {
 		arcBullet->Update();
 	}
-
 
 	missileParticles_.remove_if([](MissilePartocle* p) {
 		if (p->IsDead()) {
@@ -144,7 +180,7 @@ void Player::Update() {
 
 void Player::Draw() {
 
-	 // ★ 無敵中は点滅させる
+	// 無敵中は点滅させる
 	if (invincibleTimer_ > 0) {
 		// 5フレームごとに ON/OFF 切り替え（点滅周期）
 		if (((invincibleTimer_ / 5) % 2) == 0) {
@@ -164,6 +200,14 @@ void Player::Draw() {
 	for (auto* beam : beams_) {
 		beam->Draw(*camera_);
 	}
+
+	barrier_.Draw(*camera_, worldTransform_.translation_);
+
+	beamCharger_.Draw(*camera_);
+
+	/*if (isChargingBeam_) {
+		DrawChargeEffect(*camera_);
+	}*/
 }
 
 void Player::Attack() {
@@ -185,7 +229,6 @@ void Player::Attack() {
 	}
 	//=================================
 
-
 	//================ロックオン・ミサイル発射処理================
 	// ロックオン処理（右クリックなど）
 	if (input_->IsTriggerMouse(1)) { // 右クリックでロックオン
@@ -206,26 +249,11 @@ void Player::Attack() {
 	}
 	//========================================================
 
-	//==========ビーム===========
-	if (input_->TriggerKey(DIK_E)) {
-		Beam* beam = new Beam();
-		Vector3 front = TransformNormal({0, 0, 1}, worldTransform_.matWorld_);
-		Vector3 target = worldTransform_.translation_ + front * 100.0f;
-
-		float chargePower = beamCharger_.Consume(); // 吸収した敵攻撃量を使用
-		beam->Initialize(worldTransform_.translation_, target, chargePower);
-
-		beams_.push_back(beam);
-	}
-	//===========================
-
-	// ★ それ以外のロックオン / ホーミング処理は一旦すべて削除
+	
 }
 
-
-
 void Player::FireToward(const Vector3& targetWorld) {
-	
+
 	// 弾の速度
 	const float kBulletSpeed = 1.0f;
 
@@ -238,7 +266,7 @@ void Player::FireToward(const Vector3& targetWorld) {
 	// 正規化して速度ベクトルに変換
 	direction = Normalized(direction);
 
-	//実際の速度
+	// 実際の速度
 	Vector3 velocity = direction * kBulletSpeed;
 
 	// 弾を生成し、初期化
@@ -250,26 +278,31 @@ void Player::FireToward(const Vector3& targetWorld) {
 }
 
 void Player::OnHitByBeam() {
-	//既に無敵中ならスルー
-	if (invincibleTimer_ > 0) {
+	// バリアが壊れている状態なら通常のダメージ処理
+	if (barrier_.IsBroken()) {
+		if (invincibleTimer_ > 0)
+			return;
+
+		--hitPoint_;
+		if (hitPoint_ < 0)
+			hitPoint_ = 0;
+
+		invincibleTimer_ = 60; // 無敵時間セット
 		return;
 	}
 
-	//HP減少
-	--hitPoint_;
-	if (hitPoint_ < 0) {
-		hitPoint_ = 0;
+	// ここに来た = バリアがまだある → 攻撃を吸収
+	float absorbPower = 30.0f; // 1発分の吸収量（仮）
+
+	barrier_.Absorb(absorbPower);     // バリアに吸収させる
+	beamCharger_.Absorb(absorbPower); // チャージにも吸収反映
+
+	// バリアがここで壊れたら、ここでエフェクトなど
+	if (barrier_.IsBroken()) {
+		// ここで「割れ演出」や「クールタイム突入」などを処理
+		// 例： barrierBreakEffect_->Play();
 	}
-
-	// 無敵時間セット（60フレーム＝1秒間）
-	invincibleTimer_ = 60; // 1秒間
-
-	// 余裕があれば演出を追加
-	//worldTransform_.translation_.z -= 0.5f; // 少し後退
-
-
 }
-
 
 Player::~Player() {
 	for (PlayerBullet* bullet : bullets_) {
@@ -280,9 +313,8 @@ Player::~Player() {
 	}
 }
 
-
-
 void Player::SetEnemy(Enemy* enemy) { enemy_ = enemy; }
+
 
 void Player::DrawChargeEffect(const Camera& camera) {
 	float rate = beamCharger_.GetChargeRate(); // 0.0〜1.0
@@ -312,7 +344,3 @@ void Player::DrawChargeEffect(const Camera& camera) {
 
 	chargeModel->Draw(wt, camera, &objColor);
 }
-
-
-
-

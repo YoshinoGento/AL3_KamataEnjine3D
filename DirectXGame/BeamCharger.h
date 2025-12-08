@@ -14,8 +14,11 @@ public:
 	float Consume();             // 使用後リセットして値を返す
 	bool IsFull() const;
 
+
 private:
 
 	float absorbPower_ = 0.0f;
 	const float maxPower_ = 100.0f;
+	Model* barModel_ = nullptr;
+	
 };

@@ -7,6 +7,7 @@
 #include "PlayerBullet.h"
 #include "Beam.h"
 #include "BeamCharger.h"
+#include "Barrier.h"
 #include <list>
 
 using namespace KamataEngine;
@@ -43,6 +44,7 @@ public:
 	// プレイヤーのワールド座標を取得
 	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 
+
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
@@ -54,6 +56,7 @@ private:
 	std::list<PlayerBullet*> bullets_;
 	std::list<HomingArcBullet*> arcBullets_;
 	Input* input_ = nullptr;
+	// 前回の状態をstatic
 
 	Enemy* enemy_ = nullptr;
 	std::vector<Enemy*> lockedOnEnemies_;
@@ -74,6 +77,14 @@ private:
 	std::list<MissilePartocle*> missileParticles_;
 	std::list<Beam*> beams_;
 
+	// バリア
+	Barrier barrier_;
+
+	// 今チャージ中かどうか？
+	bool isChargingBeam_ = false; // チャージ中かどうか
+	bool wasETrigger_ = false;    // 前フレームのEキー状態（トグル検出用）
+
+	
 
 	void DrawChargeEffect(const Camera& camera);
 };
