@@ -18,6 +18,8 @@ public:
 	// 敵弾のワールド座標を取得
 	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 
+	bool IsHitByPlayerBullet(const Vector3& bulletPosition);
+
 private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;

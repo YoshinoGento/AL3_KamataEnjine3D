@@ -43,7 +43,7 @@ public:
 	// プレイヤーのワールド座標を取得
 	const Vector3& GetWorldPosition() const { return worldTransform_.translation_; }
 
-	bool OnHitMissile(const Vector3& bulletPosition);
+	bool IsHitMissile(const Vector3& bulletPosition);
 
 private:
 	WorldTransform worldTransform_;

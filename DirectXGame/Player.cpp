@@ -270,7 +270,7 @@ void Player::OnHitByBeam() {
 
 }
 
-bool Player::OnHitMissile(const Vector3& bulletPosition) {
+bool Player::IsHitMissile(const Vector3& bulletPosition) {
 	// AABB の min / max を計算
 	const float kPlayerRadius = 0.5f; // プレイヤー当たり判定の半径
 	Vector3 minPosition = GetWorldPosition() - kPlayerRadius;
