@@ -78,7 +78,7 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 }
 
 void Enemy::Update(const Vector3& playerPosition) {
-	if (bodyParts_[0].isDestroyed && bodyParts_[1].isDestroyed && bodyParts_[2].isDestroyed) {
+	if (bodyParts_[1].isDestroyed || bodyParts_[2].isDestroyed) {
 		form = Form::TWO;
 	}
 
