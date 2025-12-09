@@ -172,8 +172,8 @@ void GameScene::Draw() {
 	Model::PreDraw(dxCommon->GetCommandList());
 
 	skydome_->Draw();
-	player_->Draw();
 	enemy_->Draw(camera_);
+	player_->Draw();
 
 	// 3Dモデル描画後処理
 	Model::PostDraw();
