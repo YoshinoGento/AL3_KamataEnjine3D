@@ -157,6 +157,20 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 
 	// 最初の攻撃まで少し待つ
 	funnelAttackCoolTimer_ = 180;
+
+		// 壊れていない本体部位だけ描画
+	for (int i = 0; i < kBodyPartCount; ++i) {
+
+		const BodyPart& part = bodyParts_[i];
+		if (part.isDestroyed) {
+			continue;
+		}
+
+		worldTransforms_[i].translation_ = part.centerPosition;
+		worldTransforms_[i].scale_ = part.boxSize;
+
+		WorldTransformUpdate(worldTransforms_[i]);
+	}
 }
 
 // ============================
@@ -208,15 +222,6 @@ void Enemy::Draw(const Camera& camera) {
 	// 壊れていない本体部位だけ描画
 	for (int i = 0; i < kBodyPartCount; ++i) {
 
-		const BodyPart& part = bodyParts_[i];
-		if (part.isDestroyed) {
-			continue;
-		}
-
-		worldTransforms_[i].translation_ = part.centerPosition;
-		worldTransforms_[i].scale_ = part.boxSize;
-
-		WorldTransformUpdate(worldTransforms_[i]);
 		model_->Draw(worldTransforms_[i], camera);
 	}
 
