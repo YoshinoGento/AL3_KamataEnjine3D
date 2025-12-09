@@ -12,6 +12,11 @@ using namespace KamataEngine;
 /// </summary>
 class Enemy {
 public:
+	enum struct Form {
+		ONE,
+		TWO,
+	};
+
 	/// <summary>
 	/// 初期化：bossBasePosition を中心にボスの部位を配置する
 	/// </summary>
@@ -131,6 +136,9 @@ private:
 	int fireTimer = 0;
 	// 発射間隔
 	static const int kFireInterval = 600;
+
+	// 形態
+	Form form = Form::ONE;
 
 	// ファンネル攻撃を開始（空きがあれば1機だけ使用）
 	void StartFunnelAttack(const Vector3& playerPosition);

@@ -10,6 +10,7 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector
 	textureHandle_ = TextureManager::Load("enemyBullet.png");
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
+	worldTransform_.scale_ = {0.5f, 0.5f, 0.5f};
 	velocity_ = velocity;
 }
 
@@ -41,4 +42,25 @@ void EnemyBullet::Update() {
 
 void EnemyBullet::Draw(const Camera& camera) { 
 	model_->Draw(worldTransform_, camera, textureHandle_);
+}
+
+bool EnemyBullet::IsHitByPlayerBullet(const Vector3& bulletPosition) {
+	// AABB の min / max を計算
+	const float kBulletRadius = 0.5f; // プレイヤー当たり判定の半径
+	Vector3 minPosition = GetWorldPosition() - kBulletRadius;
+	Vector3 maxPosition = GetWorldPosition() + kBulletRadius;
+
+	// 点（弾）の位置が AABB 内にあるか判定
+	bool isInside = (bulletPosition.x >= minPosition.x && bulletPosition.x <= maxPosition.x) && (bulletPosition.y >= minPosition.y && bulletPosition.y <= maxPosition.y) &&
+	                (bulletPosition.z >= minPosition.z && bulletPosition.z <= maxPosition.z);
+
+	if (isInside) {
+		// ヒットしたのでダメージ
+		isDead_ = true;
+
+		// 1発で複数部位に当たらないように、ここで終了
+		return true;
+	}
+
+	return false;
 }
