@@ -76,6 +76,7 @@ void Barrier::Draw(const Camera& camera, const Vector3& playerPosition) {
 	WorldTransformUpdate(worldTransform_); // ←これ重要！
 
 	model_->Draw(worldTransform_, camera, &objectColor_);
+
 }
 
 
