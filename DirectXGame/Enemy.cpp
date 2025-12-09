@@ -591,7 +591,7 @@ void Enemy::ShootMissile() {
 	const float kBulletSpeed = 2.0f;
 	Vector3 velocity = {};
 
-	// 自キャラのワールド座標を取得する
+	// 敵のワールド座標を取得する
 	Vector3 playerPos = player_->GetWorldPosition();
 	const BodyPart& bodyPart = bodyParts_[0];
 	// 敵キャラのワールド座標を取得する
