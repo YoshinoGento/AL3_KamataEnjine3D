@@ -17,10 +17,20 @@ void Player::Initialize(Model* playerModel, Model* playerBulletModel, Camera* ca
 	input_ = Input::GetInstance();
 	hitPoint_ = 3;
 	invincibleTimer_ = 0;
+
 	beamCharger_.Initialize();
 	barrier_.Initialize();
 	isChargingBeam_ = false;
+
+	// ▼ 追加：チャージエフェクト用リソースを一度だけ作成
+	chargeEffectModel_ = Model::CreateFromOBJ("ChargeEffect");
+	if (chargeEffectModel_) {
+		chargeEffectColor_.Initialize();
+		// 初期色は青にしておくなど（なくてもOK）
+		chargeEffectColor_.SetColor(Vector4{0, 0, 1, 1});
+	}
 }
+
 
 void Player::Update() {
 
@@ -353,6 +363,9 @@ void Player::DrawChargeEffect(const Camera& camera) {
 	if (rate <= 0.0f)
 		return;
 
+	if (!chargeEffectModel_) // モデル読めてなかったら何もしない
+		return;
+
 	// チャージエフェクトの色（青→赤）
 	Vector4 color = Lerp(Vector4{0, 0, 1, 1}, Vector4{1, 0, 0, 1}, rate);
 
@@ -364,14 +377,7 @@ void Player::DrawChargeEffect(const Camera& camera) {
 
 	WorldTransformUpdate(wt);
 
-	Model* chargeModel = Model::CreateFromOBJ("ChargeEffect");
-	if (!chargeModel)
-		return;
-
-	// 正しい使い方
-	ObjectColor objColor;
-	objColor.Initialize();
-	objColor.SetColor(color);
-
-	chargeModel->Draw(wt, camera, &objColor);
+	// ★ ローカルの ObjectColor は使わない
+	chargeEffectColor_.SetColor(color);
+	chargeEffectModel_->Draw(wt, camera, &chargeEffectColor_);
 }

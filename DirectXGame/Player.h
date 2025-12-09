@@ -79,6 +79,10 @@ private:
 	std::list<MissilePartocle*> missileParticles_;
 	std::list<Beam*> beams_;
 
+	// チャージエフェクト用
+	Model* chargeEffectModel_ = nullptr;
+	ObjectColor chargeEffectColor_;
+
 	// バリア
 	Barrier barrier_;
 
