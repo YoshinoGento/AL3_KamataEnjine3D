@@ -15,4 +15,5 @@ private:
 	float lifeTime_ = 20.0f;
 	float time_ = 0.0f;
 	bool isDead_ = false;
+	float damage_ = 0.0f;
 };

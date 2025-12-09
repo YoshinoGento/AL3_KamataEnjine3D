@@ -25,6 +25,9 @@ void Beam::Initialize(const Vector3& start, const Vector3& target, float chargeP
 
 	// ライフタイムをチャージに応じて少し伸ばす（任意）
 	lifeTime_ = 20.0f + (chargePower / 100.0f) * 20.0f;
+
+	// チャージ量に応じた攻撃力を設定（例：最小10、最大50）
+	damage_ = 10.0f + (chargePower / 100.0f) * 40.0f;
 }
 
 
