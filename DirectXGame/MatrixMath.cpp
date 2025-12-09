@@ -311,6 +311,17 @@ Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Ma
 	return {x * width, y * height};
 }
 
+Vector2 WorldToScreen(const Vector3& worldPos, const Camera& camera, int screenWidth, int screenHeight) {
+	Matrix4x4 viewProjMatrix = camera.matView * camera.matProjection;
+	Vector3 ndc = Transform(worldPos, viewProjMatrix); // NDC座標（-1〜+1）
+
+	Vector2 screenPos;
+	screenPos.x = (ndc.x + 1.0f) * 0.5f * screenWidth;
+	screenPos.y = (1.0f - ndc.y) * 0.5f * screenHeight;
+	return screenPos;
+}
+
+
 Vector3 Cross(const Vector3& a, const Vector3& b) { return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x}; }
 
 float Dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }

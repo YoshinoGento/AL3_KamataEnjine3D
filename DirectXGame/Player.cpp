@@ -20,11 +20,13 @@ void Player::Initialize(Model* playerModel, Model* playerBulletModel, Camera* ca
 	beamCharger_.Initialize();
 	barrier_.Initialize();
 	isChargingBeam_ = false;
+
+	lockonTexHandle_ = TextureManager::Load("lockon.png");
+	lockonSprite_ = Sprite::Create(lockonTexHandle_, {0, 0}, {1, 1, 1, 1}, {0.5f, 1.0f});
+	lockonSprite_->SetSize({64.0f, 64.0f}); // ここでサイズ調整！
 }
 
 void Player::Update() {
-
-
 
 	bullets_.remove_if([](PlayerBullet* bullet) {
 		if (bullet->IsDead()) {
@@ -70,12 +72,7 @@ void Player::Update() {
 	worldTransform_.translation_.x = std::clamp(worldTransform_.translation_.x, -kMoveLimitX, +kMoveLimitX);
 	worldTransform_.translation_.y = std::clamp(worldTransform_.translation_.y, -kMoveLimitY, +kMoveLimitY);
 
-
-
-
-
-	
-// 入力の現在状態を取得
+	// 入力の現在状態を取得
 	bool isEPressed = input_->PushKey(DIK_E);
 
 	// クールタイム中だったらトグル処理だけスキップ
@@ -108,10 +105,6 @@ void Player::Update() {
 	// 次フレーム用に保存
 	wasETrigger_ = isEPressed;
 
-
-
-
-
 	Attack();
 
 	// ✅ ←★ ここに追加！弾の段階的発射
@@ -124,7 +117,6 @@ void Player::Update() {
 			if (lockedEnemy_ && fireCount_ < 6) {
 				Vector3 enemyPos = lockedEnemy_->GetWorldPosition();
 
-				// ランダム制御点生成
 				Vector3 offset = {((rand() % 200) - 100) / 10.0f, ((rand() % 200)) / 10.0f + 5.0f, ((rand() % 200) - 100) / 10.0f};
 
 				HomingArcBullet* arcBullet = new HomingArcBullet();
@@ -136,6 +128,7 @@ void Player::Update() {
 
 			if (fireCount_ >= 6) {
 				isFiringFanMissiles_ = false;
+				lockedEnemy_ = nullptr; // ← ★ これでロック解除！
 			}
 		}
 	}
@@ -176,11 +169,8 @@ void Player::Update() {
 		return false;
 	});
 
-
 	// 最後の方がベスト
 	barrier_.Update();
-
-
 
 	WorldTransformUpdate(worldTransform_);
 	worldTransform_.TransferMatrix();
@@ -214,8 +204,32 @@ void Player::Draw() {
 
 	beamCharger_.Draw(*camera_);
 
+
+	// 🔽 スプライト描画前処理
+	Sprite::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
+
+	// 🔽 ロックオンUI描画
+	if (lockedEnemy_ && lockonSprite_) {
+		// ① 敵のワールド座標を取得
+		Vector3 enemyWorldPos = lockedEnemy_->GetWorldPosition();
+
+		// ② 頭上にオフセット（例：+1.5f 上に）
+		enemyWorldPos.y += 1.5f;
+
+		// ③ スクリーン座標に変換
+		Vector2 screenPos = ProjectToScreen(enemyWorldPos, camera_->matView, camera_->matProjection, 1280, 720);
+
+		// ④ UI表示位置にセット＆描画
+		lockonSprite_->SetPosition(screenPos);
+		lockonSprite_->Draw();
+	}
+
+
+	// 🔼 スプライト描画後処理
+	Sprite::PostDraw();
+
 	/*if (isChargingBeam_) {
-		DrawChargeEffect(*camera_);
+	    DrawChargeEffect(*camera_);
 	}*/
 }
 
@@ -257,8 +271,6 @@ void Player::Attack() {
 		lockedEnemy_ = nullptr;
 	}
 	//========================================================
-
-	
 }
 
 void Player::FireToward(const Vector3& targetWorld) {
@@ -312,7 +324,6 @@ void Player::OnHitByBeam() {
 	}
 }
 
-
 bool Player::OnHitMissile(const Vector3& bulletPosition) {
 	// AABB の min / max を計算
 	const float kPlayerRadius = 0.5f; // プレイヤー当たり判定の半径
@@ -321,7 +332,7 @@ bool Player::OnHitMissile(const Vector3& bulletPosition) {
 
 	// 点（弾）の位置が AABB 内にあるか判定
 	bool isInside = (bulletPosition.x >= minPosition.x && bulletPosition.x <= maxPosition.x) && (bulletPosition.y >= minPosition.y && bulletPosition.y <= maxPosition.y) &&
-		            (bulletPosition.z >= minPosition.z && bulletPosition.z <= maxPosition.z);
+	                (bulletPosition.z >= minPosition.z && bulletPosition.z <= maxPosition.z);
 
 	if (isInside) {
 		// ヒットしたのでダメージ
@@ -334,7 +345,6 @@ bool Player::OnHitMissile(const Vector3& bulletPosition) {
 	return false;
 }
 
-
 Player::~Player() {
 	for (PlayerBullet* bullet : bullets_) {
 		delete bullet;
@@ -345,7 +355,6 @@ Player::~Player() {
 }
 
 void Player::SetEnemy(Enemy* enemy) { enemy_ = enemy; }
-
 
 void Player::DrawChargeEffect(const Camera& camera) {
 	float rate = beamCharger_.GetChargeRate(); // 0.0〜1.0
