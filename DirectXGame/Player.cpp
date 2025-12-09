@@ -75,42 +75,40 @@ void Player::Update() {
 
 
 	
-	// 入力の現在状態を取得
+// 入力の現在状態を取得
 	bool isEPressed = input_->PushKey(DIK_E);
 
-	// トグル処理：Eキーが「前回離れてて、今回押された」場合
-	if (!wasETrigger_ && isEPressed) {
+	// クールタイム中だったらトグル処理だけスキップ
+	bool skipToggle = barrier_.IsInCooldown();
+
+	// Eキーが「前回離れてて、今回押された」場合
+	if (!wasETrigger_ && isEPressed && !skipToggle) {
 		isChargingBeam_ = !isChargingBeam_;
 
 		if (isChargingBeam_) {
-			// チャージ開始
-			barrier_.SetActive(true);
-
-			 if (barrier_.IsBroken()) {
-				barrier_.Reset(); // ★追加：壊れてたら復活
+			if (barrier_.IsBroken()) {
+				barrier_.Reset();
 			}
+			barrier_.SetActive(true);
 		} else {
-			// チャージ終了 → ビーム発射
 			barrier_.SetActive(false);
 
-			// ★ 先にチャージパワーを取得
 			float chargePower = beamCharger_.Consume();
 
-			// ★ ビーム生成
 			Beam* beam = new Beam();
 			Vector3 front = TransformNormal({0, 0, 1}, worldTransform_.matWorld_);
 			Vector3 target = worldTransform_.translation_ + front * 100.0f;
 			beam->Initialize(worldTransform_.translation_, target, chargePower);
 			beams_.push_back(beam);
 
-			// ★ 最後にリセット
-			barrier_.OnBeamFired();   // 状態リセット
-			barrier_.SetActive(true); // バリア再展開
+			barrier_.Break();
 		}
 	}
 
 	// 次フレーム用に保存
 	wasETrigger_ = isEPressed;
+
+
 
 
 
@@ -178,6 +176,12 @@ void Player::Update() {
 		return false;
 	});
 
+
+	// 最後の方がベスト
+	barrier_.Update();
+
+
+
 	WorldTransformUpdate(worldTransform_);
 	worldTransform_.TransferMatrix();
 }
@@ -204,8 +208,9 @@ void Player::Draw() {
 	for (auto* beam : beams_) {
 		beam->Draw(*camera_);
 	}
-
-	barrier_.Draw(*camera_, worldTransform_.translation_);
+	if (!barrier_.IsBroken()) {
+		barrier_.Draw(*camera_, worldTransform_.translation_);
+	}
 
 	beamCharger_.Draw(*camera_);
 
@@ -303,8 +308,7 @@ void Player::OnHitByBeam() {
 
 	// バリアがここで壊れたら、ここでエフェクトなど
 	if (barrier_.IsBroken()) {
-		// ここで「割れ演出」や「クールタイム突入」などを処理
-		// 例： barrierBreakEffect_->Play();
+		barrier_.Break(); // ← これでクールタイムへ
 	}
 }
 

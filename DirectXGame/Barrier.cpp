@@ -18,11 +18,15 @@ void Barrier::Initialize() {
 }
 
 void Barrier::Update() {
-	if (isBroken_) {
-		coolTime_ -= 1.0f;
-		if (coolTime_ <= 0.0f) {
-			isBroken_ = false;
-			durability_ = kMaxDurability;
+	
+
+	// クールダウン処理
+	if (isInCooldown_) {
+		cooldownTimer_--;
+		if (cooldownTimer_ <= 0) {
+			isInCooldown_ = false;
+			durability_ = kMaxDurability; // ← バリア復活
+			isBroken_ = false;            // ← これも忘れずに！
 		}
 	}
 
@@ -38,10 +42,10 @@ void Barrier::Absorb(float power) {
 	durability_ -= power;
 	if (durability_ <= 0.0f) {
 		durability_ = 0.0f;
-		isBroken_ = true;
-		coolTime_ = kCoolTime; // 例：クールタイム 3秒
+		Break(); // ← ★ ここを呼ぶ！
 	}
 }
+
 
 void Barrier::OnBeamFired() {
 	if (!isBroken_) {
@@ -75,6 +79,17 @@ void Barrier::Draw(const Camera& camera, const Vector3& playerPosition) {
 
 
 void Barrier::Reset() {
-	isBroken_ = false;
 	durability_ = kMaxDurability;
+	isBroken_ = false;
+	isInCooldown_ = false;
+	cooldownTimer_ = 0;
 }
+
+
+void Barrier::Break() {
+	isBroken_ = true;
+	isInCooldown_ = true;
+	cooldownTimer_ = kCooldownTime;
+}
+
+bool Barrier::IsInCooldown() const { return isInCooldown_; }

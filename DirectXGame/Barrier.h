@@ -30,17 +30,25 @@ public:
 
 	void Reset();
 
+	void Break();
+
+	bool IsInCooldown()const;
+
 private:
 	float durability_ = kMaxDurability;
 	float coolTime_ = 0.0f;
 	bool isBroken_ = false;
+
+	bool isInCooldown_ = false;
+	int cooldownTimer_ = 0;
+	const int kCooldownTime = 180; // 例：3秒
 
 	Model* model_ = nullptr; // 半透明バリアモデル
 
 	ObjectColor objectColor_; // ← これを追加
 
 	// 定数
-	static constexpr float kMaxDurability = 100.0f;
+	static constexpr float kMaxDurability = 1500.0f;
 	static constexpr float kCoolTime = 180.0f;
 
 	Vector4 color_;
