@@ -84,7 +84,7 @@ private:
 
 	// 今チャージ中かどうか？
 	bool isChargingBeam_ = false; // チャージ中かどうか
-	bool wasETrigger_ = false;    // 前フレームのEキー状態（トグル検出用）
+	bool wasETrigger_ = false;    // 前フレームのEキー状態（トグル検出用）z
 
 	
 

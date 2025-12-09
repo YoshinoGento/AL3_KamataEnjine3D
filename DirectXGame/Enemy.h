@@ -118,12 +118,35 @@ private:
 	// ビーム描画用 WorldTransform（全ビームで使い回し）
 	WorldTransform beamWorldTransform_;
 
+	// =========================
+	// 上から3本のファンネルビーム（第一形態用）
+	// =========================
+	struct VerticalBeam {
+		bool active = false; // true なら照射中
+		int timer = 0;       // 残りフレーム数
+		Vector3 start;       // ビーム始点（上側）
+		Vector3 target;      // ビーム終点（下側 or ロックした位置）
+	};
+
+	static const int kVerticalBeamCount = 3;
+	VerticalBeam verticalBeams_[kVerticalBeamCount];
+
+	  // 上から3本ビーム攻撃のクールタイム（フレーム数）
+	int topBeamAttackCoolTimer_ = 0;
+
+	//===========================
+
+
 	// ファンネル攻撃のクールタイム（フレーム数）
 	int funnelAttackCoolTimer_ = 0;
 
 	// プレイヤー
 	Player* player_ = nullptr;
 
+
+	// =========================
+	// ミサイル
+	// =========================
 	// ミサイル
 	std::list<EnemyBullet*> bullets_;
 	
@@ -132,18 +155,48 @@ private:
 	// 発射間隔
 	static const int kFireInterval = 600;
 
+
+	 // ---- ここから関数宣言 ----
+
 	// ファンネル攻撃を開始（空きがあれば1機だけ使用）
 	void StartFunnelAttack(const Vector3& playerPosition);
+
+	///<summary>
+	/// 上から3本のファンネルビーム攻撃を開始（第一形態）
+	/// </summary>
+	void StartTopBeamAttack(const Vector3& playerPosition);
+
+	/// <summary>
+	/// 上からファンネル攻撃を開始（空きがあれば1機だけ使用）
+	/// </summary>
+	void StartTopFunnelAttack(const Vector3& playerPosition);
 
 	/// <summary>
 	/// ファンネルの状態更新（L字移動＋照射時間の進行）
 	/// </summary>
 	void UpdateFunnels(const Vector3& playerPosition);
 
+	void UpdateTopFunnels(const Vector3& playerPosition);
+
+
+
+	///<summary>
+	/// 上から3本のファンネルビーム攻撃の状態更新（第一形態）
+	/// </summary>
+	void UpdateTopBeams(const Vector3& playerPosition);
+
 	/// <summary>
 	/// ファンネルの描画（本体＋ビーム）
 	/// </summary>
 	void DrawFunnels(const Camera& camera);
+
+	/// <summary>
+	/// 上から３盆ビームの描画（第一形態）
+	/// </summary>
+	void DrawTopBeams(const Camera& camera);
+
+	void DrawTopFunnels(const Camera& camera);
+
 
 	// ミサイルの発射
 	void ShootMissile();

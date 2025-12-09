@@ -151,12 +151,22 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 		funnels_[i].beamTarget = bossBasePosition; // 初期値は適当でOK（後で上書き）
 	}
 
-	// ビーム描画用 WorldTransform（全ビーム共通で使い回し）
+	    // ビーム描画用 WorldTransform（全ビーム共通で使い回し）
 	beamWorldTransform_.Initialize();
 	beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, 1.0f};
 
+	// 上から3本ビーム用の初期化
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		verticalBeams_[i].active = false;
+		verticalBeams_[i].timer = 0;
+		verticalBeams_[i].start = bossBasePosition;
+		verticalBeams_[i].target = bossBasePosition;
+	}
+
 	// 最初の攻撃まで少し待つ
 	funnelAttackCoolTimer_ = 180;
+	topBeamAttackCoolTimer_ = 180;
+
 
 		// 壊れていない本体部位だけ描画
 	for (int i = 0; i < kBodyPartCount; ++i) {
@@ -185,26 +195,34 @@ void Enemy::Update(const Vector3& playerPosition) {
 		return false;
 	});
 
+	// L字ファンネル攻撃のクールタイム
 	if (funnelAttackCoolTimer_ > 0) {
 		--funnelAttackCoolTimer_;
 	}
-
 	if (funnelAttackCoolTimer_ == 0) {
 		StartFunnelAttack(playerPosition);
 	}
 
-	UpdateFunnels(playerPosition);
+	// 上から3本ビーム攻撃のクールタイム
+	if (topBeamAttackCoolTimer_ > 0) {
+		--topBeamAttackCoolTimer_;
+	}
+	if (topBeamAttackCoolTimer_ == 0) {
+		StartTopBeamAttack(playerPosition);
+	}
 
+	// 各攻撃パターンの状態更新
+	UpdateFunnels(playerPosition);
+	UpdateTopBeams(playerPosition);
+
+	// ミサイル
 	fireTimer--;
-	// 指定時間に達した
 	if (fireTimer <= 0) {
-		// 弾を発射
 		ShootMissile();
-		// 発射タイマーを初期化
 		fireTimer = kFireInterval;
 	}
 
-	// 弾更新
+	// 敵弾更新
 	for (EnemyBullet* bullet : bullets_) {
 		bullet->Update();
 	}
@@ -221,18 +239,24 @@ void Enemy::Draw(const Camera& camera) {
 
 	// 壊れていない本体部位だけ描画
 	for (int i = 0; i < kBodyPartCount; ++i) {
-
 		model_->Draw(worldTransforms_[i], camera);
 	}
 
 	// ファンネル描画（本体＋ビーム）
 	DrawFunnels(camera);
 
+	// 上からファンネル描画（本体＋ビーム）
+	DrawTopFunnels(camera);
+
+	// 上から3本ビーム描画
+	DrawTopBeams(camera);
+
 	// 弾描画
 	for (EnemyBullet* bullet : bullets_) {
 		bullet->Draw(camera);
 	}
 }
+
 
 // ============================
 // AABB での被弾判定（部位破壊）
@@ -318,6 +342,46 @@ void Enemy::StartFunnelAttack(const Vector3& playerPosition) {
 	// 次の攻撃までのクール
 	funnelAttackCoolTimer_ = 240;
 }
+
+// ============================
+// 上から3本ビーム攻撃：開始
+// ============================
+void Enemy::StartTopBeamAttack(const Vector3& playerPosition) {
+
+	// すでにどれかが動いている場合は新規発動しない
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		if (verticalBeams_[i].active) {
+			return;
+		}
+	}
+
+	// X方向の等間隔・高さなどのパラメータ
+	const float kSpacing = 2.5f;  // X方向の間隔
+	const float kHeight = 6.0f;   // プレイヤーよりどれだけ上から撃つか
+	const float kDepth = 4.0f;    // プレイヤーよりどれだけ下まで伸ばすか
+	const int kCoolFrames = 240;  // 次のパターンまでのクール
+
+	float baseX = playerPosition.x;
+	float baseY = playerPosition.y;
+	float z = playerPosition.z;
+
+	// 中央をプレイヤーXに合わせて、左・中央・右に3本
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		VerticalBeam& b = verticalBeams_[i];
+
+		float offsetX = static_cast<float>(i - 1) * kSpacing;
+
+		b.active = true;
+		b.timer = kFiringFrames;
+
+		// 上から下方向へのビーム
+		b.start = {baseX + offsetX, baseY + kHeight, z};
+		b.target = {baseX + offsetX, baseY - kDepth, z};
+	}
+
+	topBeamAttackCoolTimer_ = kCoolFrames;
+}
+
 
 // ============================
 // ファンネル攻撃：状態更新
@@ -422,6 +486,26 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 }
 
 // ============================
+// 上から3本ビーム攻撃：更新
+// ============================
+void Enemy::UpdateTopBeams(const Vector3& /*playerPosition*/) {
+
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		VerticalBeam& b = verticalBeams_[i];
+		if (!b.active) {
+			continue;
+		}
+
+		if (b.timer > 0) {
+			--b.timer;
+		} else {
+			b.active = false;
+		}
+	}
+}
+
+
+// ============================
 // ファンネル描画（本体＋円柱ビーム）
 // ============================
 void Enemy::DrawFunnels(const Camera& camera) {
@@ -505,6 +589,124 @@ void Enemy::DrawFunnels(const Camera& camera) {
 	}
 }
 
+
+// ============================
+// 上から3機ファンネルの描画
+// ============================
+void Enemy::DrawTopFunnels(const Camera& camera) {
+
+	// ファンネルモデルが読み込めていなければ何もしない
+	if (!funnelModel_) {
+		return;
+	}
+
+	// 上から3本ビームの情報をそのまま利用
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		const VerticalBeam& b = verticalBeams_[i];
+
+		// 動いていないビームは無視
+		if (!b.active || b.timer <= 0) {
+			continue;
+		}
+
+		// ファンネルを置く位置 = ビームの開始位置（画面上側）
+		WorldTransform wt;
+		wt.Initialize();
+		wt.translation_ = b.start;
+		wt.scale_ = {0.5f, 0.5f, 0.5f}; // 他ファンネルと同じスケールに調整
+
+		// 向き：ビーム方向を向かせる（ほぼ真下を向くはず）
+		Vector3 dir = b.target - b.start;
+		float lenSq = dir.x * dir.x + dir.y * dir.y + dir.z * dir.z;
+		if (lenSq > 0.0001f) {
+			Vector3 nd = Normalized(dir);
+			float yaw = std::atan2f(nd.x, nd.z);
+			float pitch = std::atan2f(-nd.y, std::sqrtf(nd.x * nd.x + nd.z * nd.z));
+
+			wt.rotation_.x = pitch;
+			wt.rotation_.y = yaw;
+			wt.rotation_.z = 0.0f;
+		}
+
+		WorldTransformUpdate(wt);
+		funnelModel_->Draw(wt, camera);
+	}
+}
+
+
+
+
+// ============================
+// 上から3本ビーム攻撃：描画
+// ============================
+void Enemy::DrawTopBeams(const Camera& camera) {
+
+	if (!beamModel_) {
+		return;
+	}
+
+	// 見た目の最低長（短すぎると画面に映えないのでファンネルと同じ値）
+	const float kMinVisualLength = 30.0f;
+	const float kStartOffset = 0.5f;
+
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		const VerticalBeam& b = verticalBeams_[i];
+		if (!b.active || b.timer <= 0) {
+			continue;
+		}
+
+		// 上から下への線分
+		Vector3 beamStart = b.start;
+		Vector3 realEnd = b.target;
+
+		Vector3 dir{
+		    realEnd.x - beamStart.x,
+		    realEnd.y - beamStart.y,
+		    realEnd.z - beamStart.z,
+		};
+
+		float realLength = Length(dir);
+		if (realLength < 0.01f) {
+			continue;
+		}
+
+		Vector3 nd = Normalized(dir);
+
+		float visualLength = realLength;
+		if (visualLength < kMinVisualLength) {
+			visualLength = kMinVisualLength;
+		}
+
+		// ちょっとだけ前に出してから中点を取る
+		beamStart.x += nd.x * kStartOffset;
+		beamStart.y += nd.y * kStartOffset;
+		beamStart.z += nd.z * kStartOffset;
+
+		Vector3 visualEnd{
+		    beamStart.x + nd.x * visualLength,
+		    beamStart.y + nd.y * visualLength,
+		    beamStart.z + nd.z * visualLength,
+		};
+
+		Vector3 midPos{
+		    (beamStart.x + visualEnd.x) * 0.5f,
+		    (beamStart.y + visualEnd.y) * 0.5f,
+		    (beamStart.z + visualEnd.z) * 0.5f,
+		};
+
+		// WorldTransform セット
+		beamWorldTransform_.translation_ = midPos;
+		beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, visualLength * 0.5f};
+
+		// 向き：dir 方向を向くように回転
+		SetWorldTransformLookDir(beamWorldTransform_, nd);
+		WorldTransformUpdate(beamWorldTransform_);
+
+		beamModel_->Draw(beamWorldTransform_, camera);
+	}
+}
+
+
 // ============================
 // ビーム当たり判定
 // ============================
@@ -574,6 +776,56 @@ bool Enemy::IsPlayerHitByFunnelBeam(const Vector3& playerPosition, float playerR
 		Vector3 closestPoint = {beamStart.x + seg.x * t, beamStart.y + seg.y * t, beamStart.z + seg.z * t};
 
 		Vector3 diff = {playerPosition.x - closestPoint.x, playerPosition.y - closestPoint.y, playerPosition.z - closestPoint.z};
+
+		float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
+		if (distSq <= combinedRadiusSq) {
+			return true;
+		}
+	}
+
+	 // 上から3本ビームの当たり判定
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+
+		const VerticalBeam& b = verticalBeams_[i];
+		if (!b.active || b.timer <= 0) {
+			continue;
+		}
+
+		Vector3 beamStart = b.start;
+		Vector3 beamEnd = b.target;
+
+		// 線分 beamStart → beamEnd
+		Vector3 seg{
+		    beamEnd.x - beamStart.x,
+		    beamEnd.y - beamStart.y,
+		    beamEnd.z - beamStart.z,
+		};
+
+		float segLenSq = seg.x * seg.x + seg.y * seg.y + seg.z * seg.z;
+		if (segLenSq < 0.0001f) {
+			continue;
+		}
+
+		// プレイヤーから線分への最近点
+		Vector3 toPlayer = playerPosition - beamStart;
+		float dot = toPlayer.x * seg.x + toPlayer.y * seg.y + toPlayer.z * seg.z;
+		float t = dot / segLenSq;
+		if (t < 0.0f)
+			t = 0.0f;
+		if (t > 1.0f)
+			t = 1.0f;
+
+		Vector3 closestPoint{
+		    beamStart.x + seg.x * t,
+		    beamStart.y + seg.y * t,
+		    beamStart.z + seg.z * t,
+		};
+
+		Vector3 diff{
+		    playerPosition.x - closestPoint.x,
+		    playerPosition.y - closestPoint.y,
+		    playerPosition.z - closestPoint.z,
+		};
 
 		float distSq = diff.x * diff.x + diff.y * diff.y + diff.z * diff.z;
 		if (distSq <= combinedRadiusSq) {
