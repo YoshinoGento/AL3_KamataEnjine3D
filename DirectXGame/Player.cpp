@@ -312,6 +312,29 @@ void Player::OnHitByBeam() {
 	}
 }
 
+
+bool Player::OnHitMissile(const Vector3& bulletPosition) {
+	// AABB の min / max を計算
+	const float kPlayerRadius = 0.5f; // プレイヤー当たり判定の半径
+	Vector3 minPosition = GetWorldPosition() - kPlayerRadius;
+	Vector3 maxPosition = GetWorldPosition() + kPlayerRadius;
+
+	// 点（弾）の位置が AABB 内にあるか判定
+	bool isInside = (bulletPosition.x >= minPosition.x && bulletPosition.x <= maxPosition.x) && (bulletPosition.y >= minPosition.y && bulletPosition.y <= maxPosition.y) &&
+		            (bulletPosition.z >= minPosition.z && bulletPosition.z <= maxPosition.z);
+
+	if (isInside) {
+		// ヒットしたのでダメージ
+		hitPoint_--;
+
+		// 1発で複数部位に当たらないように、ここで終了
+		return true;
+	}
+
+	return false;
+}
+
+
 Player::~Player() {
 	for (PlayerBullet* bullet : bullets_) {
 		delete bullet;
