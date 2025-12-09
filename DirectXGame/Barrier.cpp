@@ -67,7 +67,8 @@ void Barrier::Draw(const Camera& camera, const Vector3& playerPosition) {
 	float rate = this->GetDurabilityRate();
 
 	// 色をLerpでスムーズに変化
-	color_ = Lerp({0.2f, 0.6f, 1.0f, 0.2f}, {1.0f, 0.2f, 0.2f, 0.4f}, 1.0f - rate);
+	// 透明度をもっと薄くして、敵が見えるように調整
+	color_ = Lerp({0.2f, 0.6f, 1.0f, 0.05f}, {1.0f, 0.2f, 0.2f, 0.15f}, 1.0f - rate);
 	objectColor_.SetColor(color_);
 
 	// ★ プレイヤーの位置を追従させる（Z方向にオフセットもあり？）
