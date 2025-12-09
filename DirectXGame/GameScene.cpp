@@ -77,6 +77,7 @@ void GameScene::Update() {
 	// プレイヤー弾 vs ボス部位の当たり判定（今まで通り）
 	if (enemy_) {
 		const std::list<PlayerBullet*>& bullets = player_->GetBullets();
+		const std::list<EnemyBullet*>& enemyBullets = enemy_->GetBullets();
 		for (PlayerBullet* bullet : bullets) {
 			if (!bullet || bullet->IsDead()) {
 				continue;
@@ -85,18 +86,25 @@ void GameScene::Update() {
 			if (enemy_->CheckHit(bulletPos)) {
 				bullet->OnHit();
 			}
-		}
-	}
+			
+			for (EnemyBullet* enemyBullet : enemyBullets) {
+				if (!enemyBullet || enemyBullet->IsDead()) {
+					continue;
+				}
 
-	if (enemy_) {
-		const std::list<EnemyBullet*>& bullets = enemy_->GetBullets();
-		for (EnemyBullet* bullet : bullets) {
+				if (enemyBullet->IsHitByPlayerBullet(bulletPos)) {
+					bullet->OnHit();
+				}
+			}
+		}
+
+		for (EnemyBullet* bullet : enemyBullets) {
 			if (!bullet || bullet->IsDead()) {
 				continue;
 			}
 
 			const Vector3& bulletPos = bullet->GetWorldPosition();
-			if (player_->OnHitMissile(bulletPos)) {
+			if (player_->IsHitMissile(bulletPos)) {
 				player_->OnHitByBeam();
 			}
 		}

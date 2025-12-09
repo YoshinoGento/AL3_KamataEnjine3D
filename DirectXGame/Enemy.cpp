@@ -177,13 +177,9 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 // 更新
 // ============================
 void Enemy::Update(const Vector3& playerPosition) {
-	bullets_.remove_if([](EnemyBullet* bullet) {
-		if (bullet->IsDead()) {
-			delete bullet;
-			return true;
-		}
-		return false;
-	});
+	if (bodyParts_[1].isDestroyed || bodyParts_[2].isDestroyed) {
+		form = Form::TWO;
+	}
 
 	if (funnelAttackCoolTimer_ > 0) {
 		--funnelAttackCoolTimer_;
@@ -195,18 +191,29 @@ void Enemy::Update(const Vector3& playerPosition) {
 
 	UpdateFunnels(playerPosition);
 
-	fireTimer--;
-	// 指定時間に達した
-	if (fireTimer <= 0) {
-		// 弾を発射
-		ShootMissile();
-		// 発射タイマーを初期化
-		fireTimer = kFireInterval;
-	}
+	switch (form) {
+	case Form::TWO:
+		bullets_.remove_if([](EnemyBullet* bullet) {
+			if (bullet->IsDead()) {
+				delete bullet;
+				return true;
+			}
+			return false;
+		});
 
-	// 弾更新
-	for (EnemyBullet* bullet : bullets_) {
-		bullet->Update();
+		fireTimer--;
+		// 指定時間に達した
+		if (fireTimer <= 0) {
+			// 弾を発射
+			ShootMissile();
+			// 発射タイマーを初期化
+			fireTimer = kFireInterval;
+		}
+
+		// 弾更新
+		for (EnemyBullet* bullet : bullets_) {
+			bullet->Update();
+		}
 	}
 }
 
