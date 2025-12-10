@@ -524,6 +524,7 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 }
 
 
+
 bool Enemy::IsDefeated() const {
 	// 第二形態のコア(0番)を壊したときだけ、ボス撃破扱いにする
 	return (form == Form::TWO) && bodyParts_[0].isDestroyed;
