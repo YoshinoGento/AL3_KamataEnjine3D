@@ -180,7 +180,15 @@ void Enemy::Update(const Vector3& playerPosition) {
 	if (bodyParts_[1].isDestroyed || bodyParts_[2].isDestroyed) {
 		form = Form::TWO;
 	}
-
+  
+	bullets_.remove_if([](EnemyBullet* bullet) {
+		if (bullet->IsDead()) {
+			delete bullet;
+			return true;
+		}
+		return false;
+	});
+  
 	if (funnelAttackCoolTimer_ > 0) {
 		--funnelAttackCoolTimer_;
 	}
@@ -598,7 +606,7 @@ void Enemy::ShootMissile() {
 	const float kBulletSpeed = 2.0f;
 	Vector3 velocity = {};
 
-	// 自キャラのワールド座標を取得する
+	// 敵のワールド座標を取得する
 	Vector3 playerPos = player_->GetWorldPosition();
 	const BodyPart& bodyPart = bodyParts_[0];
 	// 敵キャラのワールド座標を取得する

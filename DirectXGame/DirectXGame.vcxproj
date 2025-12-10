@@ -109,16 +109,23 @@
     <ClCompile Include="Barrier.cpp" />
     <ClCompile Include="Beam.cpp" />
     <ClCompile Include="BeamCharger.cpp" />
+    <ClCompile Include="ClearScene.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EnemyBullet.cpp" />
+    <ClCompile Include="GameOverScene.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="HomingArcBullet.cpp" />
+    <ClCompile Include="LockOnUI.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatrixMath.cpp" />
     <ClCompile Include="MissilePartocle.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerBullet.cpp" />
+    <ClCompile Include="Scene.cpp" />
+    <ClCompile Include="SceneManager.cpp" />
+    <ClCompile Include="SceneType.cpp" />
     <ClCompile Include="Skydome.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
   </ItemGroup>
   <ItemGroup>
     <FxCompile Include="Resources\shaders\TerrainPS.hlsl">
@@ -199,15 +206,22 @@
     <ClInclude Include="Barrier.h" />
     <ClInclude Include="Beam.h" />
     <ClInclude Include="BeamCharger.h" />
+    <ClInclude Include="ClearScene.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="EnemyBullet.h" />
+    <ClInclude Include="GameOverScene.h" />
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="HomingArcBullet.h" />
+    <ClInclude Include="LockOnUI.h" />
     <ClInclude Include="MatrixMath.h" />
     <ClInclude Include="MissilePartocle.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerBullet.h" />
+    <ClInclude Include="Scene.h" />
+    <ClInclude Include="SceneManager.h" />
+    <ClInclude Include="SceneType.h" />
     <ClInclude Include="Skydome.h" />
+    <ClInclude Include="TitleScene.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

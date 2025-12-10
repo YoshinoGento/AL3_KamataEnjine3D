@@ -8,6 +8,7 @@
 #include "Beam.h"
 #include "BeamCharger.h"
 #include "Barrier.h"
+#include "LockOnUI.h"
 #include <list>
 
 using namespace KamataEngine;
@@ -64,6 +65,7 @@ private:
 	std::vector<Enemy*> lockedOnEnemies_;
 
 	BeamCharger beamCharger_;
+	LockOnUI lockOnUI_;
 
 	// 仮実装：プレイヤーのHP
 	int hitPoint_ = 3;
@@ -89,5 +91,12 @@ private:
 	
 
 	void DrawChargeEffect(const Camera& camera);
+
+
+	// ヘッダーに
+	uint32_t lockonTexHandle_ = 0;
+	Sprite* lockonSprite_ = nullptr;
+
+
 };
 
