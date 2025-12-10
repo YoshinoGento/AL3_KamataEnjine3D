@@ -224,7 +224,7 @@ void Enemy::Update(const Vector3& playerPosition) {
 	if (bodyParts_[1].isDestroyed || bodyParts_[2].isDestroyed) {
 		form = Form::TWO;
 	}
-
+  
 	bullets_.remove_if([](EnemyBullet* bullet) {
 		if (bullet->IsDead()) {
 			delete bullet;
