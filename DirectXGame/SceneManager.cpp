@@ -4,6 +4,13 @@
 #include "GameScene.h"
 #include "TitleScene.h"
 
+
+void SceneManager::Initialize() {
+
+	ChangeScene((int)SceneType::TITLE); 
+
+}
+
 void SceneManager::ChangeScene(int sceneID) {
 	if (currentScene_) {
 		currentScene_->Finalize();

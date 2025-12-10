@@ -11,6 +11,11 @@ void GameOverScene::Initialize() {
 	// -------------------------
 	uint32_t bgTex = TextureManager::Load("GameOver.png");
 
+	 auto* audio = Audio::GetInstance();
+	bgmDataHandle_ = audio->LoadWave("GaneOver.wav"); // ←スペルも一応確認ね
+	bgmVoiceHandle_ = audio->PlayWave(bgmDataHandle_, true);
+
+
 	background_ = Sprite::Create(bgTex, {0, 0});
 	background_->SetAnchorPoint({0, 0});
 
@@ -59,6 +64,7 @@ void GameOverScene::Draw2D() {
 }
 
 void GameOverScene::Finalize() {
+	Audio::GetInstance()->StopWave(bgmVoiceHandle_);
 	delete background_;
 	delete pressKey_;
 }

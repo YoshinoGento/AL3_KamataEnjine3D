@@ -10,7 +10,6 @@ void GameScene::Initialize() {
 	enemy_model_ = Model::CreateFromOBJ("Boss");
 	player_bullet_model_ = Model::CreateFromOBJ("PlayerBullet");
 
-
 	PlayerCamera_.Initialize();
 	EnemyCamera_.Initialize();
 	camera_.Initialize();
@@ -24,7 +23,6 @@ void GameScene::Initialize() {
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
-	
 	// ① 先に enemy を作る（Player が参照するので）
 	enemy_ = new Enemy();
 	player_ = new Player();
@@ -40,6 +38,18 @@ void GameScene::Initialize() {
 	skydome_model_ = Model::CreateFromOBJ("FaceSkySphere");
 	skydome_ = new Skydome;
 	skydome_->Initialize(skydome_model_, &camera_);
+
+	// ============================
+	// ★ BGM 読み込み＆再生
+	// ============================
+	auto* audio = Audio::GetInstance();
+
+	bgmDataPhase1_ = audio->LoadWave("firstForm.wav");
+	bgmDataPhase2_ = audio->LoadWave("Second form.wav");
+
+	// 最初は形態 ONE
+	bgmVoiceHandle_ = audio->PlayWave(bgmDataPhase1_, true);
+	lastForm_ = Enemy::Form::ONE;
 }
 
 void GameScene::Update() {
@@ -146,7 +156,6 @@ void GameScene::Update() {
 		}
 	}
 
-
 	// ボス更新
 	if (enemy_) {
 		const std::list<PlayerBullet*>& playerBullets = player_->GetBullets();
@@ -166,12 +175,34 @@ void GameScene::Update() {
 		}
 	}
 
+	// ===============================
+	// ★ 形態変化による BGM 切り替え
+	// ===============================
+	if (enemy_) {
+
+		auto* audio = Audio::GetInstance();
+		Enemy::Form currentForm = enemy_->GetForm(); // ← Getter が必要
+
+		if (currentForm != lastForm_) {
+
+			// いま鳴ってるBGMを止める
+			audio->StopWave(bgmVoiceHandle_);
+
+			// 新しい形態のBGMを再生して、その再生IDを保持
+			if (currentForm == Enemy::Form::ONE) {
+				bgmVoiceHandle_ = audio->PlayWave(bgmDataPhase1_, true);
+			} else {
+				bgmVoiceHandle_ = audio->PlayWave(bgmDataPhase2_, true);
+			}
+
+			lastForm_ = currentForm;
+		}
+	}
 
 	//// 例えば敵を倒したらクリア
-	//if (enemy_->IsDead()) {
+	// if (enemy_->IsDead()) {
 	//	isEnd_ = true;
-	//}
-
+	// }
 
 	// 🔽 Lキーを押したらシーン終了（テスト用）
 	if (GetAsyncKeyState('L') & 0x8000) {
@@ -184,7 +215,6 @@ void GameScene::Update() {
 		isEnd_ = true;
 		nextScene_ = (int)SceneType::GAMEOVER;
 	}
-
 }
 
 void GameScene::Draw3D() {
@@ -194,10 +224,14 @@ void GameScene::Draw3D() {
 }
 
 void GameScene::Draw2D() {
-	//player_->DrawUI(); // ロックオンUIとか
+	// player_->DrawUI(); // ロックオンUIとか
 }
 
 void GameScene::Finalize() {
+
+	auto* audio = Audio::GetInstance();
+	audio->StopWave(bgmVoiceHandle_);
+
 	delete player_;
 	delete enemy_;
 	delete skydome_;

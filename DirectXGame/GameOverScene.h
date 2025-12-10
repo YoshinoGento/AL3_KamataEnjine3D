@@ -20,8 +20,11 @@ private:
 	bool isEnd_ = false;
 	int nextScene_ = (int)SceneType::TITLE;
 
-	Sprite* background_ = nullptr; // フルスクリーン画像
-	Sprite* pressKey_ = nullptr;   // 点滅テキスト
+	Sprite* background_ = nullptr;
+	Sprite* pressKey_ = nullptr;
 
 	int flashTimer_ = 0;
+
+	uint32_t bgmDataHandle_ = 0;
+	uint32_t bgmVoiceHandle_ = 0;
 };

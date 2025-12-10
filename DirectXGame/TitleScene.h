@@ -23,7 +23,8 @@ private:
 	Sprite* title_ = nullptr;
 	Sprite* pressKey_ = nullptr;
 
-	int flashTimer_ = 0; // ← 追加！点滅用タイマー
+	int flashTimer_ = 0;
 
-	uint32_t bgmHandle_ = 0;
+	uint32_t bgmDataHandle_ = 0;
+	uint32_t bgmVoiceHandle_ = 0;
 };

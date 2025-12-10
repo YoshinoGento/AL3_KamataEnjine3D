@@ -6,7 +6,10 @@ using namespace KamataEngine;
 
 void TitleScene::Initialize() {
 	uint32_t titleTex = TextureManager::Load("TitleScene.png");
-	bgmHandle_ = Audio::GetInstance()->LoadWave("TitleScene.wav");
+
+	auto* audio = Audio::GetInstance();
+	bgmDataHandle_ = audio->LoadWave("TitleScene.wav");
+	bgmVoiceHandle_ = audio->PlayWave(bgmDataHandle_, true);
 
 	title_ = Sprite::Create(titleTex, {0, 0});
 
@@ -65,4 +68,5 @@ void TitleScene::Draw2D() {
 void TitleScene::Finalize() {
 	delete title_;
 	delete pressKey_;
+	Audio::GetInstance()->StopWave(bgmVoiceHandle_);
 }
