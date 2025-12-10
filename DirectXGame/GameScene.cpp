@@ -51,6 +51,27 @@ void GameScene::Initialize() {
 	bgmVoiceHandle_ = audio->PlayWave(bgmDataPhase1_, true);
 	lastForm_ = Enemy::Form::ONE;
 
+	playerHealth_model_ = Model::Create();
+	worldTransformPlayerHealth_.Initialize();
+	worldTransformPlayerHealth_.translation_ = {0.0f, -3.0f, 0.0f};
+	worldTransformPlayerHealth_.scale_ = {0.1f, 0.1f, 0.1f};
+
+	for (int i = 0; i < 3; i++) {
+		enemyHealth_model_[i] = Model::Create();
+		worldTransformEnemyHealth_[i].Initialize();
+		worldTransformEnemyHealth_[i].scale_ = {0.1f, 0.1f, 0.1f};
+	}
+
+	worldTransformEnemyHealth_[0].translation_ = {0.0f, 3.0f, 0.0f};
+	worldTransformEnemyHealth_[1].translation_ = {-2.0f, 2.0f, 0.0f};
+	worldTransformEnemyHealth_[2].translation_ = {2.0f, 2.0f, 0.0f};
+
+	health_texture = TextureManager::Load("White1x1.png");
+	playerHealthBarColor.Initialize();
+	playerHealthBarColor.SetColor({1.0f, 1.0f, 0.0f, 1.0f});
+
+	enemyHealthBarColor.Initialize();
+	enemyHealthBarColor.SetColor({255.0f, 0.0f, 0.0f, 1.0f});
 
 	//------ポーズメニュー初期化------------
 	uint32_t menuTex = TextureManager::Load("menu_bg.png");
@@ -76,9 +97,6 @@ void GameScene::Initialize() {
 	uint32_t curTex = TextureManager::Load("cursor.png");
 	cursor_ = Sprite::Create(curTex, {500, 330});
 	cursor_->SetAnchorPoint({0.5f, 0.5f});
-
-
-	//---------------------------------
 }
 
 void GameScene::Update() {
@@ -154,6 +172,14 @@ void GameScene::Update() {
 
 	player_->Update();
 	const Vector3& playerPos = player_->GetWorldPosition();
+
+	worldTransformPlayerHealth_.scale_.x = float(player_->GetHP()) / 2.0f;
+	WorldTransformUpdate(worldTransformPlayerHealth_);
+
+	for (int i = 0; i < 3; i++) {
+		worldTransformEnemyHealth_[i].scale_.x = float(enemy_->GetHP(i)) / 2.0f;
+		WorldTransformUpdate(worldTransformEnemyHealth_[i]);
+	}
 
 	// ボス更新
 	if (enemy_) {
@@ -342,6 +368,12 @@ void GameScene::Draw3D() {
 	skydome_->Draw();
 	enemy_->Draw(camera_);
 	player_->Draw();
+
+	playerHealth_model_->Draw(worldTransformPlayerHealth_, camera_, health_texture, &playerHealthBarColor);
+
+	for (int i = 0; i < 3; i++) {
+		enemyHealth_model_[i]->Draw(worldTransformEnemyHealth_[i], camera_, health_texture, &enemyHealthBarColor);
+	}
 }
 
 void GameScene::Draw2D() {
@@ -383,4 +415,7 @@ void GameScene::Finalize() {
 	delete skydome_model_;
 
 	delete debugCamera_;
+
+	delete playerHealth_model_;
+	delete enemyHealth_model_;
 }
