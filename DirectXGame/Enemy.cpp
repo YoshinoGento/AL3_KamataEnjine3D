@@ -221,8 +221,9 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 // 更新
 // ============================
 void Enemy::Update(const Vector3& playerPosition) {
-	if (bodyParts_[1].isDestroyed || bodyParts_[2].isDestroyed) {
-		form = Form::TWO;
+	// 第一形態の本体(コア)を倒したら、復活して第二形態へ移行
+	if (form == Form::ONE && bodyParts_[0].isDestroyed) {
+		StartSecondForm();
 	}
   
 	bullets_.remove_if([](EnemyBullet* bullet) {
@@ -523,9 +524,10 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 }
 
 
+
 bool Enemy::IsDefeated() const {
-	// コア(0番)が破壊されたら撃破扱い
-	return bodyParts_[0].isDestroyed;
+	// 第二形態のコア(0番)を壊したときだけ、ボス撃破扱いにする
+	return (form == Form::TWO) && bodyParts_[0].isDestroyed;
 }
 
 
@@ -700,9 +702,28 @@ void Enemy::DrawTopBeams(const Camera& camera) {
 }
 
 
+//第二形態の関数
 
+void Enemy::StartSecondForm() {
+	// 第二形態スタート
+	form = Form::TWO;
 
+	// --- コアの復活＆HP再設定 ---
+	BodyPart& core = bodyParts_[0];
+	core.hitPoint = 5; // 第二形態用HP（好みで調整してOK）
+	core.isDestroyed = false;
 
+	// 見た目のワールドトランスフォームも復活
+	worldTransforms_[0].translation_ = core.centerPosition;
+	worldTransforms_[0].scale_ = core.boxSize;
+	WorldTransformUpdate(worldTransforms_[0]);
+
+	// 第一形態専用攻撃のクールタイムをリセット
+	topBeamAttackCoolTimer_ = 0;
+
+	// 第二形態開始前に少し溜めを入れたいなら値を増やす
+	funnelAttackCoolTimer_ = 60; // 1秒ぐらい。すぐ撃たせたいなら 0。
+}
 
 
 
