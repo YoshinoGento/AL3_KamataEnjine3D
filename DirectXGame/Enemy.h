@@ -80,6 +80,8 @@ public:
 	// ミサイルの発射
 	void ShootMissile();
 
+	int32_t GetHP(int count) { return bodyParts_[count].hitPoint; }
+
 
 private:
 

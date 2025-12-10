@@ -47,4 +47,19 @@ private:
 	uint32_t bgmVoiceHandle_ = 0;
 
 	Enemy::Form lastForm_ = Enemy::Form::ONE;
+
+	// プレイヤーの体力のモデル
+	Model* playerHealth_model_ = nullptr;
+	// プレイヤーの体力バーのワールド変換
+	WorldTransform worldTransformPlayerHealth_;
+
+	// 敵の体力のモデル
+	Model* enemyHealth_model_[3] = {nullptr};
+	// 敵の体力バーのワールド変換
+	WorldTransform worldTransformEnemyHealth_[3];
+
+	// 体力バーのテクスチャ
+	uint32_t health_texture;
+	ObjectColor playerHealthBarColor;
+	ObjectColor enemyHealthBarColor;
 };

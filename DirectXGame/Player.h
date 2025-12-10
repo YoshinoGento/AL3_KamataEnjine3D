@@ -47,6 +47,8 @@ public:
 
 	bool IsHitMissile(const Vector3& bulletPosition);
 
+	int GetHP() { return hitPoint_; }
+
 
 private:
 	WorldTransform worldTransform_;

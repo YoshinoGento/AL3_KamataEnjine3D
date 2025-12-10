@@ -204,7 +204,7 @@ void Player::Draw() {
 
 	beamCharger_.Draw(*camera_);
 
-
+	Model::PostDraw();
 	// 🔽 スプライト描画前処理
 	Sprite::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
 
@@ -227,7 +227,7 @@ void Player::Draw() {
 
 	// 🔼 スプライト描画後処理
 	Sprite::PostDraw();
-
+	Model::PreDraw(DirectXCommon::GetInstance()->GetCommandList());
 	/*if (isChargingBeam_) {
 	    DrawChargeEffect(*camera_);
 	}*/
