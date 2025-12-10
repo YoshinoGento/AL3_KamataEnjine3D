@@ -85,6 +85,9 @@ private:
 	void StartTopBeamAttack(const Vector3& playerPosition);
 	void UpdateTopBeams(const Vector3& playerPosition);
 
+	 // 第一形態撃破 → 第二形態へ移行するときの処理
+	void StartSecondForm();
+
 	// =========================
 	// ボス本体の部位
 	// =========================
