@@ -29,5 +29,8 @@ private:
 	Skydome* skydome_ = nullptr;
 	Model* skydome_model_ = nullptr;
 
+	 // ★ クリアフラグ
+	bool isGameClear_ = false;
+
 
 };

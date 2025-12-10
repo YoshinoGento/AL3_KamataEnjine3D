@@ -16,6 +16,19 @@ const int kRightExtraChargeFrames = 30; // 右側ファンネルだけチャー�
 
 // ビームの太さ（見た目用：円柱モデルの半径）
 const float kBeamRadius = 0.3f;
+
+// 上から3本ビームの「軌道線」（地面に引くライン）の長さ
+const float kTopBeamLaneLength = 40.0f; // 手前奥方向（Z方向）の長さ
+
+// ★ 軌道線用
+const float kTopBeamLaneHalfWidth = 0.5f; // X方向の半幅（太さ）
+const float kTopBeamLaneHeight = 0.1f;    // 厚み（ほぼ0）
+
+
+// 上から3本ビームの着弾マーカー用
+const float kTopBeamMarkerRadius = 1.5f; // 床に出す丸の半径
+const float kTopBeamMarkerHeight = 0.1f; // 厚み（ほぼペラ）
+const float kTopBeamGroundY = 0.0f;      // 地面のY
 } // namespace
 
 namespace {
@@ -108,8 +121,21 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 
 	// 可視化用モデル
 	model_ = Model::CreateFromOBJ("Boss");
+
+	 // ★ 第二形態用モデルの読み込みポイント
+	//   今は第一形態と同じモデルを使い回す。
+	//   将来、第二形態専用モデルを使いたくなったら:
+	//   secondFormModel_ = Model::CreateFromOBJ("Boss_Second");
+	//   のように差し替える。
+	secondFormModel_ = model_;
+
 	beamModel_ = Model::CreateFromOBJ("beam");
 	funnelModel_ = Model::CreateFromOBJ("Funnel");
+
+	 // 上から3本ビームのマーカー用カラー初期化
+	topBeamMarkerColor_.Initialize();
+	// 薄い赤 (R G B A)
+	topBeamMarkerColor_.SetColor(Vector4{1.0f, 0.3f, 0.3f, 0.3f});
 
 	// -----------------------------
 	// ボス本体の部位データを設定
@@ -151,12 +177,30 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 		funnels_[i].beamTarget = bossBasePosition; // 初期値は適当でOK（後で上書き）
 	}
 
+	// ★ 上から3本ビーム用初期化
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		verticalBeams_[i].active = false;
+		verticalBeams_[i].timer = 0;
+		verticalBeams_[i].start = bossBasePosition;
+		verticalBeams_[i].target = bossBasePosition;
+	}
+
 	// ビーム描画用 WorldTransform（全ビーム共通で使い回し）
 	beamWorldTransform_.Initialize();
 	beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, 1.0f};
 
+	 // 軌道線用 WT
+	topBeamLaneWT_.Initialize(); 
+
+	// ★ 軌道線用 WT ＋ 色
+	topBeamLaneWorldTransform_.Initialize();
+
+	topBeamLaneColor_.Initialize();
+	topBeamLaneColor_.SetColor(Vector4{1.0f, 0.3f, 0.3f, 0.4f}); // 薄い赤
+
 	// 最初の攻撃まで少し待つ
 	funnelAttackCoolTimer_ = 180;
+	topBeamAttackCoolTimer_ = 300; // ← 上から3本ビームの初回待ち（適当値）
 
 		// 壊れていない本体部位だけ描画
 	for (int i = 0; i < kBodyPartCount; ++i) {
@@ -189,13 +233,35 @@ void Enemy::Update(const Vector3& playerPosition) {
 		return false;
 	});
 
-	if (funnelAttackCoolTimer_ > 0) {
-		--funnelAttackCoolTimer_;
+	 // ==============================
+	// 形態1のときだけ上から3本ビームも動かす
+	// ==============================
+	if (form == Form::ONE) {
+
+		// ファンネルのクール＆開始
+		if (funnelAttackCoolTimer_ > 0) {
+			--funnelAttackCoolTimer_;
+		}
+		if (funnelAttackCoolTimer_ == 0) {
+			StartFunnelAttack(playerPosition);
+		}
+
+		// ★ 上から3本ビームのクール＆開始
+		if (topBeamAttackCoolTimer_ > 0) {
+			--topBeamAttackCoolTimer_;
+		}
+		if (topBeamAttackCoolTimer_ == 0) {
+			StartTopBeamAttack(playerPosition);
+		}
+
+		// 状態更新
+		UpdateFunnels(playerPosition);
+		UpdateTopBeams(playerPosition);
+	} else {
+		// 形態2は今までどおり（ファンネルのクールは止めたいならここから外す）
+		UpdateFunnels(playerPosition);
 	}
 
-	if (funnelAttackCoolTimer_ == 0) {
-		StartFunnelAttack(playerPosition);
-	}
 
 	UpdateFunnels(playerPosition);
 
@@ -234,14 +300,34 @@ void Enemy::Draw(const Camera& camera) {
 		return;
 	}
 
+	// ★ 今の形態に応じて使うモデルを決める
+	Model* currentModel = model_;
+	if (form == Form::TWO && secondFormModel_) {
+		currentModel = secondFormModel_;
+	}
+
 	// 壊れていない本体部位だけ描画
 	for (int i = 0; i < kBodyPartCount; ++i) {
 
-		model_->Draw(worldTransforms_[i], camera);
+		const BodyPart& part = bodyParts_[i];
+		if (part.isDestroyed) {
+			continue;
+		}
+
+		worldTransforms_[i].translation_ = part.centerPosition;
+		worldTransforms_[i].scale_ = part.boxSize;
+
+		WorldTransformUpdate(worldTransforms_[i]);
+		currentModel->Draw(worldTransforms_[i], camera);
 	}
 
 	// ファンネル描画（本体＋ビーム）
 	DrawFunnels(camera);
+
+	 // 形態1：上から3本ビーム描画
+	if (form == Form::ONE) {
+		DrawTopBeams(camera);
+	}
 
 	// 弾描画
 	for (EnemyBullet* bullet : bullets_) {
@@ -435,6 +521,190 @@ void Enemy::UpdateFunnels(const Vector3& playerPosition) {
 		}
 	}
 }
+
+
+bool Enemy::IsDefeated() const {
+	// コア(0番)が破壊されたら撃破扱い
+	return bodyParts_[0].isDestroyed;
+}
+
+
+// ============================
+// 上から3本ビーム攻撃：開始
+// ============================
+void Enemy::StartTopBeamAttack(const Vector3& playerPosition) {
+
+	// すでにどれかが動いている場合は新規発動しない
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		if (verticalBeams_[i].active) {
+			return;
+		}
+	}
+
+	const float kSpacing = 2.5f;   // X方向の間隔
+	const float kHeight = 6.0f;    // プレイヤーの上何ユニットから撃つか
+	const float kDepthDown = 4.0f; // プレイヤーよりどれだけ下まで落とすか
+	const int kCoolFrames = 240;   // 再使用までのクールタイム
+
+	float baseX = playerPosition.x;
+	float baseY = playerPosition.y;
+	float z = playerPosition.z;
+
+	// i = 0,1,2 → -1,0,+1 として左右に並べる
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+		VerticalBeam& b = verticalBeams_[i];
+
+		float offsetX = static_cast<float>(i - 1) * kSpacing;
+
+		b.active = true;
+		b.timer = kFiringFrames; // 既存の照射時間を流用
+
+		b.start = {baseX + offsetX, baseY + kHeight, z};
+		b.target = {baseX + offsetX, baseY - kDepthDown, z};
+	}
+
+	// 次にこの攻撃ができるまでのクールをセット
+	topBeamAttackCoolTimer_ = kCoolFrames;
+}
+
+// ============================
+// 上から3本ビーム攻撃：更新
+// ============================
+void Enemy::UpdateTopBeams(const Vector3& /*playerPosition*/) {
+
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+
+		VerticalBeam& b = verticalBeams_[i];
+		if (!b.active) {
+			continue;
+		}
+
+		if (b.timer > 0) {
+			--b.timer;
+		} else {
+			b.active = false;
+		}
+	}
+
+	// クールタイマーは Update 側で減らす（後述）
+}
+
+
+
+
+void Enemy::DrawTopBeams(const Camera& camera) {
+
+	if (!beamModel_) {
+		return;
+	}
+
+	// 見た目の最低長（短すぎると画面に映えないのでファンネルと同じ値）
+	const float kMinVisualLength = 30.0f;
+	const float kStartOffset = 0.5f;
+
+	for (int i = 0; i < kVerticalBeamCount; ++i) {
+
+		// ★ この1行で b を宣言している（この {} の中だけで有効）
+		const VerticalBeam& b = verticalBeams_[i];
+		if (!b.active || b.timer <= 0) {
+			continue;
+		}
+
+		// ===== 縦ビーム本体の描画 =====
+		Vector3 beamStart = b.start;
+		Vector3 beamEnd = b.target;
+
+		Vector3 dir{
+		    beamEnd.x - beamStart.x,
+		    beamEnd.y - beamStart.y,
+		    beamEnd.z - beamStart.z,
+		};
+
+		float realLength = Length(dir);
+		if (realLength < 0.01f) {
+			continue;
+		}
+
+		Vector3 nd = Normalized(dir);
+
+		float visualLength = realLength;
+		if (visualLength < kMinVisualLength) {
+			visualLength = kMinVisualLength;
+		}
+
+		// ちょっとだけ前に出してから中点を取る
+		beamStart.x += nd.x * kStartOffset;
+		beamStart.y += nd.y * kStartOffset;
+		beamStart.z += nd.z * kStartOffset;
+
+		Vector3 visualEnd{
+		    beamStart.x + nd.x * visualLength,
+		    beamStart.y + nd.y * visualLength,
+		    beamStart.z + nd.z * visualLength,
+		};
+
+		Vector3 midPos{
+		    (beamStart.x + visualEnd.x) * 0.5f,
+		    (beamStart.y + visualEnd.y) * 0.5f,
+		    (beamStart.z + visualEnd.z) * 0.5f,
+		};
+
+		// 縦ビーム円柱
+		beamWorldTransform_.translation_ = midPos;
+		beamWorldTransform_.scale_ = {kBeamRadius, kBeamRadius, visualLength * 0.5f};
+
+		SetWorldTransformLookDir(beamWorldTransform_, nd);
+		WorldTransformUpdate(beamWorldTransform_);
+
+		beamModel_->Draw(beamWorldTransform_, camera);
+
+		// ===== ここから「軌道線」（地面に伸びる赤ライン） =====
+
+		// 本来の start→target ベクトル
+		Vector3 fullDir{
+		    b.target.x - b.start.x,
+		    b.target.y - b.start.y,
+		    b.target.z - b.start.z,
+		};
+
+		// Y = kTopBeamGroundY との交点 t を計算
+		float t = 1.0f;
+		if (std::fabs(fullDir.y) > 0.0001f) {
+			t = (kTopBeamGroundY - b.start.y) / fullDir.y;
+		}
+		// 0〜1 にクランプ（線分内に限定）
+		if (t < 0.0f)
+			t = 0.0f;
+		if (t > 1.0f)
+			t = 1.0f;
+
+		Vector3 hitPos{
+		    b.start.x + fullDir.x * t,
+		    b.start.y + fullDir.y * t,
+		    b.start.z + fullDir.z * t,
+		};
+
+		// 軌道線は「着弾点の真下の床」を中心に、Z方向へ伸ばす
+		topBeamLaneWorldTransform_.translation_ = hitPos;
+		topBeamLaneWorldTransform_.translation_.y = kTopBeamGroundY;
+
+		topBeamLaneWorldTransform_.scale_ = {
+		    kTopBeamLaneHalfWidth,     // X方向の太さ
+		    kTopBeamLaneHeight,        // 厚み
+		    kTopBeamLaneLength * 0.5f, // Z方向の長さ/2
+		};
+
+		WorldTransformUpdate(topBeamLaneWorldTransform_);
+		beamModel_->Draw(topBeamLaneWorldTransform_, camera, &topBeamLaneColor_);
+	}
+}
+
+
+
+
+
+
+
 
 // ============================
 // ファンネル描画（本体＋円柱ビーム）

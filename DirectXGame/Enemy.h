@@ -17,6 +17,13 @@ public:
 		TWO,
 	};
 
+
+	 // ★ 形態取得
+	Form GetForm() const { return form; }
+
+	// ★ 撃破判定（コア破壊で true）
+	bool IsDefeated() const;
+
 	/// <summary>
 	/// 初期化：bossBasePosition を中心にボスの部位を配置する
 	/// </summary>
@@ -53,7 +60,31 @@ public:
 
 	const std::list<EnemyBullet*>& GetBullets() const { return bullets_; }
 
+	// ファンネル攻撃を開始（空きがあれば1機だけ使用）
+	void StartFunnelAttack(const Vector3& playerPosition);
+
+	/// <summary>
+	/// ファンネルの状態更新（L字移動＋照射時間の進行）
+	/// </summary>
+	void UpdateFunnels(const Vector3& playerPosition);
+
+	/// <summary>
+	/// ファンネルの描画（本体＋ビーム）
+	/// </summary>
+	void DrawFunnels(const Camera& camera);
+
+	// 上から3本ビームの描画（第一形態）
+	void DrawTopBeams(const Camera& camera);
+
+	// ミサイルの発射
+	void ShootMissile();
+
 private:
+
+	 // 上から3本ビーム攻撃（開始／更新）
+	void StartTopBeamAttack(const Vector3& playerPosition);
+	void UpdateTopBeams(const Vector3& playerPosition);
+
 	// =========================
 	// ボス本体の部位
 	// =========================
@@ -64,6 +95,23 @@ private:
 		bool isDestroyed;       // 破壊済みフラグ
 	};
 
+	// =========================
+	// 上から3本のファンネルビーム（第一形態用）
+	// =========================
+	struct VerticalBeam {
+		bool active = false; // true なら照射中
+		int timer = 0;       // 残りフレーム数
+		Vector3 start;       // ビーム始点（上側）
+		Vector3 target;      // ビーム終点（下側 or ロックした位置）
+	};
+
+	static const int kVerticalBeamCount = 3;
+	VerticalBeam verticalBeams_[kVerticalBeamCount];
+
+	// 上から3本ビーム攻撃のクールタイム（フレーム数）
+	int topBeamAttackCoolTimer_ = 0;
+
+
 	static const int kBodyPartCount = 3;
 	BodyPart bodyParts_[kBodyPartCount];
 
@@ -73,11 +121,33 @@ private:
 	// 可視化用モデル（暫定で "player" モデルを流用）
 	Model* model_ = nullptr;
 
+	// ★ 第二形態用モデル
+	//   今は第一形態と同じモデルを使い回す。
+	//   見た目を変えたくなったら Initialize() 内で
+	//   secondFormModel_ に別OBJを読み込んで、
+	//   Draw() で form に応じて使い分ける。
+	Model* secondFormModel_ = nullptr;
+	
+	
+
 	// ビーム専用モデル（円柱）
 	Model* beamModel_ = nullptr;
 
 	// ファンネル専用モデル
 	Model* funnelModel_ = nullptr;
+
+	WorldTransform beamWorldTransform_;
+	// 追加：軌道線用の WT
+	WorldTransform topBeamLaneWT_;
+
+	// 上から3本ビームの「着弾マーカー」用カラー
+	ObjectColor topBeamMarkerColor_;
+
+	// =========================
+	// 上から3本ビーム用（軌道線）
+	// =========================
+	WorldTransform topBeamLaneWorldTransform_;
+	ObjectColor topBeamLaneColor_;
 
 	// =========================
 	// ファンネル攻撃用
@@ -121,7 +191,7 @@ private:
 	Funnel funnels_[kFunnelCount];
 
 	// ビーム描画用 WorldTransform（全ビームで使い回し）
-	WorldTransform beamWorldTransform_;
+	//WorldTransform beamWorldTransform_;
 
 	// ファンネル攻撃のクールタイム（フレーム数）
 	int funnelAttackCoolTimer_ = 0;
@@ -140,19 +210,5 @@ private:
 	// 形態
 	Form form = Form::ONE;
 
-	// ファンネル攻撃を開始（空きがあれば1機だけ使用）
-	void StartFunnelAttack(const Vector3& playerPosition);
-
-	/// <summary>
-	/// ファンネルの状態更新（L字移動＋照射時間の進行）
-	/// </summary>
-	void UpdateFunnels(const Vector3& playerPosition);
-
-	/// <summary>
-	/// ファンネルの描画（本体＋ビーム）
-	/// </summary>
-	void DrawFunnels(const Camera& camera);
-
-	// ミサイルの発射
-	void ShootMissile();
+	
 };
