@@ -67,8 +67,7 @@ private:
 	BeamCharger beamCharger_;
 	LockOnUI lockOnUI_;
 
-	// 仮実装：プレイヤーのHP
-	int hitPoint_ = 3;
+
 
 	// 無敵時間（被弾直後の連続ヒット防止用）
 	int invincibleTimer_ = 0;
@@ -80,6 +79,10 @@ private:
 	Enemy* lockedEnemy_ = nullptr;     // ロックオンした敵
 	std::list<MissilePartocle*> missileParticles_;
 	std::list<Beam*> beams_;
+
+	//プレイヤーのHP
+	int hitPoint_ = 10;
+
 
 	// バリア
 	Barrier barrier_;
