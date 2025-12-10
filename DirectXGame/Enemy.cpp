@@ -29,6 +29,10 @@ const float kTopBeamLaneHeight = 0.1f;    // 厚み（ほぼ0）
 const float kTopBeamMarkerRadius = 1.5f; // 床に出す丸の半径
 const float kTopBeamMarkerHeight = 0.1f; // 厚み（ほぼペラ）
 const float kTopBeamGroundY = 0.0f;      // 地面のY
+
+// 被弾フラッシュ継続フレーム数
+static const int kDamageFlashDuration = 10; 
+
 } // namespace
 
 namespace {
@@ -144,20 +148,23 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 	// 0: 中央のコア
 	bodyParts_[0].centerPosition = bossBasePosition + Vector3{0.0f, 0.5f, 0.0f};
 	bodyParts_[0].boxSize = Vector3{2.0f, 1.0f, 1.0f};
-	bodyParts_[0].hitPoint = 5;
+	bodyParts_[0].hitPoint = 60;
 	bodyParts_[0].isDestroyed = false;
 
 	// 1: 左側パーツ
 	bodyParts_[1].centerPosition = bossBasePosition + Vector3{-1.5f, 0.0f, 0.0f};
 	bodyParts_[1].boxSize = Vector3{1.0f, 1.0f, 1.0f};
-	bodyParts_[1].hitPoint = 3;
+	bodyParts_[1].hitPoint = 30;
 	bodyParts_[1].isDestroyed = false;
 
 	// 2: 右側パーツ
 	bodyParts_[2].centerPosition = bossBasePosition + Vector3{+1.5f, 0.0f, 0.0f};
 	bodyParts_[2].boxSize = Vector3{1.0f, 1.0f, 1.0f};
-	bodyParts_[2].hitPoint = 3;
+	bodyParts_[2].hitPoint = 30;
 	bodyParts_[2].isDestroyed = false;
+
+	//敵被ダメージ時の点滅用タイマー
+	damageFlashTimer_ = 0;
 
 	// 見た目用ワールドトランスフォーム初期化
 	for (int i = 0; i < kBodyPartCount; ++i) {
@@ -184,6 +191,10 @@ void Enemy::Initialize(const Vector3& bossBasePosition) {
 		verticalBeams_[i].start = bossBasePosition;
 		verticalBeams_[i].target = bossBasePosition;
 	}
+
+	//本体カラー
+	bodyColor_.Initialize();
+	bodyColor_.SetColor({1.0f, 1.0f, 1.0f, 1.0f});
 
 	// ビーム描画用 WorldTransform（全ビーム共通で使い回し）
 	beamWorldTransform_.Initialize();
@@ -264,17 +275,9 @@ void Enemy::Update(const Vector3& playerPosition) {
 	}
 
 
-	UpdateFunnels(playerPosition);
-
 	switch (form) {
 	case Form::TWO:
-		bullets_.remove_if([](EnemyBullet* bullet) {
-			if (bullet->IsDead()) {
-				delete bullet;
-				return true;
-			}
-			return false;
-		});
+		// ★ ここにあった bullets_.remove_if(...) ブロックは削除
 
 		fireTimer--;
 		// 指定時間に達した
@@ -289,6 +292,22 @@ void Enemy::Update(const Vector3& playerPosition) {
 		for (EnemyBullet* bullet : bullets_) {
 			bullet->Update();
 		}
+		break;
+
+		default:
+		// Form::ONE のとき、必要ならここに処理
+		break;
+	}
+
+	// 被弾フラッシュのカウントダウン
+	if (damageFlashTimer_ > 0) {
+		--damageFlashTimer_;
+	}
+
+
+	// ★ 形態に関係なくフラッシュタイマーを減算
+	if (damageFlashTimer_ > 0) {
+		--damageFlashTimer_;
 	}
 }
 
@@ -301,8 +320,22 @@ void Enemy::Draw(const Camera& camera) {
 		return;
 	}
 
-	// ★ 今の形態に応じて使うモデルを決める
+	// 今の形態に応じて使うモデルを決める
 	Model* currentModel = model_;
+
+	// 通常色と被弾中の色
+	Vector4 normalColor{1.0f, 1.0f, 1.0f, 1.0f};
+	Vector4 hitColor{1.0f, 0.2f, 0.2f, 1.0f};
+
+	Vector4 currentColor = normalColor;
+	if (damageFlashTimer_ > 0) {
+		currentColor = hitColor;
+	}
+
+	bodyColor_.SetColor(currentColor);
+
+
+
 	if (form == Form::TWO && secondFormModel_) {
 		currentModel = secondFormModel_;
 	}
@@ -319,7 +352,7 @@ void Enemy::Draw(const Camera& camera) {
 		worldTransforms_[i].scale_ = part.boxSize;
 
 		WorldTransformUpdate(worldTransforms_[i]);
-		currentModel->Draw(worldTransforms_[i], camera);
+		currentModel->Draw(worldTransforms_[i], camera, &bodyColor_);
 	}
 
 	// ファンネル描画（本体＋ビーム）
@@ -339,7 +372,20 @@ void Enemy::Draw(const Camera& camera) {
 // ============================
 // AABB での被弾判定（部位破壊）
 // ============================
+
+// ★ デフォルト版：ダメージ1として処理
 bool Enemy::CheckHit(const Vector3& bulletPosition) {
+	return CheckHit(bulletPosition, 1); 
+}
+
+
+
+// ★ ダメージ量指定版（通常弾:1 / ファンネル弾:2 など）
+bool Enemy::CheckHit(const Vector3& bulletPosition, int damage) {
+
+	if (damage <= 0) {
+		damage = 1;
+	}
 
 	for (int bodyPartIndex = 0; bodyPartIndex < kBodyPartCount; ++bodyPartIndex) {
 
@@ -349,24 +395,33 @@ bool Enemy::CheckHit(const Vector3& bulletPosition) {
 			continue;
 		}
 
+		// ボックスの範囲を計算
 		Vector3 halfBoxSize = bodyPart.boxSize * 0.5f;
 		Vector3 minPosition = bodyPart.centerPosition - halfBoxSize;
 		Vector3 maxPosition = bodyPart.centerPosition + halfBoxSize;
 
+		// 弾の座標がボックスの中に入っているか判定
 		bool isInside = (bulletPosition.x >= minPosition.x && bulletPosition.x <= maxPosition.x) && (bulletPosition.y >= minPosition.y && bulletPosition.y <= maxPosition.y) &&
 		                (bulletPosition.z >= minPosition.z && bulletPosition.z <= maxPosition.z);
 
 		if (isInside) {
-			bodyPart.hitPoint--;
+			bodyPart.hitPoint -= damage;
 			if (bodyPart.hitPoint <= 0) {
 				bodyPart.isDestroyed = true;
 			}
+
+			// ★ 当たった瞬間だけフラッシュ開始
+			damageFlashTimer_ = 10;
+
 			return true;
 		}
 	}
 
 	return false;
 }
+
+
+
 
 // ============================
 // ファンネル攻撃：開始
@@ -710,8 +765,13 @@ void Enemy::StartSecondForm() {
 
 	// --- コアの復活＆HP再設定 ---
 	BodyPart& core = bodyParts_[0];
-	core.hitPoint = 5; // 第二形態用HP（好みで調整してOK）
+	core.centerPosition = worldTransforms_[0].translation_;
+	core.boxSize = Vector3{2.0f, 1.0f, 2.0f};
+	core.hitPoint = 60; // 第二形態用HP（好みで調整してOK）
 	core.isDestroyed = false;
+
+	//フラッシュタイマーをリセット
+	damageFlashTimer_ = 0;
 
 	// 見た目のワールドトランスフォームも復活
 	worldTransforms_[0].translation_ = core.centerPosition;
@@ -723,6 +783,8 @@ void Enemy::StartSecondForm() {
 
 	// 第二形態開始前に少し溜めを入れたいなら値を増やす
 	funnelAttackCoolTimer_ = 60; // 1秒ぐらい。すぐ撃たせたいなら 0。
+
+	
 }
 
 

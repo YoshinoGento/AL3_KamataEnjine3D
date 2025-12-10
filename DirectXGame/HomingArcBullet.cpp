@@ -8,6 +8,7 @@ using namespace KamataEngine;
 
 void HomingArcBullet::Initialize(Model* model, const Vector3& start, const Vector3& target, const Vector3& controlOffset) {
 	assert(model);
+	model_ = model;
 	model_ = Model::CreateFromOBJ("PlayerMissile");
 
 	worldTransform_.Initialize();

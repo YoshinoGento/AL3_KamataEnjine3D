@@ -7,7 +7,7 @@ using namespace KamataEngine;
 
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
-	KamataEngine::Initialize(L"第3次ファンネル大戦～母さん、俺もうダメかも～");
+	KamataEngine::Initialize(L"2248_第3次ファンネル大戦～母さん、俺もうダメかも～");
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
