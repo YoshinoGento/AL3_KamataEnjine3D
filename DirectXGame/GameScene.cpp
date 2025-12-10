@@ -38,6 +38,18 @@ void GameScene::Initialize() {
 	skydome_model_ = Model::CreateFromOBJ("FaceSkySphere");
 	skydome_ = new Skydome;
 	skydome_->Initialize(skydome_model_, &camera_);
+
+	// ============================
+	// ★ BGM 読み込み＆再生
+	// ============================
+	auto* audio = Audio::GetInstance();
+
+	bgmDataPhase1_ = audio->LoadWave("firstForm.wav");
+	bgmDataPhase2_ = audio->LoadWave("Second form.wav");
+
+	// 最初は形態 ONE
+	bgmVoiceHandle_ = audio->PlayWave(bgmDataPhase1_, true);
+	lastForm_ = Enemy::Form::ONE;
 }
 
 void GameScene::Update() {
@@ -163,6 +175,35 @@ void GameScene::Update() {
 		}
 	}
 
+
+	// ===============================
+	// ★ 形態変化による BGM 切り替え
+	// ===============================
+	if (enemy_) {
+
+		auto* audio = Audio::GetInstance();
+		Enemy::Form currentForm = enemy_->GetForm(); // ← Getter が必要
+
+		if (currentForm != lastForm_) {
+
+			// いま鳴ってるBGMを止める
+			audio->StopWave(bgmVoiceHandle_);
+
+			// 新しい形態のBGMを再生して、その再生IDを保持
+			if (currentForm == Enemy::Form::ONE) {
+				bgmVoiceHandle_ = audio->PlayWave(bgmDataPhase1_, true);
+			} else {
+				bgmVoiceHandle_ = audio->PlayWave(bgmDataPhase2_, true);
+			}
+
+			lastForm_ = currentForm;
+		}
+	}
+
+	//// 例えば敵を倒したらクリア
+	// if (enemy_->IsDead()) {
+	//	isEnd_ = true;
+	// }
 	// 形態に応じてスカイドームの色を変える
 	if (enemy_ && skydome_) {
 		switch (enemy_->GetForm()) {
@@ -197,6 +238,7 @@ void GameScene::Update() {
 #ifdef _DEBUG
 	// --- デバッグ用強制遷移 ---
 
+
 	// Lキーで強制クリア
 	if (GetAsyncKeyState('L') & 0x8000) {
 		isEnd_ = true;
@@ -208,7 +250,9 @@ void GameScene::Update() {
 		isEnd_ = true;
 		nextScene_ = (int)SceneType::GAMEOVER;
 	}
+
 #endif
+
 }
 
 void GameScene::Draw3D() {
@@ -222,6 +266,10 @@ void GameScene::Draw2D() {
 }
 
 void GameScene::Finalize() {
+
+	auto* audio = Audio::GetInstance();
+	audio->StopWave(bgmVoiceHandle_);
+
 	delete player_;
 	delete enemy_;
 	delete skydome_;
