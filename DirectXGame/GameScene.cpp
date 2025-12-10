@@ -51,7 +51,6 @@ void GameScene::Initialize() {
 	bgmVoiceHandle_ = audio->PlayWave(bgmDataPhase1_, true);
 	lastForm_ = Enemy::Form::ONE;
 
-
 	//------ポーズメニュー初期化------------
 	uint32_t menuTex = TextureManager::Load("menu_bg.png");
 	menuBG_ = Sprite::Create(menuTex, {640, 360});
@@ -77,23 +76,55 @@ void GameScene::Initialize() {
 	cursor_ = Sprite::Create(curTex, {500, 330});
 	cursor_->SetAnchorPoint({0.5f, 0.5f});
 
-
 	//---------------------------------
+
+	// --- 操作説明UI ---
+	uint32_t uiTex = TextureManager::Load("ui_control.png");
+
+	// 右上に配置（少し内側）
+	controlUI_ = Sprite::Create(uiTex, {1240, 40});
+	controlUI_->SetAnchorPoint({1.0f, 0.0f}); // 右上アンカー
+
+	// 少し小さめに（75%）
+	controlUI_->SetSize({450, 450});
+
+	// 初期状態：5秒間表示
+	controlUITimer_ = 300;
+	controlUIAlpha_ = 1.0f;
+	showControlUI_ = true;
+
+
+	//--------UI初期化ここまで-----------
 }
 
 void GameScene::Update() {
 
 	// ====== ポーズ切替 ======
 	if (Input::GetInstance()->TriggerKey(DIK_M)) {
+
 		if (state_ == GameState::Play) {
+			// ★ Pauseへ入る瞬間
 			state_ = GameState::Pause;
-			return; // 以降のゲーム更新をしない
+
+			// UI を復活（常に100%表示）
+			showControlUI_ = true;
+			controlUIAlpha_ = 1.0f;
+			controlUI_->SetColor({1, 1, 1, controlUIAlpha_});
+
+			return;
 		} else {
+			// ★Pause → Play へ戻る
 			state_ = GameState::Play;
+
+			// UI は再びフェードアウトの続きへ
+			// （タイマーはそのままでOK）
 			return;
 		}
 	}
 
+	// ===============================
+	// ★ Pause中ならゲーム更新しない
+	// ===============================
 	if (state_ == GameState::Pause) {
 
 		// 上下で選択切替
@@ -109,29 +140,48 @@ void GameScene::Update() {
 				menuIndex_ = 0;
 		}
 
-		// -------- カーソル位置更新 --------
+		// カーソル位置更新
 		if (menuIndex_ == 0) {
 			highlight_->SetPosition({640, 330});
-			cursor_->SetPosition({430, 330}); // ← 位置を左へずらした
+			cursor_->SetPosition({430, 330});
 		}
 		if (menuIndex_ == 1) {
 			highlight_->SetPosition({640, 420});
-			cursor_->SetPosition({430, 420}); // ← 位置を左へずらした
+			cursor_->SetPosition({430, 420});
 		}
 
-		// -------- 決定（Enter） --------
+		// 決定
 		if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
+
 			if (menuIndex_ == 0) {
-				// 続ける
 				state_ = GameState::Play;
 			} else if (menuIndex_ == 1) {
-				// タイトルへ
 				isEnd_ = true;
 				nextScene_ = (int)SceneType::TITLE;
 			}
 		}
 
-		return; // ★ ゲーム更新は一切しない！
+		return; // ★ゲームの進行は止める
+	}
+
+	// =========================================================
+	// ★ プレイ中の操作説明UI（フェードアウト処理）
+	// =========================================================
+	if (showControlUI_) {
+
+		if (controlUITimer_ > 0) {
+			controlUITimer_--;
+		} else {
+			// 徐々に透明へ
+			controlUIAlpha_ -= 0.02f;
+
+			if (controlUIAlpha_ <= 0.0f) {
+				controlUIAlpha_ = 0.0f;
+				showControlUI_ = false; // 完全に消える
+			}
+		}
+
+		controlUI_->SetColor({1, 1, 1, controlUIAlpha_});
 	}
 
 
@@ -258,7 +308,6 @@ void GameScene::Update() {
 		}
 	}
 
-
 	// ===============================
 	// ★ 形態変化による BGM 切り替え
 	// ===============================
@@ -321,7 +370,6 @@ void GameScene::Update() {
 #ifdef _DEBUG
 	// --- デバッグ用強制遷移 ---
 
-
 	// Lキーで強制クリア
 	if (GetAsyncKeyState('L') & 0x8000) {
 		isEnd_ = true;
@@ -335,7 +383,6 @@ void GameScene::Update() {
 	}
 
 #endif
-
 }
 
 void GameScene::Draw3D() {
@@ -348,6 +395,11 @@ void GameScene::Draw2D() {
 
 	// --- 通常UI（ロックオンUIなど） ---
 	// player_->DrawUI();
+
+	 // --- 操作説明UI ---
+	if (showControlUI_ || state_ == GameState::Pause) {
+		controlUI_->Draw();
+	}
 
 	// --- ポーズ中だけメニュー表示 ---
 	if (state_ == GameState::Pause) {

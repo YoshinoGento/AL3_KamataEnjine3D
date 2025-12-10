@@ -72,4 +72,20 @@ private:
 	// 選択項目（0=つづける, 1=タイトルへ）
 	int menuIndex_ = 0;
 	// -------------------------------
+
+	/// UI追加
+	// --- 操作説明UI ---
+	Sprite* controlUI_ = nullptr;
+
+	// 表示タイマー
+	int controlUITimer_ = 0;
+
+	// フェードアウト用（0.0〜1.0）
+	float controlUIAlpha_ = 1.0f;
+
+	// 今UIが表示されるべきか？
+	bool showControlUI_ = true;
+
+
+
 };
