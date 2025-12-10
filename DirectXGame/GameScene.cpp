@@ -63,8 +63,8 @@ void GameScene::Initialize() {
 	}
 
 	worldTransformEnemyHealth_[0].translation_ = {0.0f, 3.0f, 0.0f};
-	worldTransformEnemyHealth_[1].translation_ = {-2.0f, 2.0f, 0.0f};
-	worldTransformEnemyHealth_[2].translation_ = {2.0f, 2.0f, 0.0f};
+	worldTransformEnemyHealth_[1].translation_ = {-3.0f, 2.0f, 0.0f};
+	worldTransformEnemyHealth_[2].translation_ = {3.0f, 2.0f, 0.0f};
 
 	health_texture = TextureManager::Load("White1x1.png");
 	playerHealthBarColor.Initialize();
@@ -177,7 +177,7 @@ void GameScene::Update() {
 	WorldTransformUpdate(worldTransformPlayerHealth_);
 
 	for (int i = 0; i < 3; i++) {
-		worldTransformEnemyHealth_[i].scale_.x = float(enemy_->GetHP(i)) / 2.0f;
+		worldTransformEnemyHealth_[i].scale_.x = float(enemy_->GetHP(i)) / 12.0f;
 		WorldTransformUpdate(worldTransformEnemyHealth_[i]);
 	}
 
