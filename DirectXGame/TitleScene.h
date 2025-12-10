@@ -24,4 +24,6 @@ private:
 	Sprite* pressKey_ = nullptr;
 
 	int flashTimer_ = 0; // ← 追加！点滅用タイマー
+
+	uint32_t bgmHandle_ = 0;
 };
