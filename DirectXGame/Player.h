@@ -47,8 +47,8 @@ public:
 
 	bool IsHitMissile(const Vector3& bulletPosition);
 
-	int GetHP() { return hitPoint_; }
-
+	const std::list<HomingArcBullet*>& GetArcBullets() const { return arcBullets_; }
+	bool IsFiringFanMissiles() const { return isFiringFanMissiles_; }
 
 private:
 	WorldTransform worldTransform_;

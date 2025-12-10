@@ -72,9 +72,88 @@ void GameScene::Initialize() {
 
 	enemyHealthBarColor.Initialize();
 	enemyHealthBarColor.SetColor({255.0f, 0.0f, 0.0f, 1.0f});
+
+	//------ポーズメニュー初期化------------
+	uint32_t menuTex = TextureManager::Load("menu_bg.png");
+	menuBG_ = Sprite::Create(menuTex, {640, 360});
+	menuBG_->SetAnchorPoint({0.5f, 0.5f});
+
+	// ハイライト（細い青帯）
+	uint32_t hlTex = TextureManager::Load("highlight.png");
+	highlight_ = Sprite::Create(hlTex, {640, 330});
+	highlight_->SetAnchorPoint({0.5f, 0.5f});
+
+	// つづける
+	uint32_t contTex = TextureManager::Load("continue.png");
+	continueText_ = Sprite::Create(contTex, {640, 330});
+	continueText_->SetAnchorPoint({0.5f, 0.5f});
+
+	// タイトルへ
+	uint32_t titleTex = TextureManager::Load("totitle.png");
+	titleText_ = Sprite::Create(titleTex, {640, 420});
+	titleText_->SetAnchorPoint({0.5f, 0.5f});
+
+	// カーソル（三角）
+	uint32_t curTex = TextureManager::Load("cursor.png");
+	cursor_ = Sprite::Create(curTex, {500, 330});
+	cursor_->SetAnchorPoint({0.5f, 0.5f});
 }
 
 void GameScene::Update() {
+
+	// ====== ポーズ切替 ======
+	if (Input::GetInstance()->TriggerKey(DIK_M)) {
+		if (state_ == GameState::Play) {
+			state_ = GameState::Pause;
+			return; // 以降のゲーム更新をしない
+		} else {
+			state_ = GameState::Play;
+			return;
+		}
+	}
+
+	if (state_ == GameState::Pause) {
+
+		// 上下で選択切替
+		if (Input::GetInstance()->TriggerKey(DIK_UP)) {
+			menuIndex_--;
+			if (menuIndex_ < 0)
+				menuIndex_ = 1;
+		}
+
+		if (Input::GetInstance()->TriggerKey(DIK_DOWN)) {
+			menuIndex_++;
+			if (menuIndex_ > 1)
+				menuIndex_ = 0;
+		}
+
+		// -------- カーソル位置更新 --------
+		if (menuIndex_ == 0) {
+			highlight_->SetPosition({640, 330});
+			cursor_->SetPosition({430, 330}); // ← 位置を左へずらした
+		}
+		if (menuIndex_ == 1) {
+			highlight_->SetPosition({640, 420});
+			cursor_->SetPosition({430, 420}); // ← 位置を左へずらした
+		}
+
+		// -------- 決定（Enter） --------
+		if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
+			if (menuIndex_ == 0) {
+				// 続ける
+				state_ = GameState::Play;
+			} else if (menuIndex_ == 1) {
+				// タイトルへ
+				isEnd_ = true;
+				nextScene_ = (int)SceneType::TITLE;
+			}
+		}
+
+		return; // ★ ゲーム更新は一切しない！
+	}
+
+
+
 #ifdef _DEBUG
 	// if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 	//     isDebugCameraActive_ = !isDebugCameraActive_;
@@ -117,16 +196,22 @@ void GameScene::Update() {
 	// プレイヤー弾 vs ボス部位の当たり判定（今まで通り）
 	if (enemy_) {
 		const std::list<PlayerBullet*>& bullets = player_->GetBullets();
+		const std::list<HomingArcBullet*>& arcBullets = player_->GetArcBullets();
 		const std::list<EnemyBullet*>& enemyBullets = enemy_->GetBullets();
+
+		// ▼ 通常弾 vs ボス / 敵弾
 		for (PlayerBullet* bullet : bullets) {
 			if (!bullet || bullet->IsDead()) {
 				continue;
 			}
 			const Vector3& bulletPos = bullet->GetWorldPosition();
+
+			// ボス本体にヒット（ダメージ1）
 			if (enemy_->CheckHit(bulletPos)) {
 				bullet->OnHit();
 			}
 
+			// 敵弾との相殺
 			for (EnemyBullet* enemyBullet : enemyBullets) {
 				if (!enemyBullet || enemyBullet->IsDead()) {
 					continue;
@@ -138,6 +223,21 @@ void GameScene::Update() {
 			}
 		}
 
+		// ▼ ファンネル弾（ホーミング） vs ボス（ダメージ2）
+		for (HomingArcBullet* arc : arcBullets) {
+			if (!arc || arc->IsDead()) {
+				continue;
+			}
+
+			// ★ ここは「参照」じゃなくて普通の変数で OK
+			Vector3 pos = arc->GetWorldPosition();
+
+			if (enemy_->CheckHit(pos, 2)) { // ダメージ2
+				arc->OnHit();
+			}
+		}
+
+		// ▼ 敵弾 vs プレイヤー
 		for (EnemyBullet* bullet : enemyBullets) {
 			if (!bullet || bullet->IsDead()) {
 				continue;
@@ -149,6 +249,7 @@ void GameScene::Update() {
 			}
 		}
 	}
+
 
 	// =========================================
 	// マウス左クリックで、マウス位置方向に弾を撃つ
@@ -186,24 +287,24 @@ void GameScene::Update() {
 		}
 	}
 
-	// ボス更新
-	if (enemy_) {
-		const std::list<PlayerBullet*>& playerBullets = player_->GetBullets();
+	//// ボス更新
+	//if (enemy_) {
+	//	const std::list<PlayerBullet*>& playerBullets = player_->GetBullets();
 
-		for (PlayerBullet* bullet : playerBullets) {
-			if (!bullet) {
-				continue;
-			}
+	//	for (PlayerBullet* bullet : playerBullets) {
+	//		if (!bullet) {
+	//			continue;
+	//		}
 
-			// 弾のワールド座標を取得
-			const Vector3& bulletPosition = bullet->GetWorldPosition();
+	//		// 弾のワールド座標を取得
+	//		const Vector3& bulletPosition = bullet->GetWorldPosition();
 
-			// どれかの部位に当たったら、弾を消す
-			if (enemy_->CheckHit(bulletPosition)) {
-				bullet->OnHit();
-			}
-		}
-	}
+	//		// どれかの部位に当たったら、弾を消す
+	//		if (enemy_->CheckHit(bulletPosition)) {
+	//			bullet->OnHit();
+	//		}
+	//	}
+	//}
 
 
 	// ===============================
@@ -298,7 +399,19 @@ void GameScene::Draw3D() {
 }
 
 void GameScene::Draw2D() {
-	// player_->DrawUI(); // ロックオンUIとか
+
+	// --- 通常UI（ロックオンUIなど） ---
+	// player_->DrawUI();
+
+	// --- ポーズ中だけメニュー表示 ---
+	if (state_ == GameState::Pause) {
+
+		menuBG_->Draw();       // 背景（青系の半透明など）
+		highlight_->Draw();    // 選択ハイライト帯
+		continueText_->Draw(); // 「つづける」
+		titleText_->Draw();    // 「タイトルへ」
+		cursor_->Draw();       // 三角カーソル
+	}
 }
 
 void GameScene::Finalize() {
@@ -306,6 +419,14 @@ void GameScene::Finalize() {
 	auto* audio = Audio::GetInstance();
 	audio->StopWave(bgmVoiceHandle_);
 
+	// --- ポーズメニューの破棄 ---
+	delete menuBG_;
+	delete highlight_;
+	delete continueText_;
+	delete titleText_;
+	delete cursor_;
+
+	// --- ゲーム関連 ---
 	delete player_;
 	delete enemy_;
 	delete skydome_;
@@ -316,4 +437,7 @@ void GameScene::Finalize() {
 	delete skydome_model_;
 
 	delete debugCamera_;
+
+	delete playerHealth_model_;
+	delete enemyHealth_model_;
 }
