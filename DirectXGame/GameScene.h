@@ -2,10 +2,10 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
 #include "Player.h"
-#include <memory> // スマートポインタを使うなら
-#include "Skydome.h"
-#include "SceneType.h"
 #include "Scene.h"
+#include "SceneType.h"
+#include "Skydome.h"
+#include <memory> // スマートポインタを使うなら
 
 using namespace KamataEngine;
 
@@ -40,4 +40,11 @@ private:
 
 	bool isEnd_ = false;
 	int nextScene_ = (int)SceneType::CLEAR;
+
+	// GameScene.h のメンバ
+	uint32_t bgmDataPhase1_ = 0;
+	uint32_t bgmDataPhase2_ = 0;
+	uint32_t bgmVoiceHandle_ = 0;
+
+	Enemy::Form lastForm_ = Enemy::Form::ONE;
 };

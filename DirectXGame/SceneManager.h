@@ -3,6 +3,7 @@
 
 class SceneManager {
 public:
+	void Initialize();  
 	void ChangeScene(int sceneID);
 	void Update();
 	void Draw();
