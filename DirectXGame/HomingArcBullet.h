@@ -17,6 +17,12 @@ public:
 	// 描画
 	void Draw(const Camera& camera);
 
+	 // 現在位置取得
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+
+	// 被弾などで自分を消す
+	void OnHit() { isDead_ = true; }
+
 	// 死亡判定
 	bool IsDead() const { return isDead_; }
 

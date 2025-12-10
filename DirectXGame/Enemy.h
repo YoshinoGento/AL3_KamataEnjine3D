@@ -46,6 +46,8 @@ public:
 	/// </summary>
 	bool CheckHit(const Vector3& bulletPosition);
 
+	bool CheckHit(const Vector3& bulletPosition, int damage);
+
 	/// <summary>
 	/// ファンネルの照射ビームにプレイヤーが当たっているか判定する
 	/// </summary>
@@ -211,13 +213,12 @@ private:
 	int fireTimer = 0;
 	// 発射間隔
 	static const int kFireInterval = 600;
+	
+	// 被弾時の点滅用タイマー
+	int damageFlashTimer_ = 0; 
+
+	ObjectColor bodyColor_;
 
 	// 形態
 	Form form = Form::ONE;
-
-
-
-
-	
-
 };

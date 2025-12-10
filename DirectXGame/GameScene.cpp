@@ -87,16 +87,22 @@ void GameScene::Update() {
 	// プレイヤー弾 vs ボス部位の当たり判定（今まで通り）
 	if (enemy_) {
 		const std::list<PlayerBullet*>& bullets = player_->GetBullets();
+		const std::list<HomingArcBullet*>& arcBullets = player_->GetArcBullets();
 		const std::list<EnemyBullet*>& enemyBullets = enemy_->GetBullets();
+
+		// ▼ 通常弾 vs ボス / 敵弾
 		for (PlayerBullet* bullet : bullets) {
 			if (!bullet || bullet->IsDead()) {
 				continue;
 			}
 			const Vector3& bulletPos = bullet->GetWorldPosition();
+
+			// ボス本体にヒット（ダメージ1）
 			if (enemy_->CheckHit(bulletPos)) {
 				bullet->OnHit();
 			}
 
+			// 敵弾との相殺
 			for (EnemyBullet* enemyBullet : enemyBullets) {
 				if (!enemyBullet || enemyBullet->IsDead()) {
 					continue;
@@ -108,6 +114,21 @@ void GameScene::Update() {
 			}
 		}
 
+		// ▼ ファンネル弾（ホーミング） vs ボス（ダメージ2）
+		for (HomingArcBullet* arc : arcBullets) {
+			if (!arc || arc->IsDead()) {
+				continue;
+			}
+
+			// ★ ここは「参照」じゃなくて普通の変数で OK
+			Vector3 pos = arc->GetWorldPosition();
+
+			if (enemy_->CheckHit(pos, 2)) { // ダメージ2
+				arc->OnHit();
+			}
+		}
+
+		// ▼ 敵弾 vs プレイヤー
 		for (EnemyBullet* bullet : enemyBullets) {
 			if (!bullet || bullet->IsDead()) {
 				continue;
@@ -119,6 +140,7 @@ void GameScene::Update() {
 			}
 		}
 	}
+
 
 	// =========================================
 	// マウス左クリックで、マウス位置方向に弾を撃つ
@@ -156,24 +178,24 @@ void GameScene::Update() {
 		}
 	}
 
-	// ボス更新
-	if (enemy_) {
-		const std::list<PlayerBullet*>& playerBullets = player_->GetBullets();
+	//// ボス更新
+	//if (enemy_) {
+	//	const std::list<PlayerBullet*>& playerBullets = player_->GetBullets();
 
-		for (PlayerBullet* bullet : playerBullets) {
-			if (!bullet) {
-				continue;
-			}
+	//	for (PlayerBullet* bullet : playerBullets) {
+	//		if (!bullet) {
+	//			continue;
+	//		}
 
-			// 弾のワールド座標を取得
-			const Vector3& bulletPosition = bullet->GetWorldPosition();
+	//		// 弾のワールド座標を取得
+	//		const Vector3& bulletPosition = bullet->GetWorldPosition();
 
-			// どれかの部位に当たったら、弾を消す
-			if (enemy_->CheckHit(bulletPosition)) {
-				bullet->OnHit();
-			}
-		}
-	}
+	//		// どれかの部位に当たったら、弾を消す
+	//		if (enemy_->CheckHit(bulletPosition)) {
+	//			bullet->OnHit();
+	//		}
+	//	}
+	//}
 
 
 	// ===============================

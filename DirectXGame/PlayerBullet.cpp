@@ -2,8 +2,6 @@
 
 void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector3 &velocity) {
 
-	// NULLポインタチェック
-	assert(model);
 
 	// モデル
 	player_bullet_model = model;
