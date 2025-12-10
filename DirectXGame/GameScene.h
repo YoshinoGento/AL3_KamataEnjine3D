@@ -9,6 +9,12 @@
 
 using namespace KamataEngine;
 
+
+enum class GameState {
+	Play,  // 通常プレイ
+	Pause, // ポーズ中
+};
+
 class GameScene : public Scene {
 public:
 	void Initialize() override;
@@ -47,4 +53,23 @@ private:
 	uint32_t bgmVoiceHandle_ = 0;
 
 	Enemy::Form lastForm_ = Enemy::Form::ONE;
+
+
+	// --- ポーズメニュー ---
+	bool isPaused_ = false; // ←もう不要になるけど一旦残してOK
+
+	// ★ 追加する！ ★
+	GameState state_ = GameState::Play;
+
+	Sprite* menuBG_ = nullptr;
+	Sprite* highlight_ = nullptr;
+
+	Sprite* continueText_ = nullptr;
+	Sprite* titleText_ = nullptr;
+
+	Sprite* cursor_ = nullptr;
+
+	// 選択項目（0=つづける, 1=タイトルへ）
+	int menuIndex_ = 0;
+	// -------------------------------
 };
