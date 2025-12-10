@@ -143,6 +143,7 @@ void GameScene::Update() {
 
 			// プレイヤーからその点に向けて弾を撃つ
 			player_->FireToward(targetWorld);
+
 		}
 	}
 
