@@ -175,6 +175,7 @@ void GameScene::Update() {
 		}
 	}
 
+
 	// ===============================
 	// ★ 形態変化による BGM 切り替え
 	// ===============================
@@ -203,18 +204,55 @@ void GameScene::Update() {
 	// if (enemy_->IsDead()) {
 	//	isEnd_ = true;
 	// }
-
-	// 🔽 Lキーを押したらシーン終了（テスト用）
-	if (GetAsyncKeyState('L') & 0x8000) {
-		isEnd_ = true;
-		nextScene_ = (int)SceneType::CLEAR; // ← CLEAR シーンへ
+	// 形態に応じてスカイドームの色を変える
+	if (enemy_ && skydome_) {
+		switch (enemy_->GetForm()) {
+		case Enemy::Form::ONE:
+			// 第一形態：通常の空
+			skydome_->SetTintColor(Vector4{1.0f, 1.0f, 1.0f, 1.0f});
+			break;
+		case Enemy::Form::TWO:
+			// 第二形態：少し赤くして不穏感を出す
+			skydome_->SetTintColor(Vector4{1.0f, 0.5f, 0.5f, 1.0f});
+			break;
+		}
 	}
 
-	// ★ P でゲームオーバーに遷移（テスト用）
+	// -------------------------
+	// 勝利 / 敗北判定
+	// -------------------------
+
+	// ボス撃破 → クリア
+	// Enemy::IsDefeated() はコア(0番)破壊で true
+	if (enemy_ && enemy_->IsDefeated()) {
+		isEnd_ = true;
+		nextScene_ = (int)SceneType::CLEAR;
+	}
+
+	// プレイヤー HP 0 → ゲームオーバー
+	if (player_ && player_->GetHP() <= 0) {
+		isEnd_ = true;
+		nextScene_ = (int)SceneType::GAMEOVER;
+	}
+
+#ifdef _DEBUG
+	// --- デバッグ用強制遷移 ---
+
+
+	// Lキーで強制クリア
+	if (GetAsyncKeyState('L') & 0x8000) {
+		isEnd_ = true;
+		nextScene_ = (int)SceneType::CLEAR;
+	}
+
+	// Pキーで強制ゲームオーバー
 	if (Input::GetInstance()->TriggerKey(DIK_P)) {
 		isEnd_ = true;
 		nextScene_ = (int)SceneType::GAMEOVER;
 	}
+
+#endif
+
 }
 
 void GameScene::Draw3D() {
