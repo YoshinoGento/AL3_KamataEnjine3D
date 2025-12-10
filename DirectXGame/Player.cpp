@@ -357,30 +357,42 @@ Player::~Player() {
 void Player::SetEnemy(Enemy* enemy) { enemy_ = enemy; }
 
 void Player::DrawChargeEffect(const Camera& camera) {
-	float rate = beamCharger_.GetChargeRate(); // 0.0〜1.0
+    float rate = beamCharger_.GetChargeRate();
+    if (rate <= 0.0f) return;
 
-	if (rate <= 0.0f)
-		return;
+    Vector3 basePos = worldTransform_.translation_ + Vector3{0, 1.0f, 0}; // 頭上
+    Vector4 color = Lerp(Vector4{0, 0, 1, 1}, Vector4{1, 0, 0, 1}, rate);
 
-	// チャージエフェクトの色（青→赤）
-	Vector4 color = Lerp(Vector4{0, 0, 1, 1}, Vector4{1, 0, 0, 1}, rate);
+    // モデルA: 内側
+    static Model* modelA = Model::CreateFromOBJ("ChargeEffect1");
+    if (modelA) {
+        WorldTransform wtA;
+        wtA.Initialize();
+        wtA.translation_ = basePos;
+        wtA.scale_ = Vector3{0.5f, 0.5f, 0.5f} * rate;
+        WorldTransformUpdate(wtA);
 
-	// チャージ演出（Sphereなど）
-	WorldTransform wt;
-	wt.Initialize();
-	wt.translation_ = worldTransform_.translation_ + Vector3{0, 0.5f, 0}; // 頭上
-	wt.scale_ = Vector3{0.5f, 0.5f, 0.5f} * rate;
+        ObjectColor objColorA;
+        objColorA.Initialize();
+        objColorA.SetColor(color);
 
-	WorldTransformUpdate(wt);
+        modelA->Draw(wtA, camera, &objColorA);
+    }
 
-	Model* chargeModel = Model::CreateFromOBJ("ChargeEffect");
-	if (!chargeModel)
-		return;
+    // モデルB: 外側（ちょっと大きめ・回転）
+    static Model* modelB = Model::CreateFromOBJ("ChargeEffect2");
+    if (modelB) {
+        WorldTransform wtB;
+        wtB.Initialize();
+        wtB.translation_ = basePos;
+        wtB.rotation_.y = static_cast<float>(GetTickCount() % 3600) / 100.0f; // 回転
+        wtB.scale_ = Vector3{0.7f, 0.7f, 0.7f} * rate;
+        WorldTransformUpdate(wtB);
 
-	// 正しい使い方
-	ObjectColor objColor;
-	objColor.Initialize();
-	objColor.SetColor(color);
+        ObjectColor objColorB;
+        objColorB.Initialize();
+        objColorB.SetColor(color);
 
-	chargeModel->Draw(wt, camera, &objColor);
+        modelB->Draw(wtB, camera, &objColorB);
+    }
 }
