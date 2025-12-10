@@ -16,6 +16,7 @@ void Skydome::Initialize(Model* model, Camera* camera) {
 	color_.SetColor(Vector4{1.0f, 1.0f, 1.0f, 1.0f});
 }
 
+
 void Skydome::Update() { worldTransform_.TransferMatrix(); }
 
 void Skydome::Draw() {
