@@ -6,11 +6,11 @@
 void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector3& velocity) {
 	assert(model);
 
-	model_ = model;
-	textureHandle_ = TextureManager::Load("enemyBullet.png");
+	model_ =  Model::CreateFromOBJ("BossMissile");
+
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
-	worldTransform_.scale_ = {0.5f, 0.5f, 0.5f};
+	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
 	velocity_ = velocity;
 }
 
@@ -41,7 +41,7 @@ void EnemyBullet::Update() {
 }
 
 void EnemyBullet::Draw(const Camera& camera) { 
-	model_->Draw(worldTransform_, camera, textureHandle_);
+	model_->Draw(worldTransform_, camera);
 }
 
 bool EnemyBullet::IsHitByPlayerBullet(const Vector3& bulletPosition) {

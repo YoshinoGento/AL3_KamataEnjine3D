@@ -72,9 +72,88 @@ void GameScene::Initialize() {
 
 	enemyHealthBarColor.Initialize();
 	enemyHealthBarColor.SetColor({255.0f, 0.0f, 0.0f, 1.0f});
+
+	//------ポーズメニュー初期化------------
+	uint32_t menuTex = TextureManager::Load("menu_bg.png");
+	menuBG_ = Sprite::Create(menuTex, {640, 360});
+	menuBG_->SetAnchorPoint({0.5f, 0.5f});
+
+	// ハイライト（細い青帯）
+	uint32_t hlTex = TextureManager::Load("highlight.png");
+	highlight_ = Sprite::Create(hlTex, {640, 330});
+	highlight_->SetAnchorPoint({0.5f, 0.5f});
+
+	// つづける
+	uint32_t contTex = TextureManager::Load("continue.png");
+	continueText_ = Sprite::Create(contTex, {640, 330});
+	continueText_->SetAnchorPoint({0.5f, 0.5f});
+
+	// タイトルへ
+	uint32_t titleTex = TextureManager::Load("totitle.png");
+	titleText_ = Sprite::Create(titleTex, {640, 420});
+	titleText_->SetAnchorPoint({0.5f, 0.5f});
+
+	// カーソル（三角）
+	uint32_t curTex = TextureManager::Load("cursor.png");
+	cursor_ = Sprite::Create(curTex, {500, 330});
+	cursor_->SetAnchorPoint({0.5f, 0.5f});
 }
 
 void GameScene::Update() {
+
+	// ====== ポーズ切替 ======
+	if (Input::GetInstance()->TriggerKey(DIK_M)) {
+		if (state_ == GameState::Play) {
+			state_ = GameState::Pause;
+			return; // 以降のゲーム更新をしない
+		} else {
+			state_ = GameState::Play;
+			return;
+		}
+	}
+
+	if (state_ == GameState::Pause) {
+
+		// 上下で選択切替
+		if (Input::GetInstance()->TriggerKey(DIK_UP)) {
+			menuIndex_--;
+			if (menuIndex_ < 0)
+				menuIndex_ = 1;
+		}
+
+		if (Input::GetInstance()->TriggerKey(DIK_DOWN)) {
+			menuIndex_++;
+			if (menuIndex_ > 1)
+				menuIndex_ = 0;
+		}
+
+		// -------- カーソル位置更新 --------
+		if (menuIndex_ == 0) {
+			highlight_->SetPosition({640, 330});
+			cursor_->SetPosition({430, 330}); // ← 位置を左へずらした
+		}
+		if (menuIndex_ == 1) {
+			highlight_->SetPosition({640, 420});
+			cursor_->SetPosition({430, 420}); // ← 位置を左へずらした
+		}
+
+		// -------- 決定（Enter） --------
+		if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
+			if (menuIndex_ == 0) {
+				// 続ける
+				state_ = GameState::Play;
+			} else if (menuIndex_ == 1) {
+				// タイトルへ
+				isEnd_ = true;
+				nextScene_ = (int)SceneType::TITLE;
+			}
+		}
+
+		return; // ★ ゲーム更新は一切しない！
+	}
+
+
+
 #ifdef _DEBUG
 	// if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 	//     isDebugCameraActive_ = !isDebugCameraActive_;
@@ -298,7 +377,19 @@ void GameScene::Draw3D() {
 }
 
 void GameScene::Draw2D() {
-	// player_->DrawUI(); // ロックオンUIとか
+
+	// --- 通常UI（ロックオンUIなど） ---
+	// player_->DrawUI();
+
+	// --- ポーズ中だけメニュー表示 ---
+	if (state_ == GameState::Pause) {
+
+		menuBG_->Draw();       // 背景（青系の半透明など）
+		highlight_->Draw();    // 選択ハイライト帯
+		continueText_->Draw(); // 「つづける」
+		titleText_->Draw();    // 「タイトルへ」
+		cursor_->Draw();       // 三角カーソル
+	}
 }
 
 void GameScene::Finalize() {
@@ -306,6 +397,14 @@ void GameScene::Finalize() {
 	auto* audio = Audio::GetInstance();
 	audio->StopWave(bgmVoiceHandle_);
 
+	// --- ポーズメニューの破棄 ---
+	delete menuBG_;
+	delete highlight_;
+	delete continueText_;
+	delete titleText_;
+	delete cursor_;
+
+	// --- ゲーム関連 ---
 	delete player_;
 	delete enemy_;
 	delete skydome_;
