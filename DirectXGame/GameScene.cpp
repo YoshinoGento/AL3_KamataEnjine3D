@@ -417,5 +417,8 @@ void GameScene::Finalize() {
 	delete debugCamera_;
 
 	delete playerHealth_model_;
-	delete enemyHealth_model_;
+
+	for (int i = 0; i < 3; i++) {
+		delete enemyHealth_model_[i];
+	}
 }
