@@ -165,24 +165,47 @@ void GameScene::Update() {
 			}
 		}
 	}
+
+
+	//// 例えば敵を倒したらクリア
+	//if (enemy_->IsDead()) {
+	//	isEnd_ = true;
+	//}
+
+
+	// 🔽 Lキーを押したらシーン終了（テスト用）
+	if (GetAsyncKeyState('L') & 0x8000) {
+		isEnd_ = true;
+		nextScene_ = (int)SceneType::CLEAR; // ← CLEAR シーンへ
+	}
+
+	// ★ P でゲームオーバーに遷移（テスト用）
+	if (Input::GetInstance()->TriggerKey(DIK_P)) {
+		isEnd_ = true;
+		nextScene_ = (int)SceneType::GAMEOVER;
+	}
+
 }
 
-void GameScene::Draw() {
-	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
-	Model::PreDraw(dxCommon->GetCommandList());
-
+void GameScene::Draw3D() {
 	skydome_->Draw();
 	enemy_->Draw(camera_);
 	player_->Draw();
-
-	// 3Dモデル描画後処理
-	Model::PostDraw();
 }
 
-void GameScene::Delete() {
+void GameScene::Draw2D() {
+	//player_->DrawUI(); // ロックオンUIとか
+}
+
+void GameScene::Finalize() {
 	delete player_;
-	delete player_model_;
-	delete debugCamera_;
 	delete enemy_;
 	delete skydome_;
+
+	delete player_model_;
+	delete enemy_model_;
+	delete player_bullet_model_;
+	delete skydome_model_;
+
+	delete debugCamera_;
 }
