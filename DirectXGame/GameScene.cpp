@@ -316,4 +316,7 @@ void GameScene::Finalize() {
 	delete skydome_model_;
 
 	delete debugCamera_;
+
+	delete playerHealth_model_;
+	delete enemyHealth_model_;
 }
