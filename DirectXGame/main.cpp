@@ -26,7 +26,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		sceneManager.Draw();
 		dxCommon->PostDraw();
 
-		if (GetAsyncKeyState(VK_ESCAPE) & 0x8000) {
+		if (GetAsyncKeyState(VK_F1) & 0x8000) {
 			break;
 		}
 	}

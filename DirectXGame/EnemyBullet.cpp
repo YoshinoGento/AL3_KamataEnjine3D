@@ -5,7 +5,7 @@
 
 void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector3& velocity) {
 	assert(model);
-
+	model_ = model;
 	model_ =  Model::CreateFromOBJ("BossMissile");
 
 	worldTransform_.Initialize();

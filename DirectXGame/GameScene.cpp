@@ -97,12 +97,28 @@ void GameScene::Initialize() {
 	uint32_t curTex = TextureManager::Load("cursor.png");
 	cursor_ = Sprite::Create(curTex, {500, 330});
 	cursor_->SetAnchorPoint({0.5f, 0.5f});
+
+
+	// --- 操作説明UI ---
+	uint32_t uiTex = TextureManager::Load("ui_control.png");
+
+	// 右上に配置（少し内側）
+	controlUI_ = Sprite::Create(uiTex, {1240, 40});
+	controlUI_->SetAnchorPoint({1.0f, 0.0f}); // 右上アンカー
+
+	// 少し小さめに（75%）
+	controlUI_->SetSize({450, 450});
+
+	// 初期状態：5秒間表示
+	controlUITimer_ = 300;
+	controlUIAlpha_ = 1.0f;
+	showControlUI_ = true;
 }
 
 void GameScene::Update() {
 
 	// ====== ポーズ切替 ======
-	if (Input::GetInstance()->TriggerKey(DIK_M)) {
+	if (Input::GetInstance()->TriggerKey(DIK_ESCAPE)) {
 
 		if (state_ == GameState::Play) {
 			// ★ Pauseへ入る瞬間
