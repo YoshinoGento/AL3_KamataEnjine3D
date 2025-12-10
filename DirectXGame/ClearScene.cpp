@@ -12,6 +12,13 @@ void ClearScene::Initialize() {
 	uint32_t tex = TextureManager::Load("GameClear.png");
 	clearText_ = Sprite::Create(tex, {0, 0});
 
+
+
+	auto* audio = Audio::GetInstance();
+	bgmDataHandle_ = audio->LoadWave("Clear.wav");
+	// ★ 再生して「再生ID」をもらう
+	bgmVoiceHandle_ = audio->PlayWave(bgmDataHandle_, true);
+
 	// -------------------------
 	// フルスクリーンフィット計算
 	// -------------------------
@@ -70,4 +77,6 @@ void ClearScene::Draw2D() {
 void ClearScene::Finalize() {
 	delete clearText_;
 	delete pressKey_;
+	// ★ 再生IDで止める
+	Audio::GetInstance()->StopWave(bgmVoiceHandle_);
 }

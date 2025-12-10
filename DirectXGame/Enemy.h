@@ -60,6 +60,9 @@ public:
 
 	const std::list<EnemyBullet*>& GetBullets() const { return bullets_; }
 
+	// ★ これを追加
+	Form GetForm() const { return form; }
+
 	// ファンネル攻撃を開始（空きがあれば1機だけ使用）
 	void StartFunnelAttack(const Vector3& playerPosition);
 
@@ -78,6 +81,7 @@ public:
 
 	// ミサイルの発射
 	void ShootMissile();
+
 
 private:
 
@@ -210,5 +214,21 @@ private:
 	// 形態
 	Form form = Form::ONE;
 
+	// ファンネル攻撃を開始（空きがあれば1機だけ使用）
+	void StartFunnelAttack(const Vector3& playerPosition);
+
+	/// <summary>
+	/// ファンネルの状態更新（L字移動＋照射時間の進行）
+	/// </summary>
+	void UpdateFunnels(const Vector3& playerPosition);
+
+	/// <summary>
+	/// ファンネルの描画（本体＋ビーム）
+	/// </summary>
+	void DrawFunnels(const Camera& camera);
+
+	// ミサイルの発射
+	void ShootMissile();
 	
+
 };
