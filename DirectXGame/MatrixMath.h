@@ -75,6 +75,10 @@ Matrix4x4& operator*=(Matrix4x4& lhm, const Matrix4x4& rhm);
 // 2項演算子オーバーロード
 Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2);
 
+// --- Vector2 用演算子オーバーロード ---
+Vector2 operator-(const Vector2& a, const Vector2& b);
+float Length(const Vector2& v);
+
 // ワールドトランスフォーム更新(02_03の最後)
 void WorldTransformUpdate(WorldTransform& worldTransform);
 
@@ -112,3 +116,5 @@ Matrix4x4 Inverse(const Matrix4x4& m);
 Vector4 Transform(const Vector4& v, const Matrix4x4& m);
 
 Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height);
+
+Vector2 WorldToScreen(const Vector3& worldPos, const Camera& camera);

@@ -56,3 +56,7 @@ void HomingArcBullet::Draw(const KamataEngine::Camera& camera) {
 		return;
 	model_->Draw(worldTransform_, camera);
 }
+
+
+
+

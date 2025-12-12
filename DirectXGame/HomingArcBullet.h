@@ -1,4 +1,5 @@
 #pragma once
+#include "Enemy.h"
 #include "KamataEngine.h"
 #include "MatrixMath.h"
 
@@ -18,6 +19,9 @@ public:
 	// 死亡判定
 	bool IsDead() const { return isDead_; }
 
+	// ワールド座標を取得
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+
 private:
 	static const int32_t kLifeTime = 60 * 1;
 	WorldTransform worldTransform_; // ワールド変換情報
@@ -28,4 +32,7 @@ private:
 	float time_ = 0.0f;             // 経過時間
 	float lifeTime_ = 180.0f;       // 寿命
 	bool isDead_ = false;           // 死亡フラグ
+	
+    
+	
 };

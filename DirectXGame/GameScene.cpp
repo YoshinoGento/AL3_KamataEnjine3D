@@ -8,34 +8,29 @@ void GameScene::Initialize() {
 	player_model_ = Model::CreateFromOBJ("player");
 	enemy_model_ = Model::CreateFromOBJ("enemy");
 
-	PlayerCamera_.Initialize();
-	EnemyCamera_.Initialize();
+	// ★ camera_ だけ使う
 	camera_.Initialize();
-
-	PlayerCamera_.translation_ = {0.0f, 0.0f, -10.0f};
-	PlayerCamera_.UpdateMatrix();
-	EnemyCamera_.translation_ = {0.0f, -1.0f, -30.0f};
-	EnemyCamera_.UpdateMatrix();
 	camera_.translation_ = {0.0f, 0.0f, -10.0f};
 	camera_.UpdateMatrix();
 
-
-	//モデルなどは先に読込先と仮定
+	// 敵を共通 camera_ で初期化
 	for (int i = 0; i < 5; ++i) {
-		Enemy* enemy_ = new Enemy();
-		Vector3 position = {float(i * 3 - 6), 0.0f, 10.0f}; //横一列
-		enemy_->Initialize(enemy_model_, &EnemyCamera_, position);
-		enemies_.push_back(enemy_);
+		Enemy* enemy = new Enemy();
+		Vector3 position = {float(i * 3 - 6), 0.0f, 10.0f};
+		enemy->Initialize(enemy_model_, &camera_, position);
+		enemies_.push_back(enemy);
 	}
 
-
-
+	// デバッグカメラは今のままでOK
 	debugCamera_ = new DebugCamera(1280, 720);
+
+	// プレイヤーも共通 camera_ で初期化
 	player_ = new Player();
-	player_->Initialize(player_model_, &PlayerCamera_, {0.0f, 0.0f, 0.0f});
+	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
 
 	player_->SetEnemies(enemies_);
 }
+
 
 void GameScene::Update() {
 #ifdef _DEBUG

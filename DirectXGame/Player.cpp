@@ -91,6 +91,8 @@ void Player::Draw() {
 }
 
 void Player::Attack() {
+
+	// ---------- 通常弾（Space） ----------
 	if (input_->TriggerKey(DIK_SPACE)) {
 		const float kBulletSpeed = 1.0f;
 		Vector3 velocity(0, 0, kBulletSpeed);
@@ -101,49 +103,66 @@ void Player::Attack() {
 		bullets_.push_back(newBullet);
 	}
 
+	// ================================
+	// ★ 右クリック：敵をロックオン
+	// ================================
+	// =============================
+	// ★ 右クリック：1体ずつロックオン
+	// =============================
 	if (input_->IsTriggerMouse(1)) {
-		Vector2 mousePos = input_->GetMousePosition();
 
-		// 仮にスクリーン→ワールド変換を自前でやる場合（Zは仮固定）
-		Vector3 mouseWorldPos = {
-		    mousePos.x / 100.0f - 6.0f, mousePos.y / 100.0f - 4.0f,
-		    10.0f // 敵のZ座標に合わせておく
-		};
+		Vector2 mouse = input_->GetMousePosition();
+		const float lockRadius = 60.0f;
 
-		const float lockOnDistance = 1.5f; // ロック可能な距離（調整可）
+		Enemy* bestEnemy = nullptr;
+		float bestDist = lockRadius;
 
+		// 1クリックで「最も近い敵だけ」をロック候補にする
 		for (Enemy* enemy : enemies_) {
 			Vector3 enemyPos = enemy->GetWorldPosition();
-			float dist = Length(mouseWorldPos - enemyPos);
+			Vector2 enemyScreen = WorldToScreen(enemyPos, *camera_);
 
-			if (dist < lockOnDistance) {
-				// まだロックしてなければ追加
-				if (std::find(lockedEnemies_.begin(), lockedEnemies_.end(), enemy) == lockedEnemies_.end()) {
-					lockedEnemies_.push_back(enemy);
-				}
+			float dist = Length(mouse - enemyScreen);
+
+			// lockRadius 以内で一番近い敵を選ぶ
+			if (dist < bestDist) {
+				bestDist = dist;
+				bestEnemy = enemy;
+			}
+		}
+
+		// 見つかったらロックオンに追加
+		if (bestEnemy) {
+			// すでにロックしているかチェック
+			if (std::find(lockedEnemies_.begin(), lockedEnemies_.end(), bestEnemy) == lockedEnemies_.end()) {
+				lockedEnemies_.push_back(bestEnemy);
 			}
 		}
 	}
 
-	// 発射（左クリック）
+	// ================================
+	// ★ 左クリック：ロックした敵へミサイル発射
+	// ================================
 	if (input_->IsTriggerMouse(0)) {
-		for (Enemy* enemy : lockedEnemies_) {
-			Vector3 enemyPos = enemy->GetWorldPosition();
 
-			HomingArcBullet* arcBullet = new HomingArcBullet();
-			arcBullet->Initialize(model_, worldTransform_.translation_, enemyPos);
-			arcBullets_.push_back(arcBullet);
+		for (Enemy* enemy : lockedEnemies_) {
+
+			Vector3 target = enemy->GetWorldPosition();
+
+			HomingArcBullet* arc = new HomingArcBullet();
+			arc->Initialize(model_, worldTransform_.translation_, target);
+			arcBullets_.push_back(arc);
 		}
 
-		// 発射後はロック解除（必要であれば）
 		lockedEnemies_.clear();
 	}
 
-	// キーでロック解除（例：Rキー）
+	// ---------- Rキーでロック解除 ----------
 	if (input_->TriggerKey(DIK_R)) {
 		lockedEnemies_.clear();
 	}
 }
+
 
 Player::~Player() {
 	for (PlayerBullet* bullet : bullets_) {

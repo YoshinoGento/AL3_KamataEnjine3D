@@ -24,6 +24,15 @@ const Vector3 operator+(const Vector3& v1, const Vector3& v2) {
 	return temp += v2;
 }
 
+
+// Vector2 - Vector2
+Vector2 operator-(const Vector2& a, const Vector2& b) { return {a.x - b.x, a.y - b.y}; }
+
+// Vector2 の長さ
+float Length(const Vector2& v) { return std::sqrt(v.x * v.x + v.y * v.y); }
+
+
+
 // 02_06のスライド24枚目のLerp関数
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) { return Vector3(Lerp(v1.x, v2.x, t), Lerp(v1.y, v2.y, t), Lerp(v1.z, v2.z, t)); }
 
@@ -290,4 +299,30 @@ Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Ma
 	float y = (-clip.y / clip.z) * 0.5f + 0.5f;
 
 	return {x * width, y * height};
+}
+
+
+Vector2 WorldToScreen(const Vector3& worldPos, const Camera& camera) {
+
+	// 1. Vector3 → Vector4（w = 1）
+	Vector4 pos4 = {worldPos.x, worldPos.y, worldPos.z, 1.0f};
+
+	// 2. ワールド → ビュー
+	// ★ Camera をいじらない → メンバを直接使う！
+	Vector4 viewPos = Transform(pos4, camera.matView);
+
+	// 3. ビュー → プロジェクション
+	Vector4 clipPos = Transform(viewPos, camera.matProjection);
+
+	// 4. w除算（NDC）
+	float invW = 1.0f / clipPos.w;
+	float ndcX = clipPos.x * invW;
+	float ndcY = clipPos.y * invW;
+
+	// 5. NDC → スクリーン座標
+	Vector2 screen;
+	screen.x = (ndcX * 0.5f + 0.5f) * WinApp::kWindowWidth;
+	screen.y = (-ndcY * 0.5f + 0.5f) * WinApp::kWindowHeight;
+
+	return screen;
 }

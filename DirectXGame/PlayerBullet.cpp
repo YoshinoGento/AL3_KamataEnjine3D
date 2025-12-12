@@ -1,4 +1,5 @@
 #include "PlayerBullet.h"
+#include <cassert>
 
 void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector3 &velocity) {
 
