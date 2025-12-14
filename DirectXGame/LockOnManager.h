@@ -1,26 +1,37 @@
 #pragma once
 #include "Enemy.h"
-#include "MatrixMath.h"
+#include "KamataEngine.h"
 #include <vector>
+
+using namespace KamataEngine;
 
 class LockOnManager {
 public:
-	void Initialize(uint32_t markerTexture);
+	// 初期化
+	void Initialize(uint32_t textureHandle);
 
-	// ロックオン処理（右クリック）
+	// 右クリックでロックオン
 	void TryLockOn(const Vector2& mousePos, const std::vector<Enemy*>& enemies, const Camera& camera);
 
-	// 発射時にロックしている敵一覧を返す
-	const std::vector<Enemy*>& GetLockedEnemies() const { return lockedEnemies_; }
-
-	// 発射後ロック解除
-	void Clear() { lockedEnemies_.clear(); }
-
-	// 描画（敵の頭上にマーカーを描く）
+	// 2D描画
 	void DrawMarkers(const Camera& camera);
 
+	// ★ ロックしている敵一覧を取得
+	std::vector<Enemy*> GetLockedEnemies() const;
+
+	// ロック解除
+	void Clear();
+
 private:
-	std::vector<Enemy*> lockedEnemies_;
-	uint32_t markerTexture_ = 0;
-	float lockRadius_ = 60.0f; // マウスとの距離
+	struct LockTarget {
+		Enemy* enemy = nullptr;
+
+		Sprite* tl = nullptr;
+		Sprite* tr = nullptr;
+		Sprite* bl = nullptr;
+		Sprite* br = nullptr;
+	};
+
+	std::vector<LockTarget> targets_;
+	uint32_t textureHandle_ = 0;
 };

@@ -8,7 +8,7 @@ void GameScene::Initialize() {
 	player_model_ = Model::CreateFromOBJ("player");
 	enemy_model_ = Model::CreateFromOBJ("enemy");
 
-	uint32_t lockonTexture = TextureManager::Load("lockon.png");
+	uint32_t lockonTexture = TextureManager::Load("lockon_br.png");
 
 	// ★ camera_ だけ使う
 	camera_.Initialize();
@@ -79,7 +79,22 @@ void GameScene::Draw() {
 }
 
 void GameScene::Delete() {
+
+	// 敵を全削除
+	for (Enemy* enemy : enemies_) {
+		delete enemy;
+	}
+	enemies_.clear();
+
 	delete player_;
-	delete player_model_;
+	player_ = nullptr;
+
 	delete debugCamera_;
+	debugCamera_ = nullptr;
+
+	delete player_model_;
+	delete enemy_model_;
+
+	player_model_ = nullptr;
+	enemy_model_ = nullptr;
 }

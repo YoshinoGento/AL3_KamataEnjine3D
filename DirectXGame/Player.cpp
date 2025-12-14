@@ -1,10 +1,9 @@
 #include "Player.h"
 #include "MatrixMath.h"
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <numbers>
-#include <algorithm>
-
 
 void Player::Initialize(Model* model, Camera* camera, const Vector3& position, uint32_t lockonTexture) {
 	assert(model);
@@ -64,7 +63,6 @@ void Player::Update() {
 		lolckOn_.TryLockOn(input_->GetMousePosition(), enemies_, *camera_);
 	}
 
-
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Update();
 	}
@@ -95,82 +93,45 @@ void Player::Draw3D() {
 	}
 }
 
-void Player::Draw2D() {
+void Player::Draw2D() { 
 	lolckOn_.DrawMarkers(*camera_); 
 }
-
 void Player::Attack() {
 
-	// ---------- 通常弾（Space） ----------
+	// ---------- 通常弾 ----------
 	if (input_->TriggerKey(DIK_SPACE)) {
 		const float kBulletSpeed = 1.0f;
 		Vector3 velocity(0, 0, kBulletSpeed);
 		velocity = TransformNormal(velocity, worldTransform_.matWorld_);
 
-		PlayerBullet* newBullet = new PlayerBullet();
-		newBullet->Initialize(model_, worldTransform_.translation_, velocity);
-		bullets_.push_back(newBullet);
+		PlayerBullet* bullet = new PlayerBullet();
+		bullet->Initialize(model_, worldTransform_.translation_, velocity);
+		bullets_.push_back(bullet);
 	}
 
-	// ================================
-	// ★ 右クリック：敵をロックオン
-	// ================================
-	// =============================
-	// ★ 右クリック：1体ずつロックオン
-	// =============================
+	// ---------- 右クリック：ロックオン ----------
 	if (input_->IsTriggerMouse(1)) {
-
-		Vector2 mouse = input_->GetMousePosition();
-		const float lockRadius = 60.0f;
-
-		Enemy* bestEnemy = nullptr;
-		float bestDist = lockRadius;
-
-		// 1クリックで「最も近い敵だけ」をロック候補にする
-		for (Enemy* enemy : enemies_) {
-			Vector3 enemyPos = enemy->GetWorldPosition();
-			Vector2 enemyScreen = WorldToScreen(enemyPos, *camera_);
-
-			float dist = Length(mouse - enemyScreen);
-
-			// lockRadius 以内で一番近い敵を選ぶ
-			if (dist < bestDist) {
-				bestDist = dist;
-				bestEnemy = enemy;
-			}
-		}
-
-		// 見つかったらロックオンに追加
-		if (bestEnemy) {
-			// すでにロックしているかチェック
-			if (std::find(lockedEnemies_.begin(), lockedEnemies_.end(), bestEnemy) == lockedEnemies_.end()) {
-				lockedEnemies_.push_back(bestEnemy);
-			}
-		}
+		lolckOn_.TryLockOn(input_->GetMousePosition(), enemies_, *camera_);
 	}
 
-	// ================================
-	// ★ 左クリック：ロックした敵へミサイル発射
-	// ================================
+	// ---------- 左クリック：ミサイル発射 ----------
 	if (input_->IsTriggerMouse(0)) {
 
-		for (Enemy* enemy : lockedEnemies_) {
-
-			Vector3 target = enemy->GetWorldPosition();
-
+		for (Enemy* enemy : lolckOn_.GetLockedEnemies()) {
 			HomingArcBullet* arc = new HomingArcBullet();
-			arc->Initialize(model_, worldTransform_.translation_, target);
+			arc->Initialize(model_, worldTransform_.translation_, enemy->GetWorldPosition());
 			arcBullets_.push_back(arc);
 		}
 
-		lockedEnemies_.clear();
+		lolckOn_.Clear();
 	}
 
-	// ---------- Rキーでロック解除 ----------
+	// ---------- R：解除 ----------
 	if (input_->TriggerKey(DIK_R)) {
-		lockedEnemies_.clear();
+		lolckOn_.Clear();
 	}
 }
+
 
 
 Player::~Player() {
@@ -184,6 +145,4 @@ Player::~Player() {
 
 Vector3 Player::GetWorldPosition() const { return worldTransform_.translation_; }
 
-void Player::SetEnemies(const std::vector<Enemy*>& enemies) {
-	enemies_ = enemies; 
-}
+void Player::SetEnemies(const std::vector<Enemy*>& enemies) { enemies_ = enemies; }

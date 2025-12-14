@@ -64,6 +64,15 @@ Vector3& operator/=(Vector3& v, float s) {
 	return v;
 }
 
+Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) {
+	Matrix4x4 result = m1;
+
+	return result *= m2;
+}
+
+Vector2 operator+(const Vector2& a, const Vector2& b) { return {a.x + b.x, a.y + b.y}; }
+
+
 Matrix4x4 MakeIdentityMatrix() {
 	static const Matrix4x4 result{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
@@ -144,11 +153,6 @@ Matrix4x4& operator*=(Matrix4x4& lhm, const Matrix4x4& rhm) {
 	return lhm;
 }
 
-Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) {
-	Matrix4x4 result = m1;
-
-	return result *= m2;
-}
 
 // ワールドトランスフォーム更新(02_03の最後)
 void WorldTransformUpdate(WorldTransform& worldTransform) {

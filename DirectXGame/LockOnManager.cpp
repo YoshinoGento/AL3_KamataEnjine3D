@@ -1,39 +1,92 @@
 #include "LockOnManager.h"
+#include "MatrixMath.h"
+
+void LockOnManager::Initialize(uint32_t textureHandle) {
+	textureHandle_ = textureHandle;
+
+	// ← ここでは Sprite を作らない
+}
 
 
-void LockOnManager::Initialize(uint32_t markerTexture) { markerTexture_ = markerTexture; }
 
 void LockOnManager::TryLockOn(const Vector2& mousePos, const std::vector<Enemy*>& enemies, const Camera& camera) {
-	Enemy* best = nullptr;
-	float bestDist = lockRadius_;
+
+	const float lockRadius = 60.0f;
+
+	Enemy* bestEnemy = nullptr;
+	float bestDist = lockRadius;
 
 	for (Enemy* enemy : enemies) {
-		Vector3 pos = enemy->GetWorldPosition();
-		Vector2 screen = WorldToScreen(pos, camera);
-
+		Vector2 screen = WorldToScreen(enemy->GetWorldPosition(), camera);
 		float dist = Length(mousePos - screen);
-
 		if (dist < bestDist) {
 			bestDist = dist;
-			best = enemy;
+			bestEnemy = enemy;
 		}
 	}
 
-	if (best) {
-		// すでにロック済みでなければ追加
-		if (std::find(lockedEnemies_.begin(), lockedEnemies_.end(), best) == lockedEnemies_.end()) {
-			lockedEnemies_.push_back(best);
-		}
+	if (!bestEnemy)
+		return;
+
+	// すでにロック済みなら無視
+	for (auto& t : targets_) {
+		if (t.enemy == bestEnemy)
+			return;
+	}
+
+	LockTarget target{};
+	target.enemy = bestEnemy;
+
+	target.tl = Sprite::Create(textureHandle_, {0, 0});
+	target.tr = Sprite::Create(textureHandle_, {0, 0});
+	target.bl = Sprite::Create(textureHandle_, {0, 0});
+	target.br = Sprite::Create(textureHandle_, {0, 0});
+
+	target.tr->SetIsFlipX(true);
+	target.bl->SetIsFlipY(true);
+	target.br->SetIsFlipX(true);
+	target.br->SetIsFlipY(true);
+
+	targets_.push_back(target);
+}
+
+
+
+void LockOnManager::DrawMarkers(const Camera& camera) {
+
+	for (auto& t : targets_) {
+
+		Vector2 center = WorldToScreen(t.enemy->GetWorldPosition(), camera);
+
+		float size = 48.0f;
+		Vector2 half{size * 0.5f, size * 0.5f};
+
+		t.tl->SetPosition(center + Vector2{-half.x, -half.y});
+		t.tr->SetPosition(center + Vector2{half.x, -half.y});
+		t.bl->SetPosition(center + Vector2{-half.x, half.y});
+		t.br->SetPosition(center + Vector2{half.x, half.y});
+
+		t.tl->Draw();
+		t.tr->Draw();
+		t.bl->Draw();
+		t.br->Draw();
 	}
 }
 
-void LockOnManager::DrawMarkers(const Camera& camera) {
-	for (Enemy* enemy : lockedEnemies_) {
-		Vector3 pos = enemy->GetWorldPosition();
-		Vector2 screen = WorldToScreen(pos, camera);
-
-		screen.y -= 30; // 少し上に描画
-
-		Sprite::Draw(markerTexture_, screen.x, screen.y, 32, 32);
+std::vector<Enemy*> LockOnManager::GetLockedEnemies() const {
+	std::vector<Enemy*> result;
+	for (const auto& t : targets_) {
+		result.push_back(t.enemy);
 	}
+	return result;
+}
+
+void LockOnManager::Clear() {
+	for (auto& t : targets_) {
+		delete t.tl;
+		delete t.tr;
+		delete t.bl;
+		delete t.br;
+	}
+	targets_.clear();
 }
