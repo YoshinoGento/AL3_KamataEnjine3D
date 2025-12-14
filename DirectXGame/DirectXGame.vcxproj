@@ -110,6 +110,7 @@
     <ClCompile Include="EnemyBullet.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="HomingArcBullet.cpp" />
+    <ClCompile Include="LockOnManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatrixMath.cpp" />
     <ClCompile Include="Player.cpp" />
@@ -195,6 +196,7 @@
     <ClInclude Include="EnemyBullet.h" />
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="HomingArcBullet.h" />
+    <ClInclude Include="LockOnManager.h" />
     <ClInclude Include="MatrixMath.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerBullet.h" />

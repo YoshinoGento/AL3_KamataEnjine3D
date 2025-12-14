@@ -5,14 +5,16 @@
 #include "PlayerBullet.h"
 #include <list>
 #include "Enemy.h"
+#include "LockOnManager.h"
 
 using namespace KamataEngine;
 
 class Player {
 public:
-	void Initialize(Model* model, Camera* camera, const Vector3& position);
+	void Initialize(Model* model, Camera* camera, const Vector3& position, uint32_t lockonTexture);
 	void Update();
-	void Draw();
+	void Draw3D();
+	void Draw2D();
 	void Attack();
 	~Player();
 	Vector3 GetWorldPosition() const;
@@ -30,4 +32,5 @@ private:
 	std::vector<Enemy*> enemies_;
 	std::vector<Enemy*> lockedOnEnemies_;
 	std::vector<Enemy*> lockedEnemies_; // ロックオンした敵
+	LockOnManager lolckOn_;
 };

@@ -8,6 +8,8 @@ void GameScene::Initialize() {
 	player_model_ = Model::CreateFromOBJ("player");
 	enemy_model_ = Model::CreateFromOBJ("enemy");
 
+	uint32_t lockonTexture = TextureManager::Load("lockon.png");
+
 	// ★ camera_ だけ使う
 	camera_.Initialize();
 	camera_.translation_ = {0.0f, 0.0f, -10.0f};
@@ -26,7 +28,7 @@ void GameScene::Initialize() {
 
 	// プレイヤーも共通 camera_ で初期化
 	player_ = new Player();
-	player_->Initialize(player_model_, &camera_, {0.0f, 0.0f, 0.0f});
+	player_->Initialize(player_model_, &camera_, {0, 0, 0}, lockonTexture);
 
 	player_->SetEnemies(enemies_);
 }
@@ -54,16 +56,26 @@ void GameScene::Update() {
 }
 
 void GameScene::Draw() {
+
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+
+	// ---------- 3D描画 ----------
 	Model::PreDraw(dxCommon->GetCommandList());
 
-	player_->Draw();
-	for (Enemy* enemy_ : enemies_) {
-		enemy_->Draw();
+	player_->Draw3D(); // ← 3D専用の描画関数
+	for (Enemy* enemy : enemies_) {
+		enemy->Draw3D();
 	}
 
-
 	Model::PostDraw();
+
+	// ---------- 2D描画 ----------
+	Sprite::PreDraw(dxCommon->GetCommandList());
+
+	player_->Draw2D(); // ← ロックオンマーカーなど
+	// HPバー、UI 等もここ
+
+	Sprite::PostDraw();
 }
 
 void GameScene::Delete() {

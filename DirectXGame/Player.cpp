@@ -6,7 +6,7 @@
 #include <algorithm>
 
 
-void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
+void Player::Initialize(Model* model, Camera* camera, const Vector3& position, uint32_t lockonTexture) {
 	assert(model);
 	model_ = model;
 	camera_ = camera;
@@ -14,6 +14,7 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	worldTransform_.translation_ = position;
 	worldTransform_.scale_ = {1.0f, 1.0f, 1.0f};
 	input_ = Input::GetInstance();
+	lolckOn_.Initialize(lockonTexture);
 }
 
 void Player::Update() {
@@ -59,6 +60,10 @@ void Player::Update() {
 
 	Attack();
 
+	if (input_->IsTriggerMouse(1)) {
+		lolckOn_.TryLockOn(input_->GetMousePosition(), enemies_, *camera_);
+	}
+
 
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Update();
@@ -80,7 +85,7 @@ void Player::Update() {
 	worldTransform_.TransferMatrix();
 }
 
-void Player::Draw() {
+void Player::Draw3D() {
 	model_->Draw(worldTransform_, *camera_);
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Draw(*camera_);
@@ -88,6 +93,10 @@ void Player::Draw() {
 	for (HomingArcBullet* bullet : arcBullets_) {
 		bullet->Draw(*camera_);
 	}
+}
+
+void Player::Draw2D() {
+	lolckOn_.DrawMarkers(*camera_); 
 }
 
 void Player::Attack() {

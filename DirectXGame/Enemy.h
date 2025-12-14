@@ -10,7 +10,7 @@ public:
 	void Initialize(Model* model, Camera* camera, const Vector3& position);
 	void Update(Vector3 playerPos);
 	void Attack(const Vector3& playerPos);
-	void Draw();
+	void Draw3D();
 	~Enemy();
 
 	Vector3 GetWorldPosition() const;

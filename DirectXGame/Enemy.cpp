@@ -59,7 +59,7 @@ void Enemy::Attack(const Vector3& playerPos) {
 	bullets_.push_back(newBullet);
 }
 
-void Enemy::Draw() {
+void Enemy::Draw3D() {
 	model_->Draw(worldTransform_, *camera_);
 	for (EnemyBullet* bullet : bullets_) {
 		bullet->Draw(*camera_);
