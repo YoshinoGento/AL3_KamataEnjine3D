@@ -1,40 +1,56 @@
 #include "MatrixMath.h"
+#include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <numbers>
-#include <cassert>
-
 
 // 02_14 29枚目 単項演算子オーバーロード
 Vector3 operator+(const Vector3& v) { return v; }
+
 Vector3 operator-(const Vector3& v) { return Vector3(-v.x, -v.y, -v.z); }
 
-const Vector3 operator-(const Vector3& lhv, const Vector3& rhv) { 
-	 return {lhv.x - rhv.x, lhv.y - rhv.y, lhv.z - rhv.z};
-}
+const Vector3 operator-(const Vector3& lhv, const Vector3& rhv) { return {lhv.x - rhv.x, lhv.y - rhv.y, lhv.z - rhv.z}; }
+
+const Vector3 operator+(const Vector3& v, float f) { return {v.x + f, v.y + f, v.z + f}; }
+
+const Vector3 operator-(const Vector3& v, float f) { return {v.x - f, v.y - f, v.z - f}; }
 
 // 02_06の29枚目(CameraControllerのUpdate)で必要
 const Vector3 operator*(const Vector3& v1, const float f) {
+
 	Vector3 temp(v1);
 	return temp *= f;
 }
 
-// 02_06のCameraControllerのUpdate/Reset関数で必要
+const Vector3 operator*(const float f, const Vector3& v1) {
+	Vector3 temp(v1);
+	return temp *= f;
+}
+
+// Vector3 + Vector3
 const Vector3 operator+(const Vector3& v1, const Vector3& v2) {
 	Vector3 temp(v1);
 	return temp += v2;
 }
 
+// Vector3 - Vector3
+//	Vector3 temp(v1);
+//	return temp -= v2;
+//}
 
-// Vector2 - Vector2
-Vector2 operator-(const Vector2& a, const Vector2& b) { return {a.x - b.x, a.y - b.y}; }
-
-// Vector2 の長さ
-float Length(const Vector2& v) { return std::sqrt(v.x * v.x + v.y * v.y); }
-
-
+inline float Lerp(float a, float b, float t) { return a + (b - a) * t; }
 
 // 02_06のスライド24枚目のLerp関数
 Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) { return Vector3(Lerp(v1.x, v2.x, t), Lerp(v1.y, v2.y, t), Lerp(v1.z, v2.z, t)); }
+
+// Vector4用のLerp関数
+Vector4 Lerp(const Vector4& a, const Vector4& b, float t) { return {a.x + (b.x - a.x) * t, a.y + (b.y - a.y) * t, a.z + (b.z - a.z) * t, a.w + (b.w - a.w) * t}; }
+
+// Vector3 / float
+const Vector3 operator/(const Vector3& v, float s) {
+	Vector3 temp(v);
+	return temp /= s;
+}
 
 Vector3& operator+=(Vector3& lhv, const Vector3& rhv) {
 	lhv.x += rhv.x;
@@ -63,15 +79,6 @@ Vector3& operator/=(Vector3& v, float s) {
 	v.z /= s;
 	return v;
 }
-
-Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) {
-	Matrix4x4 result = m1;
-
-	return result *= m2;
-}
-
-Vector2 operator+(const Vector2& a, const Vector2& b) { return {a.x + b.x, a.y + b.y}; }
-
 
 Matrix4x4 MakeIdentityMatrix() {
 	static const Matrix4x4 result{1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
@@ -153,6 +160,10 @@ Matrix4x4& operator*=(Matrix4x4& lhm, const Matrix4x4& rhm) {
 	return lhm;
 }
 
+Matrix4x4 operator*(const Matrix4x4& m1, const Matrix4x4& m2) {
+	Matrix4x4 result = m1;
+	return result *= m2;
+}
 
 // ワールドトランスフォーム更新(02_03の最後)
 void WorldTransformUpdate(WorldTransform& worldTransform) {
@@ -165,23 +176,18 @@ void WorldTransformUpdate(WorldTransform& worldTransform) {
 	worldTransform.TransferMatrix();
 }
 
-float Lerp(float x1, float x2, float t) { return (1.0f - t) * x1 + t * x2; }
-
 float EaseIn(float x1, float x2, float t) {
 	float easedT = t * t;
-
 	return Lerp(x1, x2, easedT);
 }
 
 float EaseOut(float x1, float x2, float t) {
 	float easedT = 1.0f - std::powf(1.0f - t, 3.0f);
-
 	return Lerp(x1, x2, easedT);
 }
 
 float EaseInOut(float x1, float x2, float t) {
 	float easedT = -(std::cosf(std::numbers::pi_v<float> * t) - 1.0f) / 2.0f;
-
 	return Lerp(x1, x2, easedT);
 }
 
@@ -192,13 +198,14 @@ bool IsCollision(const AABB& aabb1, const AABB& aabb2) {
 }
 
 Vector3 Transform(const Vector3& vector, const Matrix4x4& matrix) {
-	Vector3 result; // w=1がデカルト座標系であるので(x,y,1)のベクトルとしてmatrixとの積をとる
+	Vector3 result;
+
 	result.x = vector.x * matrix.m[0][0] + vector.y * matrix.m[1][0] + vector.z * matrix.m[2][0] + 1.0f * matrix.m[3][0];
 	result.y = vector.x * matrix.m[0][1] + vector.y * matrix.m[1][1] + vector.z * matrix.m[2][1] + 1.0f * matrix.m[3][1];
 	result.z = vector.x * matrix.m[0][2] + vector.y * matrix.m[1][2] + vector.z * matrix.m[2][2] + 1.0f * matrix.m[3][2];
 	float w = vector.x * matrix.m[0][3] + vector.y * matrix.m[1][3] + vector.z * matrix.m[2][3] + 1.0f * matrix.m[3][3];
-	assert(w != 0.0f); // ベクトルに対して基本的な操作を行う行列でwが0になることはありえない
-	// w=1がデカルト座標系であるので、w除算することで同次座標をデカルト座標に戻す
+
+	assert(w != 0.0f);
 	result.x /= w;
 	result.y /= w;
 	result.z /= w;
@@ -216,16 +223,10 @@ Vector3 Normalized(const Vector3& v) {
 }
 
 Vector3 TransformNormal(const Vector3& v, const Matrix4x4& m) {
-	
-	Vector3 result{
-	    v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0],
-		v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1],
-		v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2]
 
-	};
+	Vector3 result{v.x * m.m[0][0] + v.y * m.m[1][0] + v.z * m.m[2][0], v.x * m.m[0][1] + v.y * m.m[1][1] + v.z * m.m[2][1], v.x * m.m[0][2] + v.y * m.m[1][2] + v.z * m.m[2][2]};
 
 	return result;
-
 }
 
 Vector3 UnProjectToWorldSpace(const Vector2& screenPos, float z, const Matrix4x4& viewMatrix, const Matrix4x4& projMatrix, int screenWidth, int screenHeight) {
@@ -251,7 +252,6 @@ Vector3 UnProjectToWorldSpace(const Vector2& screenPos, float z, const Matrix4x4
 
 	return {world.x, world.y, world.z};
 }
-
 
 // 逆行列計算（シンプルなガウスジョルダン消去法の実装）
 Matrix4x4 Inverse(const Matrix4x4& m) {
@@ -305,43 +305,121 @@ Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Ma
 	return {x * width, y * height};
 }
 
+Vector2 WorldToScreen(const Vector3& worldPos, const Camera& camera, int screenWidth, int screenHeight) {
+	Matrix4x4 viewProjMatrix = camera.matView * camera.matProjection;
+	Vector3 ndc = Transform(worldPos, viewProjMatrix); // NDC座標（-1〜+1）
 
-Vector2 WorldToScreen(const Vector3& worldPos, const Camera& camera) {
-
-	// 1. Vector3 → Vector4（w = 1）
-	Vector4 pos4 = {worldPos.x, worldPos.y, worldPos.z, 1.0f};
-
-	// 2. ワールド → ビュー
-	// ★ Camera をいじらない → メンバを直接使う！
-	Vector4 viewPos = Transform(pos4, camera.matView);
-
-	// 3. ビュー → プロジェクション
-	Vector4 clipPos = Transform(viewPos, camera.matProjection);
-
-	// 4. w除算（NDC）
-	float invW = 1.0f / clipPos.w;
-	float ndcX = clipPos.x * invW;
-	float ndcY = clipPos.y * invW;
-
-	// 5. NDC → スクリーン座標
-	Vector2 screen;
-	screen.x = (ndcX * 0.5f + 0.5f) * WinApp::kWindowWidth;
-	screen.y = (-ndcY * 0.5f + 0.5f) * WinApp::kWindowHeight;
-
-	return screen;
+	Vector2 screenPos;
+	screenPos.x = (ndc.x + 1.0f) * 0.5f * screenWidth;
+	screenPos.y = (1.0f - ndc.y) * 0.5f * screenHeight;
+	return screenPos;
 }
 
-Vector3 Cross(const Vector3& a, const Vector3& b) { 
+Vector3 Cross(const Vector3& a, const Vector3& b) { return {a.y * b.z - a.z * b.y, a.z * b.x - a.x * b.z, a.x * b.y - a.y * b.x}; }
 
-	return {
-		a.y * b.z - a.z * b.y,
-		a.z * b.x - a.x * b.z,
-		a.x * b.y - a.y * b.x
-	}; 
+float Dot(const Vector3& a, const Vector3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+
+Matrix4x4 MakeRotateAxisMatrix(const Vector3& axis, float angle) {
+	float c = std::cos(angle);
+	float s = std::sin(angle);
+	float t = 1.0f - c;
+	Vector3 a = Normalized(axis);
+
+	Matrix4x4 result{};
+	result.m[0][0] = t * a.x * a.x + c;
+	result.m[0][1] = t * a.x * a.y + s * a.z;
+	result.m[0][2] = t * a.x * a.z - s * a.y;
+	result.m[0][3] = 0.0f;
+
+	result.m[1][0] = t * a.x * a.y - s * a.z;
+	result.m[1][1] = t * a.y * a.y + c;
+	result.m[1][2] = t * a.y * a.z + s * a.x;
+	result.m[1][3] = 0.0f;
+
+	result.m[2][0] = t * a.x * a.z + s * a.y;
+	result.m[2][1] = t * a.y * a.z - s * a.x;
+	result.m[2][2] = t * a.z * a.z + c;
+	result.m[2][3] = 0.0f;
+
+	result.m[3][0] = 0.0f;
+	result.m[3][1] = 0.0f;
+	result.m[3][2] = 0.0f;
+	result.m[3][3] = 1.0f;
+
+	return result;
 }
 
-float Dot(const Vector3& a, const Vector3& b) {
+Vector3 Slerp(const Vector3& v1, const Vector3& v2, float t) {
+	Vector3 nv1 = Normalized(v1);
+	Vector3 nv2 = Normalized(v2);
 
-	return   a.x * b.x + a.y * b.y + a.z * b.z; 
+	float dot = Dot(nv1, nv2);
+	// 誤差により1.0fを超えるのを防ぐ
+	dot = std::clamp(dot, -1.0f, 1.0f);
+	// アークコサインでθの角度を求める
+	float theta = acos(dot);
+	// θの角度からsinθを求める
+	float sinTheta = sin(theta);
+	// サイン(θ(1-t))を求める
+	float sinThetaFrom = sin((1 - t) * theta);
+	// サインθtを求める
+	float sinThetaTo = sin(t * theta);
 
+	Vector3 npVector;
+	// ゼロ除算を防ぐ
+	if (sinTheta < 1.0e-5) {
+		npVector = nv1;
+	} else {
+		// 球面線形保管したベクトル（単位ベクトル）
+		npVector = (sinThetaFrom * nv1 + sinThetaTo * nv2) / sinTheta;
+	}
+
+	// ベクトルの長さはv1とv2の長さを線形補間
+	float length1 = Length(v1);
+	float length2 = Length(v2);
+	// Lerpで補間ベクトルの長さを求める
+	float length = Lerp(length1, length2, t);
+
+	// 長さを反映
+	return length * npVector;
 }
+
+Vector3 GetEulerFromMatrix(const Matrix4x4& m) {
+	Vector3 rot;
+	rot.y = std::atan2(m.m[0][2], m.m[2][2]);
+	rot.x = std::asin(-m.m[1][2]);
+	rot.z = std::atan2(m.m[1][0], m.m[1][1]);
+	return rot;
+}
+
+Vector3 LookRotation(const Vector3& direction) {
+	Vector3 dir = Normalized(direction);
+	float pitch = std::atan2(-dir.y, std::sqrt(dir.x * dir.x + dir.z * dir.z));
+	float yaw = std::atan2(dir.x, dir.z);
+	return {pitch, yaw, 0.0f};
+}
+
+Matrix4x4 MakeLookRotation(const Vector3& forward, const Vector3& up) {
+	Vector3 f = Normalized(forward);
+	Vector3 r = Normalized(Cross(up, f));
+	Vector3 u = Cross(f, r);
+
+	Matrix4x4 result = {r.x, u.x, f.x, 0.0f, r.y, u.y, f.y, 0.0f, r.z, u.z, f.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
+
+	return result;
+}
+
+// Vector3 GetEulerFromMatrix(const Matrix4x4& m) {
+//	Vector3 rot;
+//	rot.y = std::asin(-m.m[2][0]);
+//
+//	if (std::cos(rot.y) > 0.0001f) {
+//		rot.x = std::atan2(m.m[2][1], m.m[2][2]);
+//		rot.z = std::atan2(m.m[1][0], m.m[0][0]);
+//	} else {
+//		rot.x = std::atan2(-m.m[1][2], m.m[1][1]);
+//		rot.z = 0;
+//	}
+//
+//	return rot;
+// }
