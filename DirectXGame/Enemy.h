@@ -1,25 +1,26 @@
 #pragma once
-#include "EnemyBullet.h"
 #include "KamataEngine.h"
-#include <list>
+#include <vector>
 
 using namespace KamataEngine;
 
 class Enemy {
 public:
-	void Initialize(Model* model, Camera* camera, const Vector3& position);
-	void Update(Vector3 playerPos);
-	void Attack(const Vector3& playerPos);
-	void Draw3D();
-	~Enemy();
+	virtual ~Enemy() = default;
 
-	Vector3 GetWorldPosition() const;
+	virtual void Initialize(Model* model, Camera* camera, const Vector3& position);
+	virtual void Update(const Vector3& playerPos);
+	virtual bool CheckCollision(const Vector3& playerPos, float playerRadius);
 
-private:
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+
+	virtual void Draw3D();
+
+protected:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
-	uint32_t textureHandle_ = 0u;
 	Camera* camera_ = nullptr;
-	std::vector<EnemyBullet*> bullets_;
-	int attackTimer_ = 0;
+
+	float radius_ = 1.0f;
+	int hp_ = 3;
 };

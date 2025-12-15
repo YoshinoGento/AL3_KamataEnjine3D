@@ -17,8 +17,16 @@ public:
 	void Draw2D();
 	void Attack();
 	~Player();
-	Vector3 GetWorldPosition() const;
+	
 	void SetEnemies(const std::vector<Enemy*>& enemies);
+
+	void OnHit();
+
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+
+	void OnHitByBeam();
+
+	float GetRadius() const { return radius_; }
 
 private:
 	WorldTransform worldTransform_;
@@ -33,4 +41,8 @@ private:
 	std::vector<Enemy*> lockedOnEnemies_;
 	std::vector<Enemy*> lockedEnemies_; // ロックオンした敵
 	LockOnManager lolckOn_;
+	int invincibleTimer_ = 0; // 無敵残りフレーム
+	int hitPoint_ = 3;        // 既にあるなら不要
+
+	float radius_ = 0.5f;
 };

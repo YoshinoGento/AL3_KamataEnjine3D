@@ -33,47 +33,25 @@ void HomingArcBullet::Update() {
 		return;
 	}
 
-	// =========================
-	// ① 基本の直線移動（start → target）
-	// =========================
-	Vector3 basePos = Lerp(start_, target_, t);
+	// ========= ① 制御点を1つだけ作る =========
+	Vector3 mid = (start_ + target_) * 0.5f;
 
-	// =========================
-	// ② 回転量（最初は大きく、最後は0）
-	// =========================
-	float swirlPower = (1.0f - t);                      // 減衰
-	float angle = t * std::numbers::pi_v<float> * 4.0f; // 2周回る
+	// 上方向にだけ膨らませる（← 弧の正体）
+	Vector3 control = mid + controlOffset_;
 
-	// =========================
-	// ③ 円運動オフセット（ファンネル感の核）
-	// =========================
-	Vector3 swirlOffset;
-	swirlOffset.x = std::cos(angle) * controlOffset_.x * swirlPower;
-	swirlOffset.y = controlOffset_.y * swirlPower;
-	swirlOffset.z = std::sin(angle) * controlOffset_.z * swirlPower;
+	// ========= ② 二次ベジェ曲線 =========
+	Vector3 p0 = start_;
+	Vector3 p1 = control;
+	Vector3 p2 = target_;
 
-	// =========================
-	// ④ 最終位置
-	// =========================
-	worldTransform_.translation_ = basePos + swirlOffset;
+	Vector3 a = Lerp(p0, p1, t);
+	Vector3 b = Lerp(p1, p2, t);
+	worldTransform_.translation_ = Lerp(a, b, t);
 
-	// =========================
-	// ⑤ 向き調整（進行方向）
-	// =========================
+	// ========= ③ 向き調整 =========
 	Vector3 velocity = worldTransform_.translation_ - prevPosition_;
-	if (Length(velocity) > 0.001f) {
-		Vector3 forward = Normalized(velocity);
-		Vector3 defaultForward = {0, 0, 1};
-
-		Vector3 axis = Cross(defaultForward, forward);
-		float dot = Dot(defaultForward, forward);
-		float angleRot = std::acos(std::clamp(dot, -1.0f, 1.0f));
-
-		if (Length(axis) > 0.0001f) {
-			axis = Normalized(axis);
-			Matrix4x4 rotMat = MakeRotateAxisMatrix(axis, angleRot);
-			worldTransform_.rotation_ = GetEulerFromMatrix(rotMat);
-		}
+	if (Length(velocity) > 0.0001f) {
+		worldTransform_.rotation_ = LookRotation(velocity);
 	}
 
 	WorldTransformUpdate(worldTransform_);
@@ -81,6 +59,7 @@ void HomingArcBullet::Update() {
 
 	prevPosition_ = worldTransform_.translation_;
 }
+
 
 
 

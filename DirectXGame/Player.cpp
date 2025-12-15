@@ -124,7 +124,7 @@ void Player::Attack() {
 			// ★ 軌道用オフセット（ミサイルごとに違う）
 			Vector3 offset = {
 			    (rand() % 200 - 100) / 10.0f,  // X：左右に散る
-			    (rand() % 100) / 10.0f + 3.0f, // Y：上に持ち上げる
+			    (rand() % 100) / 10.0f + 5.0f, // Y：上に持ち上げる
 			    (rand() % 200 - 100) / 10.0f   // Z：前後に散る
 			};
 
@@ -155,6 +155,36 @@ Player::~Player() {
 	}
 }
 
-Vector3 Player::GetWorldPosition() const { return worldTransform_.translation_; }
 
 void Player::SetEnemies(const std::vector<Enemy*>& enemies) { enemies_ = enemies; }
+
+
+void Player::OnHit() {
+	if (invincibleTimer_ > 0)
+		return;
+
+	--hitPoint_;
+	if (hitPoint_ < 0)
+		hitPoint_ = 0;
+
+	invincibleTimer_ = 60; // 無敵時間
+}
+
+void Player::OnHitByBeam() {
+
+	// 無敵時間中なら何もしない
+	if (invincibleTimer_ > 0) {
+		return;
+	}
+
+	// HP 減らす
+	hitPoint_--;
+
+	// 無敵時間を付与（1秒）
+	invincibleTimer_ = 60;
+
+	if (hitPoint_ <= 0) {
+		hitPoint_ = 0;
+		// TODO: 死亡処理（今は空でOK）
+	}
+}

@@ -2,6 +2,7 @@
 #include "Enemy.h"
 #include "KamataEngine.h"
 #include "Player.h"
+#include "TacklerEnemy.h"
 
 using namespace KamataEngine;
 
@@ -14,7 +15,7 @@ public:
 
 private:
 	Player* player_ = nullptr;
-	//Enemy* enemis_ = nullptr;
+	Enemy* enemy_ = nullptr;
 	std ::vector<Enemy*> enemies_;
 	Model* player_model_ = nullptr;
 	Model* enemy_model_ = nullptr;

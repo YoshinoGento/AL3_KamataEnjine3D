@@ -2,6 +2,8 @@
 #include "KamataEngine.h"
 #include "Math.h"
 
+
+
 using namespace KamataEngine;
 
 void GameScene::Initialize() {
@@ -17,11 +19,13 @@ void GameScene::Initialize() {
 
 	// 敵を共通 camera_ で初期化
 	for (int i = 0; i < 5; ++i) {
-		Enemy* enemy = new Enemy();
+		Enemy* enemy = new TacklerEnemy();
 		Vector3 position = {float(i * 3 - 6), 0.0f, 10.0f};
 		enemy->Initialize(enemy_model_, &camera_, position);
 		enemies_.push_back(enemy);
 	}
+
+
 
 	// デバッグカメラは今のままでOK
 	debugCamera_ = new DebugCamera(1280, 720);
@@ -31,8 +35,8 @@ void GameScene::Initialize() {
 	player_->Initialize(player_model_, &camera_, {0, 0, 0}, lockonTexture);
 
 	player_->SetEnemies(enemies_);
-}
 
+}
 
 void GameScene::Update() {
 #ifdef _DEBUG
@@ -50,8 +54,14 @@ void GameScene::Update() {
 	}
 
 	player_->Update();
+
 	for (Enemy* enemy : enemies_) {
 		enemy->Update(player_->GetWorldPosition());
+
+		if (enemy->CheckCollision(player_->GetWorldPosition(), player_->GetRadius())) {
+
+			player_->OnHitByBeam(); // or OnHit()
+		}
 	}
 }
 

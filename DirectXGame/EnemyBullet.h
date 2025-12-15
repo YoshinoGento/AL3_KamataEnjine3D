@@ -15,7 +15,7 @@ private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
 	uint32_t textureHandle_ = 0u;
-	Vector3 velocity_;
+	Vector3 velocity_{0.0f, 0.0f, 0.0f};
 	static const int32_t kLifeTime = 60 * 5;
 	int32_t dethTimer_ = kLifeTime;
 	bool isDead_ = false;
