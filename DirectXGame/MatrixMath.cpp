@@ -4,6 +4,14 @@
 #include <cmath>
 #include <numbers>
 
+
+Vector2 operator-(const Vector2& a, const Vector2& b) { return {a.x - b.x, a.y - b.y}; }
+
+float Length(const Vector2& v) { return std::sqrt(v.x * v.x + v.y * v.y); }
+
+Vector2 operator+(const Vector2& a, const Vector2& b) { return {a.x + b.x, a.y + b.y}; }
+
+
 // 02_14 29枚目 単項演算子オーバーロード
 Vector3 operator+(const Vector3& v) { return v; }
 

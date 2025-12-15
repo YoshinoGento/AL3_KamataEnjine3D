@@ -17,6 +17,7 @@ void HomingArcBullet::Initialize(Model* model, const Vector3& start, const Vecto
 
 	start_ = start;
 	target_ = target;
+	controlOffset_ = controlOffset; 
 
 	time_ = 0.0f;
 	lifeTime_ = kLifeTime;

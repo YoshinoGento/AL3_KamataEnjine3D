@@ -17,7 +17,7 @@ void LockOnManager::TryLockOn(const Vector2& mousePos, const std::vector<Enemy*>
 	float bestDist = lockRadius;
 
 	for (Enemy* enemy : enemies) {
-		Vector2 screen = WorldToScreen(enemy->GetWorldPosition(), camera);
+		Vector2 screen = WorldToScreen(enemy->GetWorldPosition(), camera, WinApp::kWindowWidth, WinApp::kWindowHeight);
 		float dist = Length(mousePos - screen);
 		if (dist < bestDist) {
 			bestDist = dist;
@@ -56,7 +56,7 @@ void LockOnManager::DrawMarkers(const Camera& camera) {
 
 	for (auto& t : targets_) {
 
-		Vector2 center = WorldToScreen(t.enemy->GetWorldPosition(), camera);
+		Vector2 center = WorldToScreen(t.enemy->GetWorldPosition(), camera, WinApp::kWindowWidth, WinApp::kWindowHeight);
 
 		float size = 48.0f;
 		Vector2 half{size * 0.5f, size * 0.5f};
