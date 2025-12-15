@@ -122,3 +122,7 @@ Vector4 Transform(const Vector4& v, const Matrix4x4& m);
 Vector2 ProjectToScreen(const Vector3& worldPos, const Matrix4x4& view, const Matrix4x4& proj, int width, int height);
 
 Vector2 WorldToScreen(const Vector3& worldPos, const Camera& camera);
+
+Vector3 Cross(const Vector3& a, const Vector3& b);
+
+float Dot(const Vector3& a, const Vector3& b);

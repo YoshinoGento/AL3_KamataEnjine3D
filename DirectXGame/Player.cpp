@@ -118,13 +118,25 @@ void Player::Attack() {
 	if (input_->IsTriggerMouse(0)) {
 
 		for (Enemy* enemy : lolckOn_.GetLockedEnemies()) {
+
 			HomingArcBullet* arc = new HomingArcBullet();
-			arc->Initialize(model_, worldTransform_.translation_, enemy->GetWorldPosition());
+
+			// ★ 軌道用オフセット（ミサイルごとに違う）
+			Vector3 offset = {
+			    (rand() % 200 - 100) / 10.0f,  // X：左右に散る
+			    (rand() % 100) / 10.0f + 3.0f, // Y：上に持ち上げる
+			    (rand() % 200 - 100) / 10.0f   // Z：前後に散る
+			};
+
+			// ★ Initialize の引数を1個増やす
+			arc->Initialize(model_, worldTransform_.translation_, enemy->GetWorldPosition(), offset);
+
 			arcBullets_.push_back(arc);
 		}
 
 		lolckOn_.Clear();
 	}
+
 
 	// ---------- R：解除 ----------
 	if (input_->TriggerKey(DIK_R)) {

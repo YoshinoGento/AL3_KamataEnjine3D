@@ -1,38 +1,80 @@
 #pragma once
-#include "Enemy.h"
 #include "KamataEngine.h"
 #include "MatrixMath.h"
+#include <list>
 
 using namespace KamataEngine;
 
+/// <summary>
+/// ファンネル型ホーミングミサイル
+/// ・前半：円軌道
+/// ・後半：ターゲットへ突入
+/// </summary>
 class HomingArcBullet {
 public:
-	// モデル、開始位置、目標位置を受け取る初期化関数
-	void Initialize(Model* model, const Vector3& start, const Vector3& target);
+	/// <summary>
+	/// 初期化
+	/// </summary>
+	/// <param name="model">ミサイルモデル</param>
+	/// <param name="start">発射位置</param>
+	/// <param name="target">目標位置</param>
+	/// <param name="controlOffset">
+	/// 円軌道用オフセット
+	/// X,Z : 回転半径
+	/// Y   : 高さ
+	/// </param>
+	void Initialize(Model* model, const Vector3& start, const Vector3& target, const Vector3& controlOffset);
 
-	// 更新処理（ベジェ曲線による放物線移動）
+	/// <summary>
+	/// 更新
+	/// </summary>
 	void Update();
 
-	// 描画
+	/// <summary>
+	/// 描画
+	/// </summary>
 	void Draw(const Camera& camera);
 
-	// 死亡判定
-	bool IsDead() const { return isDead_; }
-
-	// ワールド座標を取得
+	/// <summary>
+	/// ワールド座標取得
+	/// </summary>
 	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
 
+	/// <summary>
+	/// 被弾などで強制破棄
+	/// </summary>
+	void OnHit() { isDead_ = true; }
+
+	/// <summary>
+	/// 生存判定
+	/// </summary>
+	bool IsDead() const { return isDead_; }
+
 private:
-	static const int32_t kLifeTime = 60 * 1;
-	WorldTransform worldTransform_; // ワールド変換情報
-	Model* model_ = nullptr;        // モデルポインタ
-	uint32_t textureHandle_ = 0u;   // テクスチャハンドル
-	Vector3 start_;                 // 弾の発射位置
-	Vector3 target_;                // 目標位置
-	float time_ = 0.0f;             // 経過時間
-	float lifeTime_ = 180.0f;       // 寿命
-	bool isDead_ = false;           // 死亡フラグ
-	
-    
-	
+	// ===============================
+	// 定数
+	// ===============================
+	static constexpr int32_t kLifeTime = 60; // フレーム
+
+	// ===============================
+	// 基本データ
+	// ===============================
+	WorldTransform worldTransform_;
+	Model* model_ = nullptr;
+
+	Vector3 start_;
+	Vector3 target_;
+	Vector3 controlOffset_; // 円運動用オフセット
+
+	// ===============================
+	// 状態管理
+	// ===============================
+	float time_ = 0.0f;
+	float lifeTime_ = kLifeTime;
+	bool isDead_ = false;
+
+	// ===============================
+	// 向き計算用
+	// ===============================
+	Vector3 prevPosition_;
 };
