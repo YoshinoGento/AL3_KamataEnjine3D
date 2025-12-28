@@ -54,9 +54,28 @@ void LockOnManager::TryLockOn(const Vector2& mousePos, const std::vector<Enemy*>
 
 void LockOnManager::DrawMarkers(const Camera& camera) {
 
-	for (auto& t : targets_) {
+	// ① 死んだ敵を targets_ から消す
+	for (auto it = targets_.begin(); it != targets_.end();) {
+		if (!it->enemy || it->enemy->IsDead()) {
+			delete it->tl;
+			delete it->tr;
+			delete it->bl;
+			delete it->br;
+			it = targets_.erase(it);
+		} else {
+			++it;
+		}
+	}
 
-		Vector2 center = WorldToScreen(t.enemy->GetWorldPosition(), camera, WinApp::kWindowWidth, WinApp::kWindowHeight);
+	// ② 残ってるターゲットを描画
+	for (auto& t : targets_) {
+		Vector2 center = 
+			WorldToScreen(
+				t.enemy->GetWorldPosition(),
+				camera,
+				WinApp::kWindowWidth,
+				WinApp::kWindowHeight
+			);
 
 		float size = 48.0f;
 		Vector2 half{size * 0.5f, size * 0.5f};
@@ -72,6 +91,7 @@ void LockOnManager::DrawMarkers(const Camera& camera) {
 		t.br->Draw();
 	}
 }
+
 
 std::vector<Enemy*> LockOnManager::GetLockedEnemies() const {
 	std::vector<Enemy*> result;

@@ -17,8 +17,6 @@ public:
 	void Draw2D();
 	void Attack();
 	~Player();
-	
-	void SetEnemies(const std::vector<Enemy*>& enemies);
 
 	void OnHit();
 
@@ -27,6 +25,17 @@ public:
 	void OnHitByBeam();
 
 	float GetRadius() const { return radius_; }
+
+	void SetEnemies(const std::vector<Enemy*>* enemies);
+
+	void SetAimPlaneZ(float z) { aimPlaneZ_ = z; }
+
+	float aimPlaneZ_ = 10.0f;
+
+	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
+
+	const std::list<HomingArcBullet*>& GetArcBullets() const { return arcBullets_; }
+
 
 private:
 	WorldTransform worldTransform_;
@@ -37,7 +46,7 @@ private:
 	std::list<PlayerBullet*> bullets_;
 	std::list<HomingArcBullet*> arcBullets_;
 	Input* input_ = nullptr;
-	std::vector<Enemy*> enemies_;
+	const std::vector<Enemy*>* enemies_ = nullptr; // ★ポインタで参照
 	std::vector<Enemy*> lockedOnEnemies_;
 	std::vector<Enemy*> lockedEnemies_; // ロックオンした敵
 	LockOnManager lolckOn_;
@@ -45,4 +54,10 @@ private:
 	int hitPoint_ = 3;        // 既にあるなら不要
 
 	float radius_ = 0.5f;
+
+	Vector3 CalcMouseHitOnZPlane(const Vector2& mouse, float planeZ) const;
+
+
+	
+
 };

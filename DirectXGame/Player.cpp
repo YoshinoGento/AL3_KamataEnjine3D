@@ -59,10 +59,6 @@ void Player::Update() {
 
 	Attack();
 
-	if (input_->IsTriggerMouse(1)) {
-		lolckOn_.TryLockOn(input_->GetMousePosition(), enemies_, *camera_);
-	}
-
 	for (PlayerBullet* bullet : bullets_) {
 		bullet->Update();
 	}
@@ -93,58 +89,79 @@ void Player::Draw3D() {
 	}
 }
 
-void Player::Draw2D() { 
-	lolckOn_.DrawMarkers(*camera_); 
-}
+void Player::Draw2D() { lolckOn_.DrawMarkers(*camera_); }
 void Player::Attack() {
 
-	// ---------- 通常弾 ----------
-	if (input_->TriggerKey(DIK_SPACE)) {
-		const float kBulletSpeed = 1.0f;
-		Vector3 velocity(0, 0, kBulletSpeed);
-		velocity = TransformNormal(velocity, worldTransform_.matWorld_);
-
-		PlayerBullet* bullet = new PlayerBullet();
-		bullet->Initialize(model_, worldTransform_.translation_, velocity);
-		bullets_.push_back(bullet);
-	}
+	// ロックオンしたポインタが enemies_ に残ってるか判定（ポインタ比較だけなので安全）
+	auto IsAlivePointerInEnemies = [&](Enemy* enemy_) -> bool {
+		if (!enemies_ || !enemy_)
+			return false;
+		return std::find(enemies_->begin(), enemies_->end(), enemy_) != enemies_->end();
+	};
 
 	// ---------- 右クリック：ロックオン ----------
 	if (input_->IsTriggerMouse(1)) {
-		lolckOn_.TryLockOn(input_->GetMousePosition(), enemies_, *camera_);
+		if (enemies_) {
+			lolckOn_.TryLockOn(input_->GetMousePosition(), *enemies_, *camera_);
+		}
 	}
 
-	// ---------- 左クリック：ミサイル発射 ----------
+	// ---------- 左クリック：ロックオンがあればミサイル / なければ直進弾 ----------
 	if (input_->IsTriggerMouse(0)) {
 
-		for (Enemy* enemy : lolckOn_.GetLockedEnemies()) {
+		std::vector<Enemy*> locked = lolckOn_.GetLockedEnemies();
 
-			HomingArcBullet* arc = new HomingArcBullet();
+		if (!locked.empty()) {
 
-			// ★ 軌道用オフセット（ミサイルごとに違う）
-			Vector3 offset = {
-			    (rand() % 200 - 100) / 10.0f,  // X：左右に散る
-			    (rand() % 100) / 10.0f + 5.0f, // Y：上に持ち上げる
-			    (rand() % 200 - 100) / 10.0f   // Z：前後に散る
-			};
+			for (Enemy* enemy : locked) {
 
-			// ★ Initialize の引数を1個増やす
-			arc->Initialize(model_, worldTransform_.translation_, enemy->GetWorldPosition(), offset);
+				// ★まず「今の enemies_ に存在するか」だけを見る（安全）
+				if (!IsAlivePointerInEnemies(enemy)) {
+					continue;
+				}
 
-			arcBullets_.push_back(arc);
+				// ★ここから先は敵が存在すると保証できるので触ってOK
+				if (enemy->IsDead()) {
+					continue;
+				}
+
+				HomingArcBullet* arc = new HomingArcBullet();
+
+				Vector3 offset = {(rand() % 200 - 100) / 10.0f, (rand() % 100) / 10.0f + 5.0f, (rand() % 200 - 100) / 10.0f};
+
+				arc->Initialize(model_, worldTransform_.translation_, enemy->GetWorldPosition(), offset);
+				arcBullets_.push_back(arc);
+			}
+
+			lolckOn_.Clear(); // 撃ったら解除
 		}
+		// B) ロックオンなし → クリック地点（XY） + 敵スポーンZ に向けて直進弾
+		else {
+			const float kBulletSpeed = 1.0f;
 
-		lolckOn_.Clear();
+			// ★敵リスポーンのZ
+			const float enemySpawnZ = 10.0f;
+
+			Vector2 mouse = input_->GetMousePosition();
+
+			// ★Z = enemySpawnZ の平面に当てる
+			Vector3 target = CalcMouseHitOnZPlane(mouse, enemySpawnZ);
+
+			// ★プレイヤーからその点へ撃つ
+			Vector3 dir = Normalized(target - worldTransform_.translation_);
+			Vector3 vel = dir * kBulletSpeed;
+
+			PlayerBullet* bullet = new PlayerBullet();
+			bullet->Initialize(model_, worldTransform_.translation_, vel);
+			bullets_.push_back(bullet);
+		}
 	}
-
 
 	// ---------- R：解除 ----------
 	if (input_->TriggerKey(DIK_R)) {
 		lolckOn_.Clear();
 	}
 }
-
-
 
 Player::~Player() {
 	for (PlayerBullet* bullet : bullets_) {
@@ -155,9 +172,26 @@ Player::~Player() {
 	}
 }
 
+void Player::SetEnemies(const std::vector<Enemy*>* enemies) { enemies_ = enemies; }
 
-void Player::SetEnemies(const std::vector<Enemy*>& enemies) { enemies_ = enemies; }
+Vector3 Player::CalcMouseHitOnZPlane(const Vector2& mouse, float planeZ) const {
 
+	Vector3 nearW = UnProjectToWorldSpace(mouse, 0.0f, camera_->matView, camera_->matProjection, WinApp::kWindowWidth, WinApp::kWindowHeight);
+
+	Vector3 farW = UnProjectToWorldSpace(mouse, 1.0f, camera_->matView, camera_->matProjection, WinApp::kWindowWidth, WinApp::kWindowHeight);
+
+	Vector3 rayDir = Normalized(farW - nearW);
+
+	// レイが平面と平行なら、とりあえず「プレイヤーの正面のそのZ」を返す
+	if (std::fabs(rayDir.z) < 1e-6f) {
+		Vector3 p = worldTransform_.translation_;
+		p.z = planeZ;
+		return p;
+	}
+
+	float t = (planeZ - nearW.z) / rayDir.z;
+	return nearW + rayDir * t;
+}
 
 void Player::OnHit() {
 	if (invincibleTimer_ > 0)

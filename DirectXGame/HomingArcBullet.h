@@ -50,6 +50,10 @@ public:
 	/// </summary>
 	bool IsDead() const { return isDead_; }
 
+	float GetRadius() const { return radius_; }
+	void OnCollision() { isDead_ = true; }
+
+
 private:
 	// ===============================
 	// 定数
@@ -77,4 +81,7 @@ private:
 	// 向き計算用
 	// ===============================
 	Vector3 prevPosition_;
+
+	// ミサイルは弾より大きめが当たりやすい
+	float radius_ = 0.6f;  
 };

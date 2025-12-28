@@ -29,6 +29,14 @@ public:
 	void Draw(const Camera &camera);
 
 	bool IsDead() const { return isDead_; }
+
+	// ★当たり判定用
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+	float GetRadius() const { return radius_; }
+
+	// ★当たったら消す
+	void OnCollision() { isDead_ = true; }
+
 	
 private:
 	// ワールド変換データ
@@ -51,4 +59,7 @@ private:
 
 	//デスフラグ
 	bool isDead_ = false;
+
+	// 弾の当たり半径（好きに調整）
+	float radius_ = 0.35f; 
 };

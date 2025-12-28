@@ -9,6 +9,11 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
 	velocity_ = velocity;
+
+	
+    // ★追加：生成直後に行列を作って転送しておく
+	WorldTransformUpdate(worldTransform_);
+	worldTransform_.TransferMatrix();
 }
 
 void EnemyBullet::Update() {

@@ -11,6 +11,10 @@ void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
+
+	// ★追加：ここで最初の行列を確定＆GPUへ
+	WorldTransformUpdate(worldTransform_);
+	worldTransform_.TransferMatrix();
 }
 
 void Enemy::Update(const Vector3& playerPos) {
@@ -23,6 +27,15 @@ void Enemy::Draw3D() {
 		model_->Draw(worldTransform_, *camera_);
 	}
 }
+
+void Enemy::Damage(int amount) {
+	hp_ -= amount;
+	if (hp_ <= 0) {
+		hp_ = 0;
+		isDead_ = true;
+	}
+}
+
 
 bool Enemy::CheckCollision(const Vector3& playerPos, float playerRadius) {
 	Vector3 diff = playerPos - worldTransform_.translation_;

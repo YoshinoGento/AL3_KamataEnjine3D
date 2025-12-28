@@ -10,6 +10,10 @@ public:
 	void Update();
 	void Draw(const Camera& camera);
 	bool IsDead() const { return isDead_; }
+	Vector3 GetWorldPosition() const { return worldTransform_.translation_; }
+	float GetRadius() const { return radius_; }
+	void OnCollision() { isDead_ = true; }
+	void Kill() { isDead_ = true; }
 
 private:
 	WorldTransform worldTransform_;
@@ -19,4 +23,5 @@ private:
 	static const int32_t kLifeTime = 60 * 5;
 	int32_t dethTimer_ = kLifeTime;
 	bool isDead_ = false;
+	float radius_ = 0.35f;
 };

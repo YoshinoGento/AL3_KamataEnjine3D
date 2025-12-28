@@ -4,13 +4,11 @@
 #include <cmath>
 #include <numbers>
 
-
 Vector2 operator-(const Vector2& a, const Vector2& b) { return {a.x - b.x, a.y - b.y}; }
 
 float Length(const Vector2& v) { return std::sqrt(v.x * v.x + v.y * v.y); }
 
 Vector2 operator+(const Vector2& a, const Vector2& b) { return {a.x + b.x, a.y + b.y}; }
-
 
 // 02_14 29枚目 単項演算子オーバーロード
 Vector3 operator+(const Vector3& v) { return v; }
@@ -415,6 +413,14 @@ Matrix4x4 MakeLookRotation(const Vector3& forward, const Vector3& up) {
 	Matrix4x4 result = {r.x, u.x, f.x, 0.0f, r.y, u.y, f.y, 0.0f, r.z, u.z, f.z, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
 
 	return result;
+}
+
+float Clamp(float v, float mn, float mx) {
+	if (v < mn)
+		return mn;
+	if (v > mx)
+		return mx;
+	return v;
 }
 
 // Vector3 GetEulerFromMatrix(const Matrix4x4& m) {
