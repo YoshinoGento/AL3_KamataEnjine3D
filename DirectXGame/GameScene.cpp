@@ -3,6 +3,7 @@
 #include "Math.h"
 #include <cstdlib>
 #include <ctime>
+#include "BarrgeTurretEnemy.h"
 
 using namespace KamataEngine;
 
@@ -11,113 +12,88 @@ void GameScene::Initialize() {
 	enemy_model_ = Model::CreateFromOBJ("enemy");
 
 	uint32_t lockonTexture = TextureManager::Load("lockon_br.png");
+;
 
 	camera_.Initialize();
 	camera_.translation_ = {0.0f, 0.0f, -10.0f};
 	camera_.UpdateMatrix();
 
-	enemies_.clear();
+	// 乱数
+	std::srand((unsigned)std::time(nullptr));
 
+	// Z平面（敵が出るZ）
 	const float z = 10.0f;
 
-	// ★3体ずつ出す
-	for (int i = 0; i < 3; ++i) {
+	// 敵リストは一旦空に
+	enemies_.clear();
 
-		// ---- 突進敵 ----
-		Enemy* enemyTackler = new TacklerEnemy();
-		Vector3 positionTackler = {float(i * 3 - 6), 0.0f, z};
-		enemyTackler->Initialize(enemy_model_, &camera_, positionTackler);
-		enemies_.push_back(enemyTackler);
-
-		// ---- 射撃敵 ----
-		Enemy* enemyShooter = new ShooterEnemy();
-		Vector3 positionShooter = {float(i * 3 + 2), 1.0f, z};             // +2 で右へ
-		enemyShooter->Initialize(enemy_model_, &camera_, positionShooter); // ★ここが重要
-		enemies_.push_back(enemyShooter);
-	}
-
+	// デバッグカメラ
 	debugCamera_ = new DebugCamera(1280, 720);
 
+	// プレイヤー生成
 	player_ = new Player();
 	player_->Initialize(player_model_, &camera_, {0, 0, 0}, lockonTexture);
 
+	// ロックオン用に敵リストを渡す（このポインタはずっと同じでOK）
 	player_->SetEnemies(&enemies_);
 	player_->SetAimPlaneZ(z);
 
-	std::srand((unsigned)std::time(nullptr));
+    // ----------------------
+	// WaveManager 初期化（ここが本体）
+	// ----------------------
+	waveManager_.Initialize();
+	currentWave_ = 0;
+	waveManager_.StartWave(currentWave_);
 
-
-	////----ウェーブ設定----////
-	waves_.clear();
-
-	// 演出が出る順に波を作る
-	waves_.push_back({3, 0, 0}); // Wave1: 突進3（チュートリアル）
-	waves_.push_back({0, 3, 0}); // Wave2: 射撃3（回避練習）
-	waves_.push_back({2, 2, 0}); // Wave3: 混合（本番）
-	waves_.push_back({3, 3, 0}); // Wave4: ラッシュ
-
-	waveIndex_ = 0;
-	waveState_ = WaveState::Fighting;
-
-	///----------------------////
+	// Wave間の待ちを入れるなら（あなたの変数名に合わせて）
+	wavePhase_ = WavePhase::Fighting;
+	waveWaitTimer_ = 0.0f;
 }
 
 
-
 void GameScene::Update() {
-#ifdef _DEBUG
-	// if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
-	//     isDebugCameraActive_ = !isDebugCameraActive_;
-	// }
-#endif
-
 	player_->Update();
 
-	const float deltaTime = 1.0f / 60.0f; // 仮（今の環境に合わせてOK）
-
-	// --- 敵の更新＆削除 ---
-	for (auto it = enemies_.begin(); it != enemies_.end();) {
-		Enemy* enemy = *it;
-
+	// ======================
+	// 1) 更新フェーズ（消さない）
+	// ======================
+	for (Enemy* enemy : enemies_) {
+		if (!enemy) {
+			continue;
+		}
 		enemy->Update(player_->GetWorldPosition());
 
-		if (enemy->CheckCollision(player_->GetWorldPosition(), player_->GetRadius())) {
+		// 体当たり判定（ここでKillフラグだけ立てる）
+		if (!enemy->IsDead() && enemy->CheckCollision(player_->GetWorldPosition(), player_->GetRadius())) {
 			player_->OnHitByBeam();
-			enemy->Kill(); // ← 当たったら自爆タックル
+			enemy->Kill(); // ★消すのは後
 		}
-
-		if (enemy->IsDead()) {
-			delete enemy;
-			it = enemies_.erase(it);
-
-			// ★ 敵が減ったのでリスポーンタイマー開始
-			respawnTimer_ = respawnInterval_;
-			continue;
-		}
-
-		++it;
 	}
 
-	for (Enemy* enemy : enemies_) {
+	// ======================
+	// 2) 当たり判定フェーズ（B）
+	// ======================
 
-		// ShooterEnemy だけ弾を持っている
+	// --- 敵弾 vs プレイヤー ---
+	for (Enemy* enemy : enemies_) {
 		ShooterEnemy* shooter = dynamic_cast<ShooterEnemy*>(enemy);
-		if (!shooter)
+		if (!shooter) {
 			continue;
+		}
 
 		for (EnemyBullet* bullet : shooter->GetBullets()) {
+			if (!bullet || bullet->IsDead()) {
+				continue;
+			}
 
 			if (HitSphere(bullet->GetWorldPosition(), bullet->GetRadius(), player_->GetWorldPosition(), player_->GetRadius())) {
 				player_->OnHitByBeam();
-				bullet->Kill(); // 弾を消す
+				bullet->OnCollision(); // ★Kill()が無いならこれにする
 			}
 		}
 	}
 
-
-	// ----------------------
-	// 弾 vs 敵 当たり判定
-	// ----------------------
+	// --- プレイヤー弾 vs 敵 ---
 	for (Enemy* enemy : enemies_) {
 		if (!enemy || enemy->IsDead()) {
 			continue;
@@ -129,16 +105,13 @@ void GameScene::Update() {
 			}
 
 			if (HitSphere(bullet->GetWorldPosition(), bullet->GetRadius(), enemy->GetWorldPosition(), enemy->GetRadius())) {
-
 				bullet->OnCollision();
-				enemy->Damage(1); // ダメージ量は好きに
+				enemy->Damage(1);
 			}
 		}
 	}
 
-	// ----------------------
-	// ミサイル（HomingArcBullet）vs 敵
-	// ----------------------
+	// --- ミサイル vs 敵 ---
 	for (Enemy* enemy : enemies_) {
 		if (!enemy || enemy->IsDead()) {
 			continue;
@@ -150,28 +123,56 @@ void GameScene::Update() {
 			}
 
 			if (HitSphere(m->GetWorldPosition(), m->GetRadius(), enemy->GetWorldPosition(), enemy->GetRadius())) {
-
 				m->OnCollision();
-				enemy->Damage(3); // ミサイルは強め、とか
+				enemy->Damage(3);
 			}
 		}
 	}
 
-
-	// --- リスポーン待ち ---
-	if ((int)enemies_.size() < maxEnemies_) {
-		respawnTimer_ -= deltaTime;
-
-		if (respawnTimer_ <= 0.0f) {
-			SpawnEnemy();
-			respawnTimer_ = 0.0f; // 念のため
-
-			player_->SetEnemies(&enemies_); // ★追加：新しい敵リストを渡し直す
+	// ======================
+	// 3) 削除フェーズ（A：delete&erase）
+	// ======================
+	for (auto it = enemies_.begin(); it != enemies_.end();) {
+		Enemy* enemy = *it;
+		if (enemy && enemy->IsDead()) {
+			delete enemy;
+			it = enemies_.erase(it);
+		} else {
+			++it;
 		}
 	}
 
-	UpdateWaves();
+	// ② Wave進行（WaveManagerに統一）
+	const float dt = 1.0f / 60.0f;
+
+	if (wavePhase_ == WavePhase::Clear) {
+		// ここでステージクリア演出やシーン遷移をしたいなら書く
+	} else if (wavePhase_ == WavePhase::Fighting) {
+		waveManager_.Update(dt, *this, (int)enemies_.size());
+
+		if (waveManager_.IsFinished()) {
+			wavePhase_ = WavePhase::Waiting;
+			waveWaitTimer_ = 1.0f; // 次Waveまでの“間”
+		}
+	} else if (wavePhase_ == WavePhase::Waiting) {
+		waveWaitTimer_ -= dt;
+
+		if (waveWaitTimer_ <= 0.0f) {
+			currentWave_++;
+
+			// ★ここが追加：Waveがもう無いならClearへ
+			if (currentWave_ >= waveManager_.GetWaveCount()) {
+				wavePhase_ = WavePhase::Clear;
+				// 例：ここでBGM止める/クリアUI出す/シーン切替など
+				// gameManager_->ChangeScene(CLEAR); みたいなのを呼ぶならここ
+			} else {
+				waveManager_.StartWave(currentWave_);
+				wavePhase_ = WavePhase::Fighting;
+			}
+		}
+	}
 }
+
 
 void GameScene::Draw() {
 
@@ -220,12 +221,18 @@ void GameScene::Delete() {
 void GameScene::SpawnTacklerEnemy(const Vector3& pos) {
 	Enemy* enemy = new TacklerEnemy();
 	enemy->Initialize(enemy_model_, &camera_, pos);
+
+	enemy->FaceTo(player_->GetWorldPosition()); // ★追加
+
 	enemies_.push_back(enemy);
 }
 
 void GameScene::SpawnShooterEnemy(const Vector3& pos) {
 	Enemy* enemy = new ShooterEnemy();
 	enemy->Initialize(enemy_model_, &camera_, pos);
+
+	enemy->FaceTo(player_->GetWorldPosition());
+
 	enemies_.push_back(enemy);
 }
 
@@ -238,6 +245,17 @@ void GameScene::SpawnEnemy() {
 	enemy_Tackler->Initialize(enemy_model_, &camera_, pos);
 	enemies_.push_back(enemy_Tackler);
 }
+
+void GameScene::SpawnTurretEnemy(const Vector3& pos) {
+	Enemy* enemy = new BarrageTurretEnemy();
+	enemy->Initialize(enemy_model_, &camera_, pos);
+
+	enemy->FaceTo(player_->GetWorldPosition());
+	enemies_.push_back(enemy);
+}
+
+
+
 
 bool GameScene::HitSphere(const Vector3& aPos, float aR, const Vector3& bPos, float bR) {
 
@@ -287,16 +305,20 @@ bool GameScene::AreAllEnemiesDead() const {
 	return true;
 }
 
-void GameScene::SpawnWave(const WaveSpawn& w) {
-	for (int i = 0; i < w.tackler; ++i) {
+void GameScene::SpawnWave(const WaveSpawn& waveSpawn) {
+	for (int i = 0; i < waveSpawn.tackler; ++i) {
 		SpawnTacklerEnemy(RandomSpawnPos());
 	}
-	for (int i = 0; i < w.shooter; ++i) {
-		// 例：SpawnShooterEnemy を用意するか、ここで new して追加
+	for (int i = 0; i < waveSpawn.shooter; ++i) {
 		SpawnShooterEnemy(RandomSpawnPos());
 	}
-	// turret は後で
+	for (int i = 0; i < waveSpawn.turret; ++i) {
+		SpawnTurretEnemy(RandomSpawnPos());
+	}
 }
+
+
+void GameScene::InitWaves() {}
 
 void GameScene::UpdateWaves() {
 	if (waveState_ == WaveState::Clear)

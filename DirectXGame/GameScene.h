@@ -4,6 +4,8 @@
 #include "Player.h"
 #include "TacklerEnemy.h"
 #include "ShooterEnemy.h"
+#include "BarrgeTurretEnemy.h"
+#include "WaveManager.h"
 
 using namespace KamataEngine;
 
@@ -28,6 +30,9 @@ public:
 	void SpawnTacklerEnemy(const Vector3& pos);
 	void SpawnShooterEnemy(const Vector3& pos);
 	void SpawnEnemy();
+	void SpawnTurretEnemy(const Vector3& pos);
+
+
 
 	static bool HitSphere(const Vector3& aPos, float aR, const Vector3& bPos, float bR);
 
@@ -37,7 +42,6 @@ public:
 
 
 	WaveState waveState_ = WaveState::Fighting;
-	float waveWaitTimer_ = 0.0f;
 	int waveIndex_ = 0;
 	std::vector<WaveSpawn> waves_;
 
@@ -70,4 +74,11 @@ private:
 	// 目標数
 	static constexpr int kTargetTacklers = 3;
 	static constexpr int kTargetShooters = 3;
+
+	WaveManager waveManager_;
+	int currentWave_ = 0;
+
+	enum class WavePhase { Fighting, Waiting, Clear };
+	WavePhase wavePhase_ = WavePhase::Fighting;
+	float waveWaitTimer_ = 0.0f;
 };

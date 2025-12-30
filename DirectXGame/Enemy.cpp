@@ -36,6 +36,19 @@ void Enemy::Damage(int amount) {
 	}
 }
 
+void Enemy::FaceTo(const Vector3& targetPos) {
+	Vector3 dir = targetPos - worldTransform_.translation_;
+	if (Length(dir) < 1e-6f) {
+		dir = {0, 0, 1};
+	}
+	dir = Normalized(dir);
+
+	worldTransform_.rotation_ = LookRotation(dir);
+
+	WorldTransformUpdate(worldTransform_);
+	worldTransform_.TransferMatrix();
+}
+
 
 bool Enemy::CheckCollision(const Vector3& playerPos, float playerRadius) {
 	Vector3 diff = playerPos - worldTransform_.translation_;

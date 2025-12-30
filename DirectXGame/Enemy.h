@@ -24,6 +24,8 @@ public:
 
 	float GetRadius() const { return radius_; }
 
+	void FaceTo(const Vector3& targetPos);
+
 protected:
 	// ★追加
 	bool isDead_ = false;
