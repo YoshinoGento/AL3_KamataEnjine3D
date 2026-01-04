@@ -1,11 +1,11 @@
 #pragma once
+#include "Enemy.h"
 #include "HomingArcBullet.h"
 #include "KamataEngine.h"
+#include "LockOnManager.h"
 #include "MatrixMath.h"
 #include "PlayerBullet.h"
 #include <list>
-#include "Enemy.h"
-#include "LockOnManager.h"
 
 using namespace KamataEngine;
 
@@ -36,6 +36,8 @@ public:
 
 	const std::list<HomingArcBullet*>& GetArcBullets() const { return arcBullets_; }
 
+	bool IsDead() const { return hitPoint_ <= 0; }
+
 
 private:
 	WorldTransform worldTransform_;
@@ -57,7 +59,5 @@ private:
 
 	Vector3 CalcMouseHitOnZPlane(const Vector2& mouse, float planeZ) const;
 
-
-	
-
+	int GetHP() const { return hitPoint_; }
 };

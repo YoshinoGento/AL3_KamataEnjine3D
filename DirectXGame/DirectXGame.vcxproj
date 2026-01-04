@@ -107,17 +107,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BarrgeTurretEnemy.cpp" />
+    <ClCompile Include="ClearScene.cpp" />
     <ClCompile Include="Enemy.cpp" />
     <ClCompile Include="EnemyBullet.cpp" />
+    <ClCompile Include="GameManager.cpp" />
+    <ClCompile Include="GameOverScene.cpp" />
     <ClCompile Include="GameScene.cpp" />
     <ClCompile Include="HomingArcBullet.cpp" />
+    <ClCompile Include="IScene.cpp" />
     <ClCompile Include="LockOnManager.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MatrixMath.cpp" />
+    <ClCompile Include="PauseMenu.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerBullet.cpp" />
     <ClCompile Include="ShooterEnemy.cpp" />
     <ClCompile Include="TacklerEnemy.cpp" />
+    <ClCompile Include="TitleScene.cpp" />
     <ClCompile Include="WaveManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -197,16 +203,22 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BarrgeTurretEnemy.h" />
+    <ClInclude Include="ClearScene.h" />
     <ClInclude Include="Enemy.h" />
     <ClInclude Include="EnemyBullet.h" />
+    <ClInclude Include="GameManager.h" />
+    <ClInclude Include="GameOverScene.h" />
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="HomingArcBullet.h" />
+    <ClInclude Include="IScene.h" />
     <ClInclude Include="LockOnManager.h" />
     <ClInclude Include="MatrixMath.h" />
+    <ClInclude Include="PauseMenu.h" />
     <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerBullet.h" />
     <ClInclude Include="ShooterEnemy.h" />
     <ClInclude Include="TacklerEnemy.h" />
+    <ClInclude Include="TitleScene.h" />
     <ClInclude Include="WaveManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

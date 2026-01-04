@@ -17,6 +17,12 @@ void Player::Initialize(Model* model, Camera* camera, const Vector3& position, u
 }
 
 void Player::Update() {
+
+	 // ★無敵タイマーを減らす（これが無いと永久無敵 or 判定がおかしくなる）
+	if (invincibleTimer_ > 0) {
+		--invincibleTimer_;
+	}
+
 	bullets_.remove_if([](PlayerBullet* bullet) {
 		if (bullet->IsDead()) {
 			delete bullet;

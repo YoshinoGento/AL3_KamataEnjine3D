@@ -1,0 +1,54 @@
+#include "TitleScene.h"
+#include "MatrixMath.h"
+
+using namespace KamataEngine;
+
+void TitleScene::Initialize(GameManager* manager) {
+	manager_ = manager;
+
+	// ★タイトル用OBJを用意してね（例：Resources/title.obj 相当）
+	// CreateFromOBJ("title") で読み込めるようにしておく
+	titleModel_ = Model::CreateFromOBJ("title");
+
+	titleWT_.Initialize();
+	titleWT_.translation_ = {0.0f, 0.0f, 0.0f};
+	titleWT_.scale_ = {1.0f, 1.0f, 1.0f};
+
+	camera_.Initialize();
+	camera_.translation_ = {0.0f, 0.0f, -15.0f};
+	camera_.UpdateMatrix();
+
+	rotY_ = 0.0f;
+}
+
+void TitleScene::Finalize() {
+	delete titleModel_;
+	titleModel_ = nullptr;
+}
+
+void TitleScene::Update() {
+	// Enterでゲーム開始
+	if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
+		manager_->RequestChangeScene(SceneType::Game);
+		return;
+	}
+
+	// ちょい演出：回転
+	rotY_ += 0.01f;
+	titleWT_.rotation_.y = rotY_;
+
+	WorldTransformUpdate(titleWT_);
+	titleWT_.TransferMatrix();
+
+	camera_.UpdateMatrix();
+}
+
+void TitleScene::Draw() {
+	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
+
+	Model::PreDraw(dxCommon->GetCommandList());
+	if (titleModel_) {
+		titleModel_->Draw(titleWT_, camera_);
+	}
+	Model::PostDraw();
+}
