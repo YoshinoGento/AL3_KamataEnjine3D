@@ -17,48 +17,53 @@ void HomingArcBullet::Initialize(Model* model, const Vector3& start, const Vecto
 
 	start_ = start;
 	target_ = target;
-	controlOffset_ = controlOffset; 
+	controlOffset_ = controlOffset;
 
 	time_ = 0.0f;
 	lifeTime_ = kLifeTime;
 	isDead_ = false;
+
+	// ★これが大事：最初の「前フレーム位置」を確定
+	prevPosition_ = start;
+
+	// ★最初の行列も作って転送しておく（描画が安定）
+	WorldTransformUpdate(worldTransform_);
+	worldTransform_.TransferMatrix();
 }
 
+
 void HomingArcBullet::Update() {
+	// 移動前の位置を保存
+	Vector3 oldPos = worldTransform_.translation_;
+
 	time_ += 1.0f;
 	float t = time_ / lifeTime_;
-
 	if (t >= 1.0f) {
 		isDead_ = true;
 		return;
 	}
 
-	// ========= ① 制御点を1つだけ作る =========
 	Vector3 mid = (start_ + target_) * 0.5f;
-
-	// 上方向にだけ膨らませる（← 弧の正体）
 	Vector3 control = mid + controlOffset_;
 
-	// ========= ② 二次ベジェ曲線 =========
-	Vector3 p0 = start_;
-	Vector3 p1 = control;
-	Vector3 p2 = target_;
-
-	Vector3 a = Lerp(p0, p1, t);
-	Vector3 b = Lerp(p1, p2, t);
+	Vector3 a = Lerp(start_, control, t);
+	Vector3 b = Lerp(control, target_, t);
 	worldTransform_.translation_ = Lerp(a, b, t);
 
-	// ========= ③ 向き調整 =========
-	Vector3 velocity = worldTransform_.translation_ - prevPosition_;
-	if (Length(velocity) > 0.0001f) {
-		worldTransform_.rotation_ = LookRotation(velocity);
+	// ★向き：今回の移動量で向ける（oldPos基準）
+	Vector3 v = worldTransform_.translation_ - oldPos;
+	if (Length(v) > 1e-4f) {
+		worldTransform_.rotation_ = LookRotation(v);
 	}
 
 	WorldTransformUpdate(worldTransform_);
 	worldTransform_.TransferMatrix();
 
+	// prevPosition_ は oldPos でもいいけど、もう oldPos を使ってるなら不要
 	prevPosition_ = worldTransform_.translation_;
 }
+
+
 
 
 

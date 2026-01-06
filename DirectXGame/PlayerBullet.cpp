@@ -10,7 +10,7 @@ void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector
 	model_ = model;
 
 	// テクスチャ読み込み
-	textureHandle_ = TextureManager::Load("uvChecker.png");
+
 
 	// ワールド変換の初期化
 	worldTransform_.Initialize();
@@ -25,21 +25,26 @@ void PlayerBullet::Initialize(Model* model, const Vector3& position,const Vector
 
 void PlayerBullet::Update() {
 
-	// 座標を移動させる(1フレーム分の移動量を足しこむ)
+	// ① 移動
 	worldTransform_.translation_ += velocity_;
 
-	//ワールドトランスフォームの更新
+	// ② 進行方向に向ける ★ここが重要
+	if (Length(velocity_) > 0.0001f) {
+		worldTransform_.rotation_ = LookRotation(Normalized(velocity_));
+	}
+
+	// ③ 行列更新
 	WorldTransformUpdate(worldTransform_);
 	worldTransform_.TransferMatrix();
 
+	// ④ 寿命
 	if (--dethTimer_ <= 0) {
 		isDead_ = true;
 	}
-
 }
 
 void PlayerBullet::Draw(const Camera& camera) {
 
-	model_->Draw(worldTransform_, camera, textureHandle_);
+	model_->Draw(worldTransform_, camera);
 
 }

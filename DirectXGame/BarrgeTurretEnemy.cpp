@@ -8,17 +8,17 @@ static const float kPi = 3.1415926535f;
 void BarrageTurretEnemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	Enemy::Initialize(model, camera, position);
 
-	// 固定砲台らしく少し固め
 	hp_ = 5;
 	radius_ = 1.5f;
 
-	bulletModel_ = model_; // とりあえず敵モデルを弾に使う（必要なら別モデルに）
-	shotTimer_ = 30;       // 開幕ちょい待ってから撃つ
-
-	// まずは円形弾幕から
+	shotTimer_ = 30;
 	pattern_ = Pattern::Circle;
-
 	fixedZ_ = position.z;
+
+	// ★Setされてなければ従来通り
+	if (!bulletModel_) {
+		bulletModel_ = model_;
+	}
 }
 
 void BarrageTurretEnemy::Update(const Vector3& playerPos) {
@@ -180,8 +180,8 @@ void BarrageTurretEnemy::Draw3D() {
 		model_->Draw(worldTransform_, *camera_);
 	}
 	// 弾
-	for (EnemyBullet* b : bullets_) {
-		b->Draw(*camera_);
+	for (EnemyBullet* enemyBullet : bullets_) {
+		enemyBullet->Draw(*camera_);
 	}
 }
 

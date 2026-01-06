@@ -37,8 +37,13 @@ void TacklerEnemy::Update(const Vector3& playerPos) {
 	// ③ 移動（突進）
 	worldTransform_.translation_ += moveDir_ * speed_;
 
-	// ④ 向き
+
+
+	// ④ 向き（進行方向へ）
 	worldTransform_.rotation_ = LookRotation(moveDir_);
+
+	// ★モデルが逆向きなら 180°回して補正（前後が逆）
+	worldTransform_.rotation_.y += 3.14159265f; // = π
 
 	WorldTransformUpdate(worldTransform_);
 	worldTransform_.TransferMatrix();

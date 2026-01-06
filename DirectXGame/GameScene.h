@@ -43,7 +43,15 @@ private:
 	std::vector<Enemy*> enemies_;
 
 	Model* playerModel_ = nullptr;
-	Model* enemyModel_ = nullptr;
+	// ★敵モデルを種類ごとに分ける
+	Model* tacklerModel_ = nullptr;
+	Model* shooterModel_ = nullptr;
+	Model* turretModel_ = nullptr;
+
+	// ★（任意）弾モデルも分ける
+	Model* enemyBulletModel_ = nullptr;
+	Model* playerBulletModel_ = nullptr;
+	Model* playerMissile_ = nullptr;
 
 	Camera camera_;
 	DebugCamera* debugCamera_ = nullptr;
@@ -64,4 +72,12 @@ private:
 
 	void UpdatePause(); // ★追加：ポーズ中処理
 	void Cleanup();     // ★追加：Finalize用
+
+
+private:
+
+	uint32_t bgmGame_ = 0;
+	uint32_t seShot_ = 0;
+	uint32_t seHit_ = 0;
+	uint32_t sePauseOpen_ = 0;
 };

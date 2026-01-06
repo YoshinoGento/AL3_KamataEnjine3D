@@ -7,8 +7,18 @@ void GameScene::Initialize(GameManager* manager) {
 	manager_ = manager;
 
 	playerModel_ = Model::CreateFromOBJ("player");
-	enemyModel_ = Model::CreateFromOBJ("enemy");
 
+	// ★種類ごとに別OBJを読む
+	tacklerModel_ = Model::CreateFromOBJ("enemy_tackler");
+	shooterModel_ = Model::CreateFromOBJ("enemy_shooter");
+	turretModel_ = Model::CreateFromOBJ("enemy_turret");
+
+	// ★（任意）弾も別OBJ
+	enemyBulletModel_ = Model::CreateFromOBJ("BossMissile");
+	playerBulletModel_ = Model::CreateFromOBJ("PlayerBullet");
+	playerMissile_ = Model::CreateFromOBJ("PlayerMissile");
+
+	// --- 以下は今まで通り ---
 	uint32_t lockonTexture = TextureManager::Load("lockon_br.png");
 
 	camera_.Initialize();
@@ -16,17 +26,17 @@ void GameScene::Initialize(GameManager* manager) {
 	camera_.UpdateMatrix();
 
 	std::srand((unsigned)std::time(nullptr));
-
 	enemies_.clear();
 
 	debugCamera_ = new DebugCamera(1280, 720);
 
 	player_ = new Player();
 	player_->Initialize(playerModel_, &camera_, {0, 0, 0}, lockonTexture);
+	player_->SetBulletModel(playerBulletModel_);
+	player_->SetMissileModel(playerMissile_);
 	player_->SetEnemies(&enemies_);
 	player_->SetAimPlaneZ(10.0f);
 
-	// WaveManager開始
 	waveManager_.Initialize();
 	currentWaveIndex_ = 0;
 	waveManager_.StartWave(currentWaveIndex_);
@@ -34,11 +44,11 @@ void GameScene::Initialize(GameManager* manager) {
 	wavePhase_ = WavePhase::Fighting;
 	waveWaitTimer_ = 0.0f;
 
-	// Pause初期化
 	isPaused_ = false;
-	pause_.Initialize(&camera_); // ★これが必須
+	pause_.Initialize(&camera_);
 	pause_.Close();
 }
+
 
 void GameScene::Finalize() { Cleanup(); }
 
@@ -49,16 +59,25 @@ void GameScene::Cleanup() {
 
 	delete player_;
 	player_ = nullptr;
-
 	delete debugCamera_;
 	debugCamera_ = nullptr;
 
 	delete playerModel_;
 	playerModel_ = nullptr;
 
-	delete enemyModel_;
-	enemyModel_ = nullptr;
+	// ★追加：敵モデル全部解放
+	delete tacklerModel_;
+	tacklerModel_ = nullptr;
+	delete shooterModel_;
+	shooterModel_ = nullptr;
+	delete turretModel_;
+	turretModel_ = nullptr;
+
+	// ★追加：弾モデル（任意）
+	delete enemyBulletModel_;
+	enemyBulletModel_ = nullptr;
 }
+
 
 void GameScene::Update() {
 	const float dt = 1.0f / 60.0f;
@@ -276,20 +295,23 @@ void GameScene::UpdateWaves(float dt) {
 
 // ===== Spawn =====
 void GameScene::SpawnTacklerEnemy(const Vector3& pos) {
-	Enemy* e = new TacklerEnemy();
-	e->Initialize(enemyModel_, &camera_, pos);
-	enemies_.push_back(e);
+	Enemy* enemy = new TacklerEnemy();
+	enemy->Initialize(tacklerModel_, &camera_, pos); // ★ここが違う
+	enemies_.push_back(enemy);
 }
 
 void GameScene::SpawnShooterEnemy(const Vector3& pos) {
-	Enemy* e = new ShooterEnemy();
-	e->Initialize(enemyModel_, &camera_, pos);
-	enemies_.push_back(e);
+	ShooterEnemy* SshooterEnemy = new ShooterEnemy();
+	SshooterEnemy->SetBulletModel(enemyBulletModel_);
+	SshooterEnemy->Initialize(shooterModel_, &camera_, pos);
+	enemies_.push_back(SshooterEnemy);
 }
 
+
 void GameScene::SpawnTurretEnemy(const Vector3& pos) {
-	Enemy* e = new BarrageTurretEnemy();
-	e->Initialize(enemyModel_, &camera_, pos);
+	auto* e = new BarrageTurretEnemy();
+	e->SetBulletModel(enemyBulletModel_);       // ★先にSet
+	e->Initialize(turretModel_, &camera_, pos); // ★後でInitialize
 	enemies_.push_back(e);
 }
 

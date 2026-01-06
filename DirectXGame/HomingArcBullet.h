@@ -84,4 +84,9 @@ private:
 
 	// ミサイルは弾より大きめが当たりやすい
 	float radius_ = 0.6f;  
+
+	bool hasPrev_ = false;
+
+	// ★モデルの前方向補正（まずは逆向き対策で180度）
+	Vector3 modelForwardOffset_{0.0f, 3.14159265f, 0.0f};
 };

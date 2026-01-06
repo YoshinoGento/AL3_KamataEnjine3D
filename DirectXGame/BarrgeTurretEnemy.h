@@ -13,6 +13,8 @@ public:
 
 	const std::list<EnemyBullet*>& GetBullets() const { return bullets_; }
 
+	 void SetBulletModel(Model* model) { bulletModel_ = model; }
+
 private:
 	enum class Pattern {
 		Circle, // 全方向

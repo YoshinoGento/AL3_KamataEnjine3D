@@ -5,7 +5,6 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector
 	assert(model);
 
 	model_ = model;
-	textureHandle_ = TextureManager::Load("enemyBullet.png");
 	worldTransform_.Initialize();
 	worldTransform_.translation_ = position;
 	velocity_ = velocity;
@@ -18,6 +17,12 @@ void EnemyBullet::Initialize(Model* model, const Vector3& position, const Vector
 
 void EnemyBullet::Update() {
 	worldTransform_.translation_ += velocity_;
+
+	// ★進行方向に向ける（ミサイルっぽくする）
+	if (Length(velocity_) > 1e-6f) {
+		worldTransform_.rotation_ = LookRotation(Normalized(velocity_));
+	}
+
 	WorldTransformUpdate(worldTransform_);
 	worldTransform_.TransferMatrix();
 
@@ -26,6 +31,9 @@ void EnemyBullet::Update() {
 	}
 }
 
-void EnemyBullet::Draw(const Camera& camera) { 
-	model_->Draw(worldTransform_, camera, textureHandle_);
+void EnemyBullet::Draw(const Camera& camera) {
+	if (!model_) {
+		return;
+	}
+	model_->Draw(worldTransform_, camera); // ★テクスチャ指定しない
 }

@@ -12,12 +12,16 @@ void ShooterEnemy::Initialize(Model* model, Camera* camera, const Vector3& posit
 	hp_ = 3;
 	radius_ = 1.2f;
 
-	bulletModel_ = model_; // とりあえず敵モデルを弾に使う
 	fixedZ_ = position.z;
 
 	state_ = State::Shoot;
 	shotsLeft_ = 6;
 	shotTimer_ = 0;
+
+	// ★Setされてなければ従来通り
+	if (!bulletModel_) {
+		bulletModel_ = model_;
+	}
 }
 
 void ShooterEnemy::Update(const Vector3& playerPos) {
@@ -46,9 +50,9 @@ void ShooterEnemy::Update(const Vector3& playerPos) {
 	}
 
 	// 見た目：プレイヤーの方向を向く
-	Vector3 dir = Normalized(playerPos - worldTransform_.translation_);
-	worldTransform_.rotation_ = LookRotation(dir);
+	FaceTo(playerPos);
 
+	// ★向き以外の移動などで行列更新が必要ならここは残す
 	WorldTransformUpdate(worldTransform_);
 	worldTransform_.TransferMatrix();
 }
@@ -70,6 +74,10 @@ void ShooterEnemy::UpdateShoot(const Vector3& playerPos) {
 }
 
 void ShooterEnemy::Shoot(const Vector3& playerPos) {
+	if (!bulletModel_) {
+		return;
+	} // ★保険
+
 	Vector3 dir = Normalized(playerPos - worldTransform_.translation_);
 	Vector3 vel = dir * bulletSpeed_;
 

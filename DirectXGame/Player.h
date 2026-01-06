@@ -38,6 +38,10 @@ public:
 
 	bool IsDead() const { return hitPoint_ <= 0; }
 
+	void SetBulletModel(Model* model) { playerBulletModel_ = model; }
+	void SetMissileModel(Model* model) { playerMissileModel_ = model; }
+
+
 
 private:
 	WorldTransform worldTransform_;
@@ -60,4 +64,7 @@ private:
 	Vector3 CalcMouseHitOnZPlane(const Vector2& mouse, float planeZ) const;
 
 	int GetHP() const { return hitPoint_; }
+
+	Model* playerBulletModel_ = nullptr;  // 直進弾
+	Model* playerMissileModel_ = nullptr; // ホーミング（ミサイル）
 };

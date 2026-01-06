@@ -11,6 +11,8 @@ public:
 
 	const std::list<EnemyBullet*>& GetBullets() const { return bullets_; }
 
+	void SetBulletModel(Model* model) { bulletModel_ = model; }
+
 private:
 	// ===== 行動状態 =====
 	enum class State {

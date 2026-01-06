@@ -1,6 +1,7 @@
 #include "Enemy.h"
 #include "MatrixMath.h"
 #include <cassert>
+#include <cmath>
 
 void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 	assert(model);
@@ -20,6 +21,9 @@ void Enemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
 void Enemy::Update(const Vector3& playerPos) {
 	// 基本は何もしない（派生で上書き）
 	(void)playerPos;
+
+	WorldTransformUpdate(worldTransform_);
+	worldTransform_.TransferMatrix();
 }
 
 void Enemy::Draw3D() {
@@ -43,10 +47,15 @@ void Enemy::FaceTo(const Vector3& targetPos) {
 	}
 	dir = Normalized(dir);
 
+	// ★上下が逆ならこれを入れる（まずここが本命）
+	dir.y *= -1.0f;
+
 	worldTransform_.rotation_ = LookRotation(dir);
 
-	WorldTransformUpdate(worldTransform_);
-	worldTransform_.TransferMatrix();
+	// ★前後が逆なら 180度回す（必要な場合だけ）
+	worldTransform_.rotation_.y += 3.14159265f;
+
+	// ★ここでは Transfer しない（Update側でまとめてやる）
 }
 
 

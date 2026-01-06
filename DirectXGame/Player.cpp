@@ -135,7 +135,8 @@ void Player::Attack() {
 
 				Vector3 offset = {(rand() % 200 - 100) / 10.0f, (rand() % 100) / 10.0f + 5.0f, (rand() % 200 - 100) / 10.0f};
 
-				arc->Initialize(model_, worldTransform_.translation_, enemy->GetWorldPosition(), offset);
+				Model* missileModel = playerMissileModel_ ? playerMissileModel_ : model_;
+				arc->Initialize(missileModel, worldTransform_.translation_, enemy->GetWorldPosition(), offset);
 				arcBullets_.push_back(arc);
 			}
 
@@ -158,7 +159,8 @@ void Player::Attack() {
 			Vector3 vel = dir * kBulletSpeed;
 
 			PlayerBullet* bullet = new PlayerBullet();
-			bullet->Initialize(model_, worldTransform_.translation_, vel);
+			Model* bulletModel = playerBulletModel_ ? playerBulletModel_ : model_;
+			bullet->Initialize(bulletModel, worldTransform_.translation_, vel);
 			bullets_.push_back(bullet);
 		}
 	}
