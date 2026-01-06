@@ -3,10 +3,11 @@
 #include <cstdlib>
 #include <ctime>
 
+
 void GameScene::Initialize(GameManager* manager) {
 	manager_ = manager;
 
-	playerModel_ = Model::CreateFromOBJ("player");
+	playerModel_ = Model::CreateFromOBJ("player1");
 
 	// ★種類ごとに別OBJを読む
 	tacklerModel_ = Model::CreateFromOBJ("enemy_tackler");
@@ -17,6 +18,8 @@ void GameScene::Initialize(GameManager* manager) {
 	enemyBulletModel_ = Model::CreateFromOBJ("BossMissile");
 	playerBulletModel_ = Model::CreateFromOBJ("PlayerBullet");
 	playerMissile_ = Model::CreateFromOBJ("PlayerMissile");
+
+	sky_.Initialize("FaceSkySphere", 3.0f);
 
 	// --- 以下は今まで通り ---
 	uint32_t lockonTexture = TextureManager::Load("lockon_br.png");
@@ -44,15 +47,46 @@ void GameScene::Initialize(GameManager* manager) {
 	wavePhase_ = WavePhase::Fighting;
 	waveWaitTimer_ = 0.0f;
 
+
+	 // ===== 音：ロード =====
+	Audio* audio = Audio::GetInstance();
+
+	bgmGame_ = audio->LoadWave("game_bgm.wav");
+	seShot_ = audio->LoadWave("shot.wav");
+	seHit_ = audio->LoadWave("hit.wav");
+	sePauseOpen_ = audio->LoadWave("pause.wav");
+
+	// ===== 音：BGM再生（ループ）=====
+	bgmVoice_ = audio->PlayWave(bgmGame_, true, 0.03f); // 0.3は好みでOK
+
+
+
+	player_->SetShotSE(seShot_);
+	player_->SetMissileSE(seShot_); // ミサイルも同じ音でいいなら一旦これ
+
 	isPaused_ = false;
 	pause_.Initialize(&camera_);
 	pause_.Close();
+
+
 }
 
 
-void GameScene::Finalize() { Cleanup(); }
+void GameScene::Finalize() {
+	sky_.Finalize(); // ★追加
+	Cleanup(); 
+
+}
 
 void GameScene::Cleanup() {
+
+	
+    // ===== 音：BGM停止 =====
+	// ★BGM停止（シーンを抜けるときに必ず止める）
+	Audio* audio = Audio::GetInstance();
+	audio->StopWave(bgmVoice_);
+	bgmVoice_ = 0;
+
 	for (Enemy* e : enemies_)
 		delete e;
 	enemies_.clear();
@@ -82,13 +116,26 @@ void GameScene::Cleanup() {
 void GameScene::Update() {
 	const float dt = 1.0f / 60.0f;
 
+	sky_.Update(camera_);
+
 	// ====== ポーズ切り替え（ESC） ======
 	if (Input::GetInstance()->TriggerKey(DIK_ESCAPE)) {
 		isPaused_ = !isPaused_;
-		if (isPaused_)
+
+		if (isPaused_) {
 			pause_.Open();
-		else
+
+			// ★BGMを一時停止（0でも有効なので条件分岐しない）
+			Audio::GetInstance()->PauseWave(bgmVoice_);
+
+			Audio::GetInstance()->PlayWave(sePauseOpen_, false, 0.01f);
+
+		} else {
 			pause_.Close();
+
+			// ★BGMを再開
+			Audio::GetInstance()->ResumeWave(bgmVoice_);
+		}
 	}
 
 	// ====== ポーズ中は「ゲーム更新しない」 ======
@@ -130,11 +177,13 @@ void GameScene::UpdatePause() {
 
 	if (r == PauseMenu::Result::Restart) {
 		// シーンを作り直す＝完全リスタート
+		Audio::GetInstance()->StopWave(bgmVoice_);
 		manager_->RequestChangeScene(SceneType::Game);
 		return;
 	}
 
 	if (r == PauseMenu::Result::ToTitle) {
+		Audio::GetInstance()->StopWave(bgmVoice_);
 		manager_->RequestChangeScene(SceneType::Title);
 		return;
 	}
@@ -145,6 +194,7 @@ void GameScene::Draw() {
 
 	// 3D
 	Model::PreDraw(dxCommon->GetCommandList());
+	sky_.Draw(camera_); // ★天球
 	if (player_)
 		player_->Draw3D();
 	for (Enemy* e : enemies_)
@@ -157,6 +207,7 @@ void GameScene::Draw() {
 	}
 
 	Model::PostDraw();
+
 
 	// 2D（ロックオンUIなど）
 	Sprite::PreDraw(dxCommon->GetCommandList());

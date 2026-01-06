@@ -41,7 +41,8 @@ public:
 	void SetBulletModel(Model* model) { playerBulletModel_ = model; }
 	void SetMissileModel(Model* model) { playerMissileModel_ = model; }
 
-
+	void SetShotSE(uint32_t se) { seShot_ = se; }
+	void SetMissileSE(uint32_t se) { seMissile_ = se; }
 
 private:
 	WorldTransform worldTransform_;
@@ -67,4 +68,9 @@ private:
 
 	Model* playerBulletModel_ = nullptr;  // 直進弾
 	Model* playerMissileModel_ = nullptr; // ホーミング（ミサイル）
+
+
+	
+	uint32_t seShot_ = 0;
+	uint32_t seMissile_ = 0; // なくてもいいけど分けたいなら
 };

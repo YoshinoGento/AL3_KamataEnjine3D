@@ -12,6 +12,7 @@
 #include "ShooterEnemy.h"
 #include "TacklerEnemy.h"
 #include "WaveManager.h"
+#include "SkyDome.h"
 
 using namespace KamataEngine;
 
@@ -64,6 +65,8 @@ private:
 	WavePhase wavePhase_ = WavePhase::Fighting;
 	float waveWaitTimer_ = 0.0f;
 
+	SkyDome sky_; 
+
 private:
 	void UpdateEnemies();
 	void ResolveCollisions();
@@ -80,4 +83,6 @@ private:
 	uint32_t seShot_ = 0;
 	uint32_t seHit_ = 0;
 	uint32_t sePauseOpen_ = 0;
+
+	uint32_t bgmVoice_ = 0;
 };

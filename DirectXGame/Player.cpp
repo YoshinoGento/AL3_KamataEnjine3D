@@ -138,6 +138,11 @@ void Player::Attack() {
 				Model* missileModel = playerMissileModel_ ? playerMissileModel_ : model_;
 				arc->Initialize(missileModel, worldTransform_.translation_, enemy->GetWorldPosition(), offset);
 				arcBullets_.push_back(arc);
+
+				if (seMissile_ != 0) {
+					Audio::GetInstance()->PlayWave(seMissile_, false, 0.1f);
+				}
+
 			}
 
 			lolckOn_.Clear(); // 撃ったら解除
@@ -162,6 +167,10 @@ void Player::Attack() {
 			Model* bulletModel = playerBulletModel_ ? playerBulletModel_ : model_;
 			bullet->Initialize(bulletModel, worldTransform_.translation_, vel);
 			bullets_.push_back(bullet);
+
+			if (seShot_ != 0) {
+				Audio::GetInstance()->PlayWave(seShot_, false, 0.1f);
+			}
 		}
 	}
 
