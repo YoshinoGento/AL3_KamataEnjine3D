@@ -28,7 +28,7 @@ void TitleScene::Finalize() {
 
 void TitleScene::Update() {
 	// Enterでゲーム開始
-	if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 		manager_->RequestChangeScene(SceneType::Game);
 		return;
 	}

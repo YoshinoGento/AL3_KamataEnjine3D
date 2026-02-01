@@ -10,9 +10,10 @@
 #include "PauseMenu.h"
 #include "Player.h"
 #include "ShooterEnemy.h"
+#include "SkyDome.h"
+#include "SpawnDirector.h"
 #include "TacklerEnemy.h"
 #include "WaveManager.h"
-#include "SkyDome.h"
 
 using namespace KamataEngine;
 
@@ -65,7 +66,11 @@ private:
 	WavePhase wavePhase_ = WavePhase::Fighting;
 	float waveWaitTimer_ = 0.0f;
 
-	SkyDome sky_; 
+	SkyDome sky_;
+
+	SpawnDirector spawner_;
+
+	Vector3 GetSafeSpawnPos();
 
 private:
 	void UpdateEnemies();
@@ -76,9 +81,9 @@ private:
 	void UpdatePause(); // ★追加：ポーズ中処理
 	void Cleanup();     // ★追加：Finalize用
 
+	void ApplyEnemySeparation(float dt);
 
 private:
-
 	uint32_t bgmGame_ = 0;
 	uint32_t seShot_ = 0;
 	uint32_t seHit_ = 0;

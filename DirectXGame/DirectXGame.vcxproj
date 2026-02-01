@@ -123,6 +123,7 @@
     <ClCompile Include="PlayerBullet.cpp" />
     <ClCompile Include="ShooterEnemy.cpp" />
     <ClCompile Include="SkyDome.cpp" />
+    <ClCompile Include="SpawnDirector.cpp" />
     <ClCompile Include="TacklerEnemy.cpp" />
     <ClCompile Include="TitleScene.cpp" />
     <ClCompile Include="WaveManager.cpp" />
@@ -219,6 +220,7 @@
     <ClInclude Include="PlayerBullet.h" />
     <ClInclude Include="ShooterEnemy.h" />
     <ClInclude Include="SkyDome.h" />
+    <ClInclude Include="SpawnDirector.h" />
     <ClInclude Include="TacklerEnemy.h" />
     <ClInclude Include="TitleScene.h" />
     <ClInclude Include="WaveManager.h" />

@@ -42,13 +42,15 @@ private:
 	// ---- 移動制御 ----
 	Vector3 moveStart_{};
 	Vector3 moveTarget_{};
-	float moveT_ = 0.0f;
-	float moveSpeed_ = 0.02f;
+	float moveTimer_ = 0.0f;
+	float fixedZ_ = 0.0f; // Z座標を固定するための変数
 
-	// ---- 移動範囲 ----
-	float minX_ = -6.0f;
-	float maxX_ = 6.0f;
-	float minY_ = -2.0f;
-	float maxY_ = 2.0f;
-	float fixedZ_ = 10.0f;
+	// ★移動にかける時間（エラー回避用）
+	float moveDuration_ = 2.0f;
+
+	// ★移動範囲（エラー回避用）
+	float minX_ = -18.0f;
+	float maxX_ = 18.0f;
+	float minY_ = 2.0f;
+	float maxY_ = 12.0f;
 };

@@ -36,7 +36,7 @@ void ClearScene::Finalize() {
 }
 
 void ClearScene::Update() {
-	if (Input::GetInstance()->TriggerKey(DIK_RETURN)) {
+	if (Input::GetInstance()->TriggerKey(DIK_SPACE)) {
 		manager_->RequestChangeScene(SceneType::Title);
 		return;
 	}

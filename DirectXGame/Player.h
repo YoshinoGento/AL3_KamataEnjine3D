@@ -6,6 +6,7 @@
 #include "MatrixMath.h"
 #include "PlayerBullet.h"
 #include <list>
+#include <vector>
 
 using namespace KamataEngine;
 
@@ -24,13 +25,15 @@ public:
 
 	void OnHitByBeam();
 
+	// エラーが出ていた箇所：radius_ を返します
 	float GetRadius() const { return radius_; }
 
 	void SetEnemies(const std::vector<Enemy*>* enemies);
 
 	void SetAimPlaneZ(float z) { aimPlaneZ_ = z; }
 
-	float aimPlaneZ_ = 10.0f;
+	// 狙う奥行き
+	float aimPlaneZ_ = 40.0f;
 
 	const std::list<PlayerBullet*>& GetBullets() const { return bullets_; }
 
@@ -45,6 +48,13 @@ public:
 	void SetMissileSE(uint32_t se) { seMissile_ = se; }
 
 private:
+	// マウス位置から平面上の座標を計算するヘルパー関数
+	Vector3 CalcMouseHitOnZPlane(const Vector2& mouse, float planeZ) const;
+
+	// 敵ポインタが現在の敵リストに存在するか確認する関数
+	bool IsAlivePointerInEnemies(Enemy* enemy) const;
+
+private:
 	WorldTransform worldTransform_;
 	Model* model_ = nullptr;
 	uint32_t textureHandle_ = 0u;
@@ -53,24 +63,30 @@ private:
 	std::list<PlayerBullet*> bullets_;
 	std::list<HomingArcBullet*> arcBullets_;
 	Input* input_ = nullptr;
-	const std::vector<Enemy*>* enemies_ = nullptr; // ★ポインタで参照
+	const std::vector<Enemy*>* enemies_ = nullptr;
 	std::vector<Enemy*> lockedOnEnemies_;
-	std::vector<Enemy*> lockedEnemies_; // ロックオンした敵
+
+	// ロックオン管理
 	LockOnManager lolckOn_;
-	int invincibleTimer_ = 0; // 無敵残りフレーム
-	int hitPoint_ = 3;        // 既にあるなら不要
 
-	float radius_ = 0.5f;
+	// 弾モデル
+	Model* playerBulletModel_ = nullptr;
+	Model* playerMissileModel_ = nullptr;
 
-	Vector3 CalcMouseHitOnZPlane(const Vector2& mouse, float planeZ) const;
-
-	int GetHP() const { return hitPoint_; }
-
-	Model* playerBulletModel_ = nullptr;  // 直進弾
-	Model* playerMissileModel_ = nullptr; // ホーミング（ミサイル）
-
-
-	
+	// SE
 	uint32_t seShot_ = 0;
-	uint32_t seMissile_ = 0; // なくてもいいけど分けたいなら
+	uint32_t seMissile_ = 0;
+
+	// 無敵時間
+	int invincibleTimer_ = 0;
+
+	// HP
+	int hitPoint_ = 10;
+
+	// ★修正：ここに確実に定義
+	float radius_ = 1.0f;
+
+	// HP表示用
+	uint32_t hpTextureHandle_ = 0;
+	std::vector<Sprite*> hpIcons_;
 };
