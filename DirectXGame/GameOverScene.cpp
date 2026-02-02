@@ -7,6 +7,9 @@ using namespace KamataEngine;
 void GameOverScene::Initialize(GameManager* manager) {
 	manager_ = manager;
 
+	// スカイドーム初期化（GameSceneと同じモデルを使う）
+	sky_.Initialize("FaceSkySphere", 3.0f);
+
 	quadModel_ = Model::CreateFromOBJ("ui_quad");
 	texGameOver_ = TextureManager::Load("gameover.png"); // ★ここ用意してね
 
@@ -30,6 +33,9 @@ void GameOverScene::Initialize(GameManager* manager) {
 }
 
 void GameOverScene::Finalize() {
+
+	// スカイドーム終了処理
+	sky_.Finalize();
 	delete quadModel_;
 	quadModel_ = nullptr;
 }
@@ -39,7 +45,8 @@ void GameOverScene::Update() {
 		manager_->RequestChangeScene(SceneType::Title);
 		return;
 	}
-
+	// スカイドーム更新
+	sky_.Update(camera_);
 	// ふわふわ（いらなければ消してOK）
 	anim_ += 0.05f;
 	wt_.translation_.y = std::sin(anim_) * 0.2f;
@@ -57,6 +64,9 @@ void GameOverScene::Draw() {
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	Model::PreDraw(dxCommon->GetCommandList());
+	// 3D描画
+	// スカイドームを最初に描画
+	sky_.Draw(camera_);
 	quadModel_->Draw(wt_, camera_, texGameOver_);
 	Model::PostDraw();
 }

@@ -5,6 +5,9 @@
 void ClearScene::Initialize(GameManager* manager) {
 	manager_ = manager;
 
+	// スカイドーム初期化（GameSceneと同じモデルを使う）
+	sky_.Initialize("FaceSkySphere", 3.0f);
+
 	quadModel_ = Model::CreateFromOBJ("ui_quad");
 	texClear_ = TextureManager::Load("clear.png");
 
@@ -33,6 +36,9 @@ void ClearScene::Finalize() {
 	// いったん他と合わせるならそのままでOK
 	// delete quadModel_;
 	quadModel_ = nullptr;
+
+	// スカイドーム終了処理
+	sky_.Finalize();
 }
 
 void ClearScene::Update() {
@@ -40,6 +46,8 @@ void ClearScene::Update() {
 		manager_->RequestChangeScene(SceneType::Title);
 		return;
 	}
+	// スカイドーム更新
+	sky_.Update(camera_);
 }
 
 void ClearScene::Draw() {
@@ -48,6 +56,9 @@ void ClearScene::Draw() {
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	Model::PreDraw(dxCommon->GetCommandList());
+	// 3D描画
+	// スカイドームを最初に描画
+	sky_.Draw(camera_);
 	quadModel_->Draw(wt_, camera_, texClear_);
 	Model::PostDraw();
 }

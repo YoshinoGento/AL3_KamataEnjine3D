@@ -9,6 +9,7 @@ void TitleScene::Initialize(GameManager* manager) {
 	// ★タイトル用OBJを用意してね（例：Resources/title.obj 相当）
 	// CreateFromOBJ("title") で読み込めるようにしておく
 	titleModel_ = Model::CreateFromOBJ("title");
+	sky_.Initialize("FaceSkySphere", 3.0f);
 
 	titleWT_.Initialize();
 	titleWT_.translation_ = {0.0f, 0.0f, 0.0f};
@@ -22,6 +23,8 @@ void TitleScene::Initialize(GameManager* manager) {
 }
 
 void TitleScene::Finalize() {
+	// スカイドーム終了処理
+	sky_.Finalize();
 	delete titleModel_;
 	titleModel_ = nullptr;
 }
@@ -32,6 +35,9 @@ void TitleScene::Update() {
 		manager_->RequestChangeScene(SceneType::Game);
 		return;
 	}
+
+	// スカイドーム更新（カメラに追従させる）
+	sky_.Update(camera_);
 
 	// ちょい演出：回転
 	rotY_ += 0.01f;
@@ -47,6 +53,10 @@ void TitleScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
 	Model::PreDraw(dxCommon->GetCommandList());
+
+	// 3D描画
+	// スカイドームを最初に描画（背景）
+	sky_.Draw(camera_);
 	if (titleModel_) {
 		titleModel_->Draw(titleWT_, camera_);
 	}
