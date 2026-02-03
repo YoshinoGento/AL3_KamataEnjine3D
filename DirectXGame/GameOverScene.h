@@ -2,6 +2,7 @@
 #include "GameManager.h"
 #include "IScene.h"
 #include "KamataEngine.h"
+#include "SkyDome.h" // 追加
 
 using namespace KamataEngine;
 
@@ -14,6 +15,9 @@ public:
 
 private:
 	GameManager* manager_ = nullptr;
+
+	// ゲームオーバー画面用のスカイドーム
+	SkyDome sky_;
 
 	// ===== OBJ UI方式（ClearSceneと同じ） =====
 	Camera camera_;

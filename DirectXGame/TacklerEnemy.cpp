@@ -2,13 +2,12 @@
 #include "MatrixMath.h"
 
 void TacklerEnemy::Initialize(Model* model, Camera* camera, const Vector3& position) {
-
 	Enemy::Initialize(model, camera, position);
 
 	// 最初は前向き
 	moveDir_ = {0, 0, 1};
 
-	spawnPos_ = position; // ★追加：消える判定用
+	spawnPos_ = position;
 
 	lockedOn_ = false;
 	passedPlayer_ = false;
@@ -20,7 +19,7 @@ void TacklerEnemy::Update(const Vector3& playerPos) {
 
 	// ① 最初の1回だけ、突進方向をプレイヤーへ固定
 	if (!lockedOn_) {
-		moveDir_ = Normalized(playerPos - worldTransform_.translation_);
+		moveDir_ = Normalized(playerPos - basePos_); // ★修正：basePos_基準
 		lockedOn_ = true;
 	}
 	// ② 追尾を少しだけ残したいなら（超弱）
@@ -29,15 +28,19 @@ void TacklerEnemy::Update(const Vector3& playerPos) {
 		homingTimer_ += dt;
 
 		if (homingTimer_ <= homingTime_) {
-			Vector3 targetDir = Normalized(playerPos - worldTransform_.translation_);
+			Vector3 targetDir = Normalized(playerPos - basePos_); // ★修正
 			moveDir_ = Normalized(moveDir_ + (targetDir - moveDir_) * homingPower_);
 		}
 	}
 
 	// ③ 移動（突進）
-	worldTransform_.translation_ += moveDir_ * speed_;
+	// ★修正：見た目ではなく「本来の座標」を動かす
+	basePos_ += moveDir_ * speed_;
 
-
+	// ==================================================
+	// ★親クラス更新（ここで basePos_ + 演出 = worldTransform_ が計算される）
+	// ==================================================
+	Enemy::Update(playerPos);
 
 	// ④ 向き（進行方向へ）
 	worldTransform_.rotation_ = LookRotation(moveDir_);
@@ -51,39 +54,22 @@ void TacklerEnemy::Update(const Vector3& playerPos) {
 	// =========================
 	// ⑤ 通り過ぎ判定
 	// =========================
-	Vector3 toPlayer = playerPos - worldTransform_.translation_;
+	Vector3 toPlayer = playerPos - basePos_; // ★修正
 	float forward = Dot(moveDir_, toPlayer);
 
 	// forward < 0 になったら「プレイヤーが後ろに回った」＝通り過ぎ
 	if (!passedPlayer_ && forward < 0.0f) {
 		passedPlayer_ = true;
-		spawnPos_ = worldTransform_.translation_; // ★ここを基準にして「あと少し進んだら消す」
+		spawnPos_ = basePos_; // ★修正
 	}
 
-	// 通り過ぎた後、少し進んだら消える
-	if (passedPlayer_) {
-		float after = Length(worldTransform_.translation_ - spawnPos_);
-		if (after > despawnAfterPass_) {
-			isDead_ = true;
-		}
-	}
+	// ⑥ 消滅判定
+	float dist = Length(basePos_ - spawnPos_); // ★修正
+	float limit = passedPlayer_ ? despawnAfterPass_ : maxTravelDistance_;
 
-	// ⑥ 保険：通り過ぎる前だけ行き過ぎチェック（spawnPos_ を上書きするため）
-	if (!passedPlayer_) {
-		float traveled = Length(worldTransform_.translation_ - spawnPos_);
-		if (traveled > maxTravelDistance_) {
-			isDead_ = true;
-		}
+	if (dist > limit) {
+		isDead_ = true;
 	}
 }
 
-
-
-
-void TacklerEnemy::Draw3D() {
-	if (!model_ || !camera_) {
-		return;
-	}
-
-	model_->Draw(worldTransform_, *camera_);
-}
+void TacklerEnemy::Draw3D() { Enemy::Draw3D(); }

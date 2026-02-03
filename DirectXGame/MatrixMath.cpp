@@ -423,6 +423,18 @@ float Clamp(float v, float mn, float mx) {
 	return v;
 }
 
+Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2) {
+	Matrix4x4 result;
+	for (int i = 0; i < 4; i++) {
+		for (int j = 0; j < 4; j++) {
+			result.m[i][j] = 0;
+			for (int k = 0; k < 4; k++) {
+				result.m[i][j] += m1.m[i][k] * m2.m[k][j];
+			}
+		}
+	}
+	return result;
+}
 // Vector3 GetEulerFromMatrix(const Matrix4x4& m) {
 //	Vector3 rot;
 //	rot.y = std::asin(-m.m[2][0]);

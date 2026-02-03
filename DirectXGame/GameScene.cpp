@@ -3,7 +3,6 @@
 #include <cstdlib>
 #include <ctime>
 
-
 void GameScene::Initialize(GameManager* manager) {
 	manager_ = manager;
 
@@ -21,7 +20,24 @@ void GameScene::Initialize(GameManager* manager) {
 
 	sky_.Initialize("FaceSkySphere", 3.0f);
 
-	// --- 以下は今まで通り ---
+	SpawnDirector::Settings spawn;
+	spawn.minEnemyDist = 3.0f;
+	spawn.minPlayerDist = 12.0f;
+	spawn.spawnMinR = 15.0f;
+	spawn.spawnMaxR = 30.0f;
+	spawn.maxRetry = 50;
+
+	spawn.nearSearchRadius = 6.0f;
+	spawn.nearSearchTry = 30;
+
+	spawner_.Initialize(spawn);
+
+	
+	// ★追加：初期化（画像の読み込みなどが行われます）
+	tutorialUI_.Initialize();
+
+	
+
 	uint32_t lockonTexture = TextureManager::Load("lockon_br.png");
 
 	camera_.Initialize();
@@ -47,8 +63,7 @@ void GameScene::Initialize(GameManager* manager) {
 	wavePhase_ = WavePhase::Fighting;
 	waveWaitTimer_ = 0.0f;
 
-
-	 // ===== 音：ロード =====
+	// ===== 音：ロード =====
 	Audio* audio = Audio::GetInstance();
 
 	bgmGame_ = audio->LoadWave("game_bgm.wav");
@@ -59,29 +74,22 @@ void GameScene::Initialize(GameManager* manager) {
 	// ===== 音：BGM再生（ループ）=====
 	bgmVoice_ = audio->PlayWave(bgmGame_, true, 0.03f); // 0.3は好みでOK
 
-
-
 	player_->SetShotSE(seShot_);
 	player_->SetMissileSE(seShot_); // ミサイルも同じ音でいいなら一旦これ
 
 	isPaused_ = false;
 	pause_.Initialize(&camera_);
 	pause_.Close();
-
-
 }
-
 
 void GameScene::Finalize() {
 	sky_.Finalize(); // ★追加
-	Cleanup(); 
-
+	Cleanup();
 }
 
 void GameScene::Cleanup() {
 
-	
-    // ===== 音：BGM停止 =====
+	// ===== 音：BGM停止 =====
 	// ★BGM停止（シーンを抜けるときに必ず止める）
 	Audio* audio = Audio::GetInstance();
 	audio->StopWave(bgmVoice_);
@@ -112,6 +120,85 @@ void GameScene::Cleanup() {
 	enemyBulletModel_ = nullptr;
 }
 
+void GameScene::ApplyEnemySeparation(float dt) {
+
+	// ==== 調整しやすいパラメータ ====
+	const float desiredDist = 3.0f; // これより近いと押し戻す
+	const float pushPower = 10.0f;  // 基本の強さ（大きいほど散る）
+
+	// タイプ別倍率（ここが肝）
+	const float kTacklerMul = 0.25f; // タックラーは弱め
+	const float kTurretMul = 0.15f;  // 砲台はもっと弱め
+
+	const int n = (int)enemies_.size();
+	if (n <= 1)
+		return;
+
+	for (int i = 0; i < n; ++i) {
+		Enemy* a = enemies_[i];
+		if (!a || a->IsDead())
+			continue;
+
+		// --- 型判定 ---
+		TacklerEnemy* tacklerA = dynamic_cast<TacklerEnemy*>(a);
+		BarrageTurretEnemy* turretA = dynamic_cast<BarrageTurretEnemy*>(a);
+
+		// Shooterは倍率1.0なので判定不要
+		float mulA = 1.0f;
+		if (tacklerA)
+			mulA = kTacklerMul;
+		if (turretA)
+			mulA = kTurretMul;
+
+		// NULLチェック追加
+		Vector3 aPos{};
+		if (a) {
+			aPos = a->GetWorldPosition();
+		} else {
+			continue; // 念のため
+		}
+		Vector3 push{0, 0, 0};
+
+		for (int j = 0; j < n; ++j) {
+			if (i == j)
+				continue;
+
+			Enemy* b = enemies_[j];
+			if (!b || b->IsDead())
+				continue;
+
+			Vector3 bPos = b->GetWorldPosition();
+			Vector3 diff = aPos - bPos;
+
+			float dist = Length(diff);
+			if (dist < 1e-5f) {
+				diff = {0.01f * float(i + 1), 0.0f, 0.01f * float(j + 1)};
+				dist = Length(diff);
+			}
+
+			if (dist < desiredDist) {
+				float t = 1.0f - (dist / desiredDist);
+				push += Normalized(diff) * (t * t);
+			}
+		}
+
+		if (Length(push) < 1e-5f)
+			continue;
+
+		Vector3 delta = push * (pushPower * mulA * dt);
+
+		// Z方向は崩れやすいのでカット
+		delta.z = 0.0f;
+
+		Vector3 newPos = aPos + delta;
+
+		// 砲台はZ固定絶対
+		if (turretA)
+			newPos.z = aPos.z;
+
+		a->SetWorldPosition(newPos);
+	}
+}
 
 void GameScene::Update() {
 	const float dt = 1.0f / 60.0f;
@@ -147,7 +234,15 @@ void GameScene::Update() {
 	// ====== 通常更新 ======
 	player_->Update();
 
+	if (player_) {
+		player_->Update();
+
+		// ★追加：更新処理（プレイヤーの位置とカメラを渡して透明度を計算）
+		tutorialUI_.Update(player_->GetWorldPosition(), camera_);
+	}
+
 	UpdateEnemies();
+	ApplyEnemySeparation(dt);
 	ResolveCollisions();
 	RemoveDeadEnemies();
 	UpdateWaves(dt);
@@ -192,6 +287,9 @@ void GameScene::UpdatePause() {
 void GameScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
+	// コマンドリストの取得
+	//ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
+
 	// 3D
 	Model::PreDraw(dxCommon->GetCommandList());
 	sky_.Draw(camera_); // ★天球
@@ -208,14 +306,19 @@ void GameScene::Draw() {
 
 	Model::PostDraw();
 
-
 	// 2D（ロックオンUIなど）
 	Sprite::PreDraw(dxCommon->GetCommandList());
-	if (player_)
+	if (player_) {
 		player_->Draw2D();
+	}
+	tutorialUI_.Draw();
 	Sprite::PostDraw();
 }
 
+Vector3 GameScene::GetSafeSpawnPos() {
+	Vector3 playerPos = player_->GetWorldPosition();
+	return spawner_.GetSpawnPosRandomRing(playerPos, enemies_);
+}
 
 void GameScene::UpdateEnemies() {
 	for (Enemy* e : enemies_) {
@@ -346,24 +449,69 @@ void GameScene::UpdateWaves(float dt) {
 
 // ===== Spawn =====
 void GameScene::SpawnTacklerEnemy(const Vector3& pos) {
+
+	Vector3 playerPos = player_->GetWorldPosition();
+
+	Vector3 finalPos{};
+	if (!spawner_.FindNearestSafePos(pos, playerPos, enemies_, finalPos)) {
+		// pos付近が無理ならリングスポーン
+		finalPos = spawner_.GetSpawnPosRandomRing(playerPos, enemies_);
+	}
+
 	Enemy* enemy = new TacklerEnemy();
-	enemy->Initialize(tacklerModel_, &camera_, pos); // ★ここが違う
+	enemy->Initialize(tacklerModel_, &camera_, finalPos);
 	enemies_.push_back(enemy);
 }
 
 void GameScene::SpawnShooterEnemy(const Vector3& pos) {
-	ShooterEnemy* SshooterEnemy = new ShooterEnemy();
-	SshooterEnemy->SetBulletModel(enemyBulletModel_);
-	SshooterEnemy->Initialize(shooterModel_, &camera_, pos);
-	enemies_.push_back(SshooterEnemy);
+
+	Vector3 playerPos = player_->GetWorldPosition();
+
+	// 台本pos → 安全にズラす
+	Vector3 finalPos{};
+	if (!spawner_.FindNearestSafePos(pos, playerPos, enemies_, finalPos)) {
+		finalPos = spawner_.GetSpawnPosRandomRing(playerPos, enemies_);
+	}
+
+	ShooterEnemy* enemy = new ShooterEnemy();
+	enemy->Initialize(shooterModel_, &camera_, finalPos);
+
+	// ★超重要：Shooterの弾モデルを設定する
+	enemy->SetBulletModel(enemyBulletModel_);
+
+	enemies_.push_back(enemy);
 }
 
-
 void GameScene::SpawnTurretEnemy(const Vector3& pos) {
-	auto* e = new BarrageTurretEnemy();
-	e->SetBulletModel(enemyBulletModel_);       // ★先にSet
-	e->Initialize(turretModel_, &camera_, pos); // ★後でInitialize
-	enemies_.push_back(e);
+
+	Vector3 playerPos = player_->GetWorldPosition();
+
+	// ★砲台は最低距離を強めにする（おすすめ）
+	const float turretMinDist = 300.0f;
+
+	Vector3 finalPos{};
+	bool ok = spawner_.FindNearestSafePos(pos, playerPos, enemies_, finalPos);
+
+	// 近すぎたら台本位置は不採用にする
+	if (ok) {
+		float d = Length(finalPos - playerPos);
+		if (d < turretMinDist) {
+			ok = false;
+		}
+	}
+
+	if (!ok) {
+		// 砲台は遠距離に出したいのでリングへ
+		finalPos = spawner_.GetSpawnPosFrontRing(playerPos, enemies_);
+	}
+
+	BarrageTurretEnemy* enemy = new BarrageTurretEnemy();
+	enemy->Initialize(turretModel_, &camera_, finalPos);
+
+	// ★超重要：Turretの弾モデルを設定する
+	enemy->SetBulletModel(enemyBulletModel_);
+
+	enemies_.push_back(enemy);
 }
 
 bool GameScene::HitSphere(const Vector3& aPos, float aR, const Vector3& bPos, float bR) {

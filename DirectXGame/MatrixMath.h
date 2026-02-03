@@ -123,3 +123,6 @@ Vector3 LookRotation(const Vector3& direction);
 Matrix4x4 MakeLookRotation(const Vector3& forward, const Vector3& up = {0, 1, 0});
 
 float Clamp(float v, float mn, float mx);
+
+// 行列の積
+Matrix4x4 Multiply(const Matrix4x4& m1, const Matrix4x4& m2);

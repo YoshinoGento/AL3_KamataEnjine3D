@@ -3,6 +3,7 @@
 #include "GameManager.h"
 #include "IScene.h"
 #include "KamataEngine.h"
+#include "SkyDome.h" // 追加
 using namespace KamataEngine;
 
 class ClearScene : public IScene {
@@ -14,7 +15,7 @@ public:
 
 private:
 	GameManager* manager_ = nullptr;
-
+	SkyDome sky_;
 	Camera camera_;
 	Model* quadModel_ = nullptr;
 	WorldTransform wt_{};
