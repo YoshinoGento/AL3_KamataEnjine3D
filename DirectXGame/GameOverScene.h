@@ -20,10 +20,14 @@ private:
 	SkyDome sky_;
 
 	// ===== OBJ UI方式（ClearSceneと同じ） =====
+	// ★変更：専用モデルを使う
 	Camera camera_;
-	Model* quadModel_ = nullptr;
+	Model* gameOverModel_ = nullptr;
 	WorldTransform wt_{};
-	uint32_t texGameOver_ = 0;
 
 	float anim_ = 0.0f; // 演出（不要なら消してOK）
+
+	// ★BGM用変数
+	uint32_t bgmHandle_ = 0;
+	uint32_t playHandle_ = 0;
 };

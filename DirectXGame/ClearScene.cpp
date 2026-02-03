@@ -8,8 +8,8 @@ void ClearScene::Initialize(GameManager* manager) {
 	// スカイドーム初期化（GameSceneと同じモデルを使う）
 	sky_.Initialize("FaceSkySphere", 3.0f);
 
-	quadModel_ = Model::CreateFromOBJ("ui_quad");
-	texClear_ = TextureManager::Load("clear.png");
+	// ★変更："clear.obj" を読み込む
+	clearModel_ = Model::CreateFromOBJ("clear");
 
 	camera_.Initialize();
 	camera_.translation_ = {0.0f, 0.0f, -10.0f};
@@ -17,6 +17,10 @@ void ClearScene::Initialize(GameManager* manager) {
 
 	wt_.Initialize();
 	SetupTransform_();
+
+	// ★クリアBGM読み込み＆再生
+	bgmHandle_ = Audio::GetInstance()->LoadWave("clear_bgm.wav");
+	playHandle_ = Audio::GetInstance()->PlayWave(bgmHandle_, true, 0.03f);
 }
 
 void ClearScene::SetupTransform_() {
@@ -35,7 +39,13 @@ void ClearScene::Finalize() {
 	// ※もし Model がエンジン管理なら delete しない方が安全な場合がある
 	// いったん他と合わせるならそのままでOK
 	// delete quadModel_;
-	quadModel_ = nullptr;
+
+	// ★BGM停止
+	Audio::GetInstance()->StopWave(playHandle_);
+
+	// モデル解放
+	delete clearModel_;
+	clearModel_ = nullptr;
 
 	// スカイドーム終了処理
 	sky_.Finalize();
@@ -51,14 +61,17 @@ void ClearScene::Update() {
 }
 
 void ClearScene::Draw() {
-	if (!quadModel_)
-		return;
+	
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	Model::PreDraw(dxCommon->GetCommandList());
 	// 3D描画
 	// スカイドームを最初に描画
 	sky_.Draw(camera_);
-	quadModel_->Draw(wt_, camera_, texClear_);
+
+	// ★変更：3Dモデルとして描画
+	if (clearModel_) {
+		clearModel_->Draw(wt_, camera_);
+	}
 	Model::PostDraw();
 }

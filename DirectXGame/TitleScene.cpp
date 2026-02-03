@@ -20,9 +20,20 @@ void TitleScene::Initialize(GameManager* manager) {
 	camera_.UpdateMatrix();
 
 	rotY_ = 0.0f;
+
+	// ★BGM読み込み＆再生（シングルトン経由）
+	// LoadWaveなので .wav ファイルを用意してください
+	bgmHandle_ = Audio::GetInstance()->LoadWave("title_bgm.wav");
+
+	// ループ再生(true)、音量は0.5fくらい
+	playHandle_ = Audio::GetInstance()->PlayWave(bgmHandle_, true, 0.03f);
 }
 
 void TitleScene::Finalize() {
+
+	// ★BGM停止
+	Audio::GetInstance()->StopWave(playHandle_);
+
 	// スカイドーム終了処理
 	sky_.Finalize();
 	delete titleModel_;
