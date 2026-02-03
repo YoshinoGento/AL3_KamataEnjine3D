@@ -24,4 +24,8 @@ private:
 	Camera camera_;
 
 	float rotY_ = 0.0f; // ちょい演出（回転）
+
+	// ★BGM用変数
+	uint32_t bgmHandle_ = 0;  // データハンドル
+	uint32_t playHandle_ = 0; // 再生中ハンドル
 };

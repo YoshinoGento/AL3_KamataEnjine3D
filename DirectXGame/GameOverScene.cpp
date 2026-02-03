@@ -5,13 +5,13 @@
 using namespace KamataEngine;
 
 void GameOverScene::Initialize(GameManager* manager) {
-	manager_ = manager;
+	manager_ = manager; // 未使用警告(C4100)対策でメンバに代入
 
 	// スカイドーム初期化（GameSceneと同じモデルを使う）
 	sky_.Initialize("FaceSkySphere", 3.0f);
 
-	quadModel_ = Model::CreateFromOBJ("ui_quad");
-	texGameOver_ = TextureManager::Load("gameover.png"); // ★ここ用意してね
+	// ★変更："gameover.obj" を読み込む
+	gameOverModel_ = Model::CreateFromOBJ("gameover");
 
 	camera_.Initialize();
 	camera_.translation_ = {0.0f, 0.0f, -10.0f};
@@ -30,14 +30,23 @@ void GameOverScene::Initialize(GameManager* manager) {
 	wt_.TransferMatrix();
 
 	anim_ = 0.0f;
+
+	// ★ゲームオーバーBGM読み込み＆再生
+	bgmHandle_ = Audio::GetInstance()->LoadWave("gameover_bgm.wav");
+	playHandle_ = Audio::GetInstance()->PlayWave(bgmHandle_, true, 0.03f);
 }
 
 void GameOverScene::Finalize() {
 
+	// ★BGM停止
+	Audio::GetInstance()->StopWave(playHandle_);
+
 	// スカイドーム終了処理
 	sky_.Finalize();
-	delete quadModel_;
-	quadModel_ = nullptr;
+	
+	// モデル解放
+	delete gameOverModel_;
+	gameOverModel_ = nullptr;
 }
 
 void GameOverScene::Update() {
@@ -58,15 +67,17 @@ void GameOverScene::Update() {
 }
 
 void GameOverScene::Draw() {
-	if (!quadModel_) {
-		return;
-	}
+
 
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 	Model::PreDraw(dxCommon->GetCommandList());
 	// 3D描画
 	// スカイドームを最初に描画
 	sky_.Draw(camera_);
-	quadModel_->Draw(wt_, camera_, texGameOver_);
+	// ★変更：3Dモデルとして描画
+	if (gameOverModel_) {
+		gameOverModel_->Draw(wt_, camera_);
+	}
+
 	Model::PostDraw();
 }

@@ -17,9 +17,15 @@ private:
 	GameManager* manager_ = nullptr;
 	SkyDome sky_;
 	Camera camera_;
-	Model* quadModel_ = nullptr;
+	// ★変更：板ポリ+画像ではなく、専用モデルを使う
+	Model* clearModel_ = nullptr;
 	WorldTransform wt_{};
 	uint32_t texClear_ = 0;
+	// ★BGM用変数
+	uint32_t bgmHandle_ = 0;
+	uint32_t playHandle_ = 0;
+
+
 
 private:
 	void SetupTransform_();
