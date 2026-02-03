@@ -126,6 +126,7 @@
     <ClCompile Include="SpawnDirector.cpp" />
     <ClCompile Include="TacklerEnemy.cpp" />
     <ClCompile Include="TitleScene.cpp" />
+    <ClCompile Include="TutorialUI.cpp" />
     <ClCompile Include="WaveManager.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -223,6 +224,7 @@
     <ClInclude Include="SpawnDirector.h" />
     <ClInclude Include="TacklerEnemy.h" />
     <ClInclude Include="TitleScene.h" />
+    <ClInclude Include="TutorialUI.h" />
     <ClInclude Include="WaveManager.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

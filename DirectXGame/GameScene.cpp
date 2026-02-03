@@ -32,6 +32,12 @@ void GameScene::Initialize(GameManager* manager) {
 
 	spawner_.Initialize(spawn);
 
+	
+	// ★追加：初期化（画像の読み込みなどが行われます）
+	tutorialUI_.Initialize();
+
+	
+
 	uint32_t lockonTexture = TextureManager::Load("lockon_br.png");
 
 	camera_.Initialize();
@@ -144,7 +150,13 @@ void GameScene::ApplyEnemySeparation(float dt) {
 		if (turretA)
 			mulA = kTurretMul;
 
-		Vector3 aPos = a->GetWorldPosition();
+		// NULLチェック追加
+		Vector3 aPos{};
+		if (a) {
+			aPos = a->GetWorldPosition();
+		} else {
+			continue; // 念のため
+		}
 		Vector3 push{0, 0, 0};
 
 		for (int j = 0; j < n; ++j) {
@@ -222,6 +234,13 @@ void GameScene::Update() {
 	// ====== 通常更新 ======
 	player_->Update();
 
+	if (player_) {
+		player_->Update();
+
+		// ★追加：更新処理（プレイヤーの位置とカメラを渡して透明度を計算）
+		tutorialUI_.Update(player_->GetWorldPosition(), camera_);
+	}
+
 	UpdateEnemies();
 	ApplyEnemySeparation(dt);
 	ResolveCollisions();
@@ -268,6 +287,9 @@ void GameScene::UpdatePause() {
 void GameScene::Draw() {
 	DirectXCommon* dxCommon = DirectXCommon::GetInstance();
 
+	// コマンドリストの取得
+	//ID3D12GraphicsCommandList* commandList = DirectXCommon::GetInstance()->GetCommandList();
+
 	// 3D
 	Model::PreDraw(dxCommon->GetCommandList());
 	sky_.Draw(camera_); // ★天球
@@ -286,8 +308,10 @@ void GameScene::Draw() {
 
 	// 2D（ロックオンUIなど）
 	Sprite::PreDraw(dxCommon->GetCommandList());
-	if (player_)
+	if (player_) {
 		player_->Draw2D();
+	}
+	tutorialUI_.Draw();
 	Sprite::PostDraw();
 }
 

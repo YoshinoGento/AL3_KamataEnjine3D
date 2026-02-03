@@ -14,6 +14,7 @@
 #include "SpawnDirector.h"
 #include "TacklerEnemy.h"
 #include "WaveManager.h"
+#include "TutorialUI.h"
 
 using namespace KamataEngine;
 
@@ -61,6 +62,9 @@ private:
 	// ===== Wave管理 =====
 	WaveManager waveManager_;
 	int currentWaveIndex_ = 0;
+
+	// ★追加：チュートリアルUIの変数
+	TutorialUI tutorialUI_;
 
 	enum class WavePhase { Fighting, Waiting, Clear };
 	WavePhase wavePhase_ = WavePhase::Fighting;
