@@ -72,7 +72,7 @@ void GameScene::Initialize(GameManager* manager) {
 	sePauseOpen_ = audio->LoadWave("pause.wav");
 
 	// ===== 音：BGM再生（ループ）=====
-	bgmVoice_ = audio->PlayWave(bgmGame_, true, 0.03f); // 0.3は好みでOK
+	bgmVoice_ = audio->PlayWave(bgmGame_, true, 0.05f); // 0.3は好みでOK
 
 	player_->SetShotSE(seShot_);
 	player_->SetMissileSE(seShot_); // ミサイルも同じ音でいいなら一旦これ
